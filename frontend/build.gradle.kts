@@ -1,8 +1,9 @@
-tasks.register<Exec>("buildReactApp") {
-    doFirst {
-        logger.lifecycle("Success on buildReactApp!")
-    }
-    outputs.dir("build")
-    workingDir = project.file("../frontend")
-    commandLine("cmd.exe", "/C", "npm.cmd run build")
+import com.github.gradle.node.npm.task.NpmTask
+
+plugins {
+    id("com.github.node-gradle.node") version "5.0.0"
+}
+
+tasks.register<NpmTask>("buildReactApp") {
+    args.set(listOf("run", "build"))
 }
