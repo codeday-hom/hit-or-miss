@@ -3,4 +3,5 @@ pluginManagement {
 }
 
 include("frontend")
-include("server")
+include("webserver")
+
