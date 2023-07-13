@@ -1,0 +1,7 @@
+# webserver
+
+## Package
+```
+./gradlew distZip
+```
+
