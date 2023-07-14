@@ -22,7 +22,7 @@ dependencies {
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-server-jetty")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
-
+    implementation("commons-codec:commons-codec:1.15")
     testImplementation(platform("org.junit:junit-bom:5.7.2"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
