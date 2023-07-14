@@ -1,1 +1,1 @@
-include(":hello")
+rootProject.name = "plugins"

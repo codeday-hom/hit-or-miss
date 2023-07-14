@@ -1,2 +1,11 @@
-.idea
-.gradle
+.idea/
+*.iml
+.gradle/
+build/
+.DS_Store
+classes/
+/site/
+out/
+store/
+target/
+node_modules/
