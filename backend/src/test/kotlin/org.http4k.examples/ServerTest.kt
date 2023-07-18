@@ -9,19 +9,22 @@ import org.junit.jupiter.api.Test
 
 class ServerTest {
 
-    private val testApiHandler = { req: Request -> Response(Status.OK).body("Api!") }
+    private val testApiResponse = Response(Status.OK).body("Api!")
+    private val testApiHandler = { _: Request -> testApiResponse }
     private val app = handler("src/test/resources/test-frontend-assets/", testApiHandler)
 
     @Test
     fun `responds to api requests`() {
-        assertEquals(Response(Status.OK).body("Api!"), app(Request(Method.GET, "/api/foo")))
-        assertEquals(Response(Status.OK).body("Api!"), app(Request(Method.GET, "/api/something/else")))
+        assertEquals(testApiResponse, get("/api/foo"))
+        assertEquals(testApiResponse, get("/api/something/else"))
     }
 
     @Test
     fun `serves files`() {
-        assertEquals(Status.OK, app(Request(Method.GET, "/")).status)
-        assertEquals(Status.OK, app(Request(Method.GET, "/game/123/lobby")).status)
-        assertEquals(Status.OK, app(Request(Method.GET, "/anything")).status)
+        assertEquals(Status.OK, get("/").status)
+        assertEquals(Status.OK, get("/game/123/lobby").status)
+        assertEquals(Status.OK, get("/anything").status)
     }
+
+    private fun get(path: String) = app(Request(Method.GET, path))
 }
