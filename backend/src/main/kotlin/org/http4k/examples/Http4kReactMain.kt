@@ -1,8 +1,14 @@
 package org.http4k.examples
 
-import org.http4k.core.*
-import org.http4k.routing.*
+import org.http4k.core.HttpHandler
+import org.http4k.core.Request
+import org.http4k.core.Response
+import org.http4k.core.Status
 import org.http4k.routing.ResourceLoader.Companion.Directory
+import org.http4k.routing.RoutingHttpHandler
+import org.http4k.routing.bind
+import org.http4k.routing.routes
+import org.http4k.routing.singlePageApp
 import org.http4k.server.Jetty
 import org.http4k.server.asServer
 
