@@ -1,19 +1,26 @@
 package org.http4k.examples
 
-import org.http4k.routing.ResourceLoader
-import org.http4k.routing.bind
-import org.http4k.routing.routes
-import org.http4k.routing.static
+import org.http4k.core.*
+import org.http4k.routing.*
+import org.http4k.routing.ResourceLoader.Companion.Directory
 import org.http4k.server.Jetty
 import org.http4k.server.asServer
 
-fun main() {
-    val app = routes(
-        "/" bind static(ResourceLoader.Companion.Directory("../frontend/build/"))
+fun apiHandler(req: Request): Response {
+    return Response(Status.OK)
+}
+
+fun handler(assetsPath: String, apiHandler: HttpHandler): RoutingHttpHandler {
+    return routes(
+        "/api/{rest:.*}" bind apiHandler,
+        singlePageApp(Directory(assetsPath))
     )
+}
 
-    val server = app.asServer(Jetty(8080)).start()
-
-    println("Server started on http://localhost:" + server.port())
+fun main() {
+    val frontendBuild = "../frontend/build/"
+    val server = handler(frontendBuild, ::apiHandler).asServer(Jetty(8080)).start()
+    val localAddress = "http://localhost:" + server.port()
+    println("Server started on $localAddress")
 }
 
