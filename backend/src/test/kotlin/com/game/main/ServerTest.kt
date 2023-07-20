@@ -10,8 +10,9 @@ import org.junit.jupiter.api.Test
 class ServerTest {
 
     private val testApiResponse = Response(Status.OK).body("Api!")
+    private val testLobbyHandler = { _: Request -> Response(Status.OK) }
     private val testApiHandler = { _: Request -> testApiResponse }
-    private val app = gameServerHandler("src/test/resources/test-frontend-assets/", testApiHandler)
+    private val app = gameServerHandler("src/test/resources/test-frontend-assets/", testLobbyHandler, testApiHandler)
 
     @Test
     fun `responds to api requests`() {
