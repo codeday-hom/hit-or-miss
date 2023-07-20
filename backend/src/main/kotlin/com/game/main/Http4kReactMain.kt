@@ -1,50 +1,73 @@
 package com.game.main
 
-import com.game.services.GameService
 import com.game.repository.GameRepository
-import org.http4k.server.Jetty
-import org.http4k.server.asServer
-import org.http4k.core.cookie.*
-import org.http4k.core.Request
-import org.http4k.core.Response
-import org.http4k.core.Status
-import org.http4k.core.HttpHandler
-import org.http4k.routing.ResourceLoader
+import com.game.services.GameService
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import org.http4k.core.*
+import org.http4k.core.Status.Companion.OK
+import org.http4k.core.cookie.Cookie
+import org.http4k.core.cookie.cookie
+import org.http4k.format.Jackson.auto
+import org.http4k.routing.ResourceLoader.Companion.Directory
 import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import org.http4k.routing.static
-import org.http4k.core.Method.POST
-import org.http4k.core.Status.Companion.OK
-import java.util.*
 import org.http4k.routing.singlePageApp
-import org.http4k.routing.ResourceLoader.Companion.Directory
-import org.http4k.filter.DebuggingFilters.PrintRequestAndResponse
-import org.http4k.routing.ResourceLoader.Companion.Classpath
-import org.http4k.core.then
-
-fun main() {
-
-    val frontendBuild = "../frontend/build/"
-    val server = gameServerHandler(frontendBuild, ::apiHandler).asServer(Jetty(8080)).start()
-    val localAddress = "http://localhost:" + server.port()
-    println("Server started on $localAddress")
-}
+import org.http4k.server.Jetty
+import org.http4k.server.asServer
 
 fun apiHandler(req: Request): Response {
-    return Response(Status.OK)
+    val gameId = GameService().createGame()
+    GameRepository.createGame(gameId, "", emptyList<String>());
+    return Response(OK).body(gameId).cookie(Cookie("game_id", gameId))
+//    return Response(Status.OK).body("Hello World!")
 }
 
-fun gameServerHandler(assetsPath: String, apiHandler: HttpHandler): RoutingHttpHandler {
+@Serializable
+data class LobbyData(val gameId: String, val userIds: List<String>)
+data class LobbyDataBack(val gameId: String, val hostId: String?, val userIds: List<String>?)
+
+fun lobbyHandler(req: Request): Response {
+//    println(req.bodyString())
+    val requestBody = req.bodyString()
+    val lobbyData = Json.decodeFromString<LobbyData>(requestBody)
+    val gameId = lobbyData.gameId
+    val userIds = lobbyData.userIds
+//    println("GameId: $gameId")
+//    println("UserIds: $userIds")
+    GameRepository.updateUserIds(gameId, userIds)
+//    val json = Json.encodeToString(LobbyDataBack(gameId, GameRepository.getHostId(gameId), GameRepository.getUserIds(gameId) ))
+
+    val bodyLens = Body.auto<LobbyDataBack>().toLens()
+    val lobbyDataBack = LobbyDataBack(gameId, GameRepository.getHostId(gameId), GameRepository.getUserIds(gameId))
+//    println(lobbyDataBack)
+
+    // Return the response with the JSON data in the body
+    return Response(Status.OK).with(bodyLens of lobbyDataBack)
+}
+
+fun gameServerHandler(assetsPath: String, lobbyHandler: HttpHandler, apiHandler: HttpHandler): RoutingHttpHandler {
     return routes(
+        "/game/{rest:.*}" bind lobbyHandler,
         "/api/{rest:.*}" bind apiHandler,
-        "/new-game" bind POST to { _: Request -> createNewGame()},
         singlePageApp(Directory(assetsPath))
     )
 }
 
-fun createNewGame(): Response {
-    val gameId = GameService().createGame()
-    return Response(OK).body(gameId).cookie(Cookie("game_host", gameId))
+
+fun main() {
+    val frontendBuild = "../frontend/build/"
+    val server = gameServerHandler(frontendBuild, ::lobbyHandler, ::apiHandler).asServer(Jetty(8080)).start()
+    val localAddress = "http://localhost:" + server.port()
+    println("Server started on $localAddress")
 }
 
+//fun createNewGame(): Response {
+//    val gameId = GameService().createGame()
+//    To be implemented
+//    val hostId = retrieveHostId(request)
+//    val hostId = "placeholder"
+//    GameRepository.createGame(gameId, hostId)
+//    return Response(OK).body(gameId)
+//}

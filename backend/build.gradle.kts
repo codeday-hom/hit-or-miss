@@ -1,6 +1,7 @@
 plugins {
     application
     kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
 }
 
 repositories {
@@ -23,6 +24,8 @@ dependencies {
     implementation("org.http4k:http4k-server-jetty")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
     implementation("commons-codec:commons-codec:1.15")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
+    implementation("org.http4k:http4k-format-jackson")
     testImplementation(platform("org.junit:junit-bom:5.7.2"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")

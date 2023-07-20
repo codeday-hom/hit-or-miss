@@ -1,16 +1,25 @@
 package com.game.repository
 
 import com.game.model.Game
-import org.http4k.core.cookie.Cookie
 
 object GameRepository {
     private val games = HashMap<String, Game>()
 
-    fun addGame(gameId: String, hostId: String) {
-        games[gameId] = Game(gameId, hostId)
+    fun createGame(gameId: String, hostId: String, userIds: List<String> = emptyList()) {
+        games[gameId] = Game(gameId, hostId, userIds)
     }
 
-    fun findGame(gameId: String): Game? {
-        return games[gameId]
+    fun getHostId(gameId: String): String? {
+        return games[gameId]?.hostId
+    }
+
+    fun updateUserIds(gameId: String, userList: List<String>) {
+        val hostId = userList.first()
+        val userIds = userList.toList()
+        createGame(gameId, hostId, userIds)
+    }
+
+    fun getUserIds(gameId: String): List<String>? {
+        return games[gameId]?.userIds
     }
 }

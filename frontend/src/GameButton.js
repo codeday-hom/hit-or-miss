@@ -1,25 +1,43 @@
-import React from 'react';
+import { useState } from 'react';
+import { useNavigate } from "react-router-dom";
 
-class GameButton extends React.Component {
-    createNewGame() {
-        fetch('http://localhost:8080/new-game', {
-            method: 'POST'
-        })
-            .then(response => response.text())
-            .then(gameId => {
-                // Redirect to the game lobby page
-                window.location.href = '/game/' + gameId + '/lobby';
-            })
-            .catch(error => console.error('Error:', error));
-    }
+export default function GameButton() {
+    const [gameId, setGameId] = useState(null);
+    const navigate = useNavigate();
 
-    render() {
-        return (
-            <button onClick={() => this.createNewGame()}>
-                Create New Game
-            </button>
-        );
-    }
+    const createNewGame = async () => {
+        try {
+          const response = await fetch('http://localhost:8080/api/new-game', {
+            method: 'POST',
+          });
+
+          if (response.ok) {
+            const gameId = await response.text();
+            setGameId(gameId);
+            navigate(`/game/${gameId}/lobby`);
+          } else {
+            console.log('Failed to create a new game.');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      };
+//    const createNewGame = async () => {
+//        const gameId =
+//             await fetch('http://localhost:8080/api/new-game', {
+//                method: 'POST',
+////                body: "HELLO SERVER",
+//                })
+//            .then(response => response.text())
+//            .catch(error => console.error('Error:', error));
+////        const gameId = 'foo';
+//        navigate(`/game/${gameId}/lobby`);
+//      };
+
+
+    return (
+        <div>
+           <button onClick={createNewGame}>Create New Game</button>
+        </div>
+    );
 }
-
-export default GameButton;
