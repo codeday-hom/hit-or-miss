@@ -1,4 +1,4 @@
-package org.http4k.utils
+package com.game.utils
 
 import org.apache.commons.codec.binary.Base32
 import java.util.Random

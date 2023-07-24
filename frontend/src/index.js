@@ -7,6 +7,18 @@ import {
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import Lobby from './Lobby'
+
+const router = createBrowserRouter([
+    {
+        path: "/",
+        element: <App/>,
+    },
+    {
+        path: "/game/:gameId/lobby",
+        element: <Lobby />
+    }
+]);
 
 const router = createBrowserRouter([
     {

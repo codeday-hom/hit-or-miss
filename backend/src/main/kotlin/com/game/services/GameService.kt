@@ -1,6 +1,6 @@
-package org.http4k.services
+package com.game.services
 
-import org.http4k.utils.IdGenerator
+import com.game.utils.IdGenerator
 
 class GameService {
 

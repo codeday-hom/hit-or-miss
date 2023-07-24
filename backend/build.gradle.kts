@@ -29,7 +29,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.http4k.examples.Http4kReactMainKt")
+    mainClass.set("com.game.main.Http4kReactMainKt")
 }
 
 tasks.named("run") {
