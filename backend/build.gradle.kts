@@ -22,6 +22,7 @@ dependencies {
     implementation(platform("org.http4k:http4k-bom:5.3.0.0"))
     implementation("org.http4k:http4k-core")
     implementation("org.http4k:http4k-server-jetty")
+    implementation("org.http4k:http4k-client-websocket")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0")
     implementation("commons-codec:commons-codec:1.15")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")

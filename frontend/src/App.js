@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import StartGameButton from './StartGameButton'
-import "./App.css";
+import './App.css';
 
 function App() {
     return (

@@ -7,7 +7,7 @@ export default function StartGameButton() {
 
     const createNewGame = async () => {
         try {
-          const response = await fetch('http://localhost:8080/api/new-game', {
+          const response = await fetch('http://localhost:8080/new-game', {
             method: 'POST',
           });
 

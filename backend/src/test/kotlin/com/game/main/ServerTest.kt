@@ -1,5 +1,7 @@
 package com.game.main
 
+import com.game.model.Game
+import com.game.repository.GameRepository
 import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -11,9 +13,8 @@ import org.junit.jupiter.api.Test
 class ServerTest {
 
     private val testApiResponse = Response(Status.OK).body("Api!")
-    private val testLobbyHandler = { _: Request -> Response(Status.OK) }
     private val testApiHandler = { _: Request -> testApiResponse }
-    private val app = gameServerHandler("src/test/resources/test-frontend-assets/", testLobbyHandler, testApiHandler)
+    private val app = gameServerHandler("src/test/resources/test-frontend-assets/", testApiHandler)
 
     @Test
     fun `responds to api requests`() {
@@ -54,6 +55,39 @@ class ServerTest {
         assertEquals(listOf("c", "b", "a"), myResponse.bar)
         assertEquals(105, myResponse.baz)
     }
+
+    @Test
+    fun `lobbyHandler return OK status`() {
+        val testRequest = Request(Method.POST, "/game/test").body("testRequestBody")
+        val response = lobbyHandler(testRequest)
+        assertEquals(Status.OK, response.status)
+    }
+
+    @Test
+    fun `lobbyHandler adds a new userId each time`() {
+        val gameId = "randomGameId"
+        val game = Game(gameId, "", mutableListOf())
+        GameRepository.createGame(gameId, game)
+
+        val requestBody = lobbyRequest(gameId)
+        val request = Request(Method.POST, "/game/$gameId/lobby")
+            .body(Jackson.asInputStream(requestBody))
+
+        lobbyHandler(request)
+        assert(GameRepository.getGame(gameId)!!.userIds.size == 1)
+        assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.userIds.first())
+
+        lobbyHandler(request)
+        assert(GameRepository.getGame(gameId)!!.userIds.size == 2)
+        assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.userIds.first())
+
+        lobbyHandler(request)
+        lobbyHandler(request)
+        lobbyHandler(request)
+        assert(GameRepository.getGame(gameId)!!.userIds.size == 5)
+        assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.userIds.first())
+    }
+
 
     private fun get(path: String) = app(Request(Method.GET, path))
 }

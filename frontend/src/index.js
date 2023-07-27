@@ -1,8 +1,10 @@
 import React from 'react';
+import ReactDOM from 'react-dom/client';
+import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import './index.css';
 import App from './App';
-import reportWebVitals from './reportWebVitals';
 import Lobby from './Lobby';
+import reportWebVitals from './reportWebVitals';
 
 const router = createBrowserRouter([
     {
@@ -11,7 +13,7 @@ const router = createBrowserRouter([
     },
     {
         path: "/game/:gameId/lobby",
-        element: <Lobby/>
+        element: <div><Lobby/></div>
     }
 ]);
 
