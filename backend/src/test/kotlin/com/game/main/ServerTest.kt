@@ -4,6 +4,7 @@ import org.http4k.core.Method
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status
+import org.http4k.format.Jackson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -25,6 +26,33 @@ class ServerTest {
         assertEquals(Status.OK, get("/").status)
         assertEquals(Status.OK, get("/game/123/lobby").status)
         assertEquals(Status.OK, get("/anything").status)
+    }
+
+    @Test
+    fun `json requests and responses`() {
+        data class MyRequest(val x: String, val l: List<String>, val i: Int)
+        data class MyResponse(val foo: String, val bar: List<String>, val baz: Int)
+        val handler = { request: Request ->
+            val requestBodyString = request.bodyString()
+            println("Request body: $requestBodyString")
+            val myRequest = Jackson.asA(requestBodyString, MyRequest::class)
+            val responseBody = MyResponse(myRequest.x.uppercase(), myRequest.l.reversed(), myRequest.i + 100)
+            Response(Status.OK).body(Jackson.asInputStream(responseBody))
+        }
+
+        val response = handler(
+            Request(Method.GET, "/whatever").body(
+                """{"x": "something", "l": ["a", "b", "c"], "i": 5 }"""
+            )
+        )
+
+        val responseBodyString = response.bodyString()
+        println("Response body: $responseBodyString")
+        val myResponse = Jackson.asA(responseBodyString, MyResponse::class)
+
+        assertEquals("SOMETHING", myResponse.foo)
+        assertEquals(listOf("c", "b", "a"), myResponse.bar)
+        assertEquals(105, myResponse.baz)
     }
 
     private fun get(path: String) = app(Request(Method.GET, path))
