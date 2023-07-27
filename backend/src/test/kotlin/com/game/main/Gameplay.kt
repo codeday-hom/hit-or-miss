@@ -25,9 +25,9 @@ class Gameplay(val host: Players) {
 
         fun result(player: Players, result: TurnResult) {
             println("${player.name} had ${if (result == TurnResult.HIT) "the word" else "no word"} for the category")
-  /*          if (result == TurnResult.HIT) {
-                player.addPoints()
-            }*/
+            if (result == TurnResult.HIT) {
+                player.addPlayerPoints(1)
+            }
         }
     }
 
