@@ -24,27 +24,28 @@ import org.http4k.routing.ResourceLoader.Companion.Classpath
 import org.http4k.core.then
 
 fun main() {
-
     val frontendBuild = "../frontend/build/"
-    val server = gameServerHandler(frontendBuild, ::apiHandler).asServer(Jetty(8080)).start()
+    val server = gameServerHandler(frontendBuild, apiHandler()).asServer(Jetty(8080)).start()
     val localAddress = "http://localhost:" + server.port()
     println("Server started on $localAddress")
 }
 
-fun apiHandler(req: Request): Response {
-    return Response(Status.OK)
-}
 
-fun gameServerHandler(assetsPath: String, apiHandler: HttpHandler): RoutingHttpHandler {
+fun apiHandler(): RoutingHttpHandler = routes(
+    "/new-game" bind POST to { _: Request -> createNewGame() }
+)
+
+
+fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): RoutingHttpHandler {
     return routes(
-        "/api/{rest:.*}" bind apiHandler,
-        "/new-game" bind POST to { _: Request -> createNewGame()},
+        "/api" bind apiHandler,
         singlePageApp(Directory(assetsPath))
     )
 }
 
 fun createNewGame(): Response {
     val gameId = GameService().createGame()
-    return Response(OK).body(gameId).cookie(Cookie("game_host", gameId))
+    return Response(Status.SEE_OTHER)
+        .header("Location", "/game/$gameId/lobby").cookie(Cookie("game_host", gameId, path = "/"))
 }
 

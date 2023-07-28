@@ -4,11 +4,11 @@ import Cookies from 'js-cookie';
 class Lobby extends Component {
     constructor(props) {
         super(props);
-        // this.state = { gameId: this.props.gameId };
     }
 
     isHost() {
         const hostGameId = Cookies.get('game_host');
+        console.log(hostGameId)
         const currentUrl = window.location.href;
         return hostGameId && currentUrl.includes("/game/" + hostGameId + "/lobby");
     }
