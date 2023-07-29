@@ -32,6 +32,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.7.2"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation("io.mockk:mockk:1.13.5")
 }
 
 application {
