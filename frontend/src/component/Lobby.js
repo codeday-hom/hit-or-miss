@@ -1,69 +1,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Cookies from "js-cookie";
-import useWebSocket from "react-use-websocket";
+import useGameWebSocket from "../hook/useGameWebSocket";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const [userId, setUserId] = useState("");
-  const [userIds, setUserIds] = useState([]);
   const { gameId } = useParams();
-  const WS_URL = `ws://localhost:8080/ws/game/${gameId}`;
-
-  //    const { sendMessage, lastMessage, readyState } = useWebSocket(WS_URL, {
-  //        onOpen: () => {
-  //          console.log('WebSocket connection established.');
-  //        }
-  const { sendMessage, lastMessage, readyState } = useWebSocket(WS_URL, {
-    onOpen: () => {
-      console.log("WebSocket connection established.");
-    },
-    onMessage: (event) => {
-      if (typeof event.data === "string") {
-        try {
-          const message = JSON.parse(event.data);
-          console.log("Received a message:", message);
-
-          if (message.type === "userJoined") {
-            setUserIds((prevUserIds) => {
-              // Only add new users that are not already in the list
-              const newUserIds = message.data.filter(
-                (id) => !prevUserIds.includes(id)
-              );
-              return [...prevUserIds, ...newUserIds];
-            });
-          }
-        } catch (e) {
-          console.log("Error parsing message:", e);
-        }
-      }
-    },
-
-    onSend: (data) => {
-      console.log("Sent a message:", data);
-    },
-  });
-
-  const handleSendWebSocketMessage = (message) => {
-    console.log("Attempting to send a message:", message);
-    sendMessage(message);
-  };
-  useEffect(() => {
-    handleSendWebSocketMessage("Hello from client!");
-  }, []);
-
-  useEffect(() => {
-    if (lastMessage !== null) {
-      const message = lastMessage.data;
-    }
-  }, [lastMessage, handleSendWebSocketMessage]);
-
-  //  const generateUserId = () => {
-  //    const randimals = require('randimals');
-  //    const randomAnimal = randimals().split(' ')[1];
-  //    const randomDigits = Math.floor(Math.random() * 900) + 100;
-  //    return randomAnimal + '-' + randomDigits;
-  //  };
+  const { userIds } = useGameWebSocket(gameId);
 
   const checkIfHost = () => {
     const hostGameId = Cookies.get("game_host");

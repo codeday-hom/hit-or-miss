@@ -1,6 +1,7 @@
 package com.game.repository
 
 import com.game.model.Game
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 object GameRepository {
@@ -14,21 +15,16 @@ object GameRepository {
         return games[gameId]
     }
 
-//    fun createGame(gameId: String, hostId: String, userIds: List<String> = emptyList()) {
-//        games[gameId] = Game(gameId, hostId, userIds)
-//    }
-//
-//    fun getHostId(gameId: String): String? {
-//        return games[gameId]?.hostId
-//    }
-//
-//    fun updateUserIds(gameId: String, userList: List<String>) {
-//        val hostId = userList.first()
-//        val userIds = userList.toList()
-//        createGame(gameId, hostId, userIds)
-//    }
-//
-//    fun getUserIds(gameId: String): List<String>? {
-//        return games[gameId]?.userIds
-//    }
+    fun addUserToGame(gameId: String): Game {
+        val game = getGame(gameId) ?: throw IllegalArgumentException("Game not found: $gameId")
+        val userId = UUID.randomUUID().toString()
+        if (game.hostId.isEmpty()) {
+            game.hostId = userId
+            game.userIds.add(userId)
+        } else {
+            game.userIds.add(userId)
+        }
+        createGame(gameId, game)
+        return game
+    }
 }
