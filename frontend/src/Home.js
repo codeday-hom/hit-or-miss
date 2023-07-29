@@ -1,4 +1,4 @@
-import GameButton from "./GameButton";
+import GameButton from "./component/GameButton";
 
 export default function Home() {
   return (

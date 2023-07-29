@@ -22,18 +22,6 @@ export default function StartGameButton() {
           console.error('Error:', error);
         }
       };
-//    const createNewGame = async () => {
-//        const gameId =
-//             await fetch('http://localhost:8080/api/new-game', {
-//                method: 'POST',
-////                body: "HELLO SERVER",
-//                })
-//            .then(response => response.text())
-//            .catch(error => console.error('Error:', error));
-////        const gameId = 'foo';
-//        navigate(`/game/${gameId}/lobby`);
-//      };
-
 
     return (
         <div>
