@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import GameButton from './GameButton'
+import StartGameButton from './StartGameButton'
 
 function App() {
     return (
@@ -18,7 +18,7 @@ function App() {
                 >
                     Learn React
                 </a>
-                <GameButton />
+                <StartGameButton />
             </header>
         </div>
     );
