@@ -18,13 +18,11 @@ class GameWebSocket {
                 val gameId = Path.of("gameId")(req)
                 wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
 
+                val users = GameRepository.getGame(gameId)!!.users
+                sendWsMessage(ws, "userJoined", users)
                 ws.onMessage {
                     println("Received a message: ${it.bodyString()}")
-                    val userIds = GameRepository.getGame(gameId)!!.userIds
-                    println("Sending user IDs: $userIds")
-                    sendWsMessage(ws, "userJoined", userIds)
                 }
-
                 ws.onClose {
                     println("$gameId is closing")
                     wsConnections[gameId]?.remove(ws)
@@ -41,9 +39,9 @@ class GameWebSocket {
         ws.send(WsMessage(messageJson))
     }
 
-    fun sendUserJoinedMessages(gameId: String, userIds: List<String>) {
+    fun sendUserJoinedMessages(gameId: String, users: MutableMap<String, String>) {
         wsConnections[gameId]?.forEach { ws ->
-            sendWsMessage(ws, "userJoined", userIds)
+            sendWsMessage(ws, "userJoined", users)
         }
     }
 }

@@ -43,7 +43,7 @@ fun apiHandler(wsHandler: GameWebSocket): RoutingHttpHandler = routes(
 
 fun createNewGame(): Response {
     val gameId = GameService().createGame()
-    val game = Game(gameId, "", mutableListOf())
+    val game = Game(gameId, "", mutableMapOf())
     GameRepository.createGame(gameId, game)
     return Response(Status.SEE_OTHER)
         .header("Location", "/game/$gameId/lobby").cookie(Cookie("game_host", gameId, path = "/"))
@@ -54,9 +54,10 @@ fun lobbyHandler(req: Request, wsHandler: GameWebSocket): Response {
     println("Request body: $requestBodyString")
     val lobbyRequest = Jackson.asA(requestBodyString, LobbyRequest::class)
     val gameId = lobbyRequest.gameId
-    val game = GameRepository.addUserToGame(gameId) ?:
+    val username = lobbyRequest.username
+    val game = GameRepository.addUserToGame(gameId, username) ?:
         return Response(NOT_FOUND).body("Game not found: $gameId")
-    wsHandler.sendUserJoinedMessages(gameId, game.userIds)
-    val responseBody = LobbyResponse(gameId, game.hostId, game.userIds)
+    wsHandler.sendUserJoinedMessages(gameId, game.users)
+    val responseBody = LobbyResponse(gameId, game.hostId, game.users)
     return Response(OK).body(Jackson.asInputStream(responseBody))
 }

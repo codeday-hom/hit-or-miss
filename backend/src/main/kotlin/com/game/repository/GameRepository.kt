@@ -15,16 +15,18 @@ object GameRepository {
         return games[gameId]
     }
 
-    fun addUserToGame(gameId: String): Game? {
+    fun addUserToGame(gameId: String, username: String): Game? {
         val game = getGame(gameId) ?: return null
         val userId = UUID.randomUUID().toString()
         if (game.hostId.isEmpty()) {
             game.hostId = userId
-            game.userIds.add(userId)
-        } else {
-            game.userIds.add(userId)
         }
+        game.users[userId] = username
         createGame(gameId, game)
         return game
+    }
+
+    fun reset() {
+        games.clear()
     }
 }

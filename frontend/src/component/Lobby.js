@@ -12,6 +12,7 @@ export default function Lobby() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [invalidNameWarning, setInvalidNameWarning] = useState("");
+  const [validName, setValidName] = useState(false);
 
   const checkIfHost = () => {
     const hostGameId = Cookies.get("game_host");
@@ -36,16 +37,14 @@ export default function Lobby() {
       return;
     }
 
-    // TODO: get user names from backend and check if it has been taken
-    else if (formattedUsername === "test") {
-      setInvalidNameWarning("This name is already taken.");
-      return;
-    } else {
-      setUsername(formattedUsername);
-      setName("");
-      setInvalidNameWarning(`${formattedUsername}`);
-      sendUserNameToBackend(formattedUsername);
+    if (usernames.includes(formattedUsername)) {
+       setInvalidNameWarning("This username is already taken");
+       return;
     }
+    setUsername(formattedUsername);
+    setName("");
+    setValidName(true);
+    sendUserNameToBackend(formattedUsername);
   };
 
   const sendUserNameToBackend = async (username) => {
@@ -78,16 +77,18 @@ export default function Lobby() {
   return (
     <div>
       <h1>Welcome to the Game Lobby!</h1>
-      <div>
-        <input
-          type="text"
-          value={name}
-          onChange={handleNameChange}
-          placeholder="Choose your name"
-        />
-        <button onClick={handleNameSave}>Save</button>
-        {invalidNameWarning && <div>{invalidNameWarning}</div>}
-      </div>
+      {!validName && (
+        <div>
+          <input
+            type="text"
+            value={name}
+            onChange={handleNameChange}
+            placeholder="Choose your name"
+          />
+          <button onClick={handleNameSave}>Save</button>
+          {invalidNameWarning && <div>{invalidNameWarning}</div>}
+        </div>
+      )}
       {isHost && <button onClick={handleStartGame}>Start Game</button>}
       <h2>User IDs:</h2>
       <ul>

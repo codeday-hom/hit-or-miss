@@ -16,16 +16,18 @@ import org.junit.jupiter.api.Test
 
 class GameWebSocketTest {
     private val wsHandler = GameWebSocket()
-    val testApp: WsHandler = websockets("/{gameId}" bind wsHandler.gameWsHandler())
-    fun client(gameId: String) =  WebsocketClient.blocking(Uri.of("ws://localhost:8080/$gameId"))
-    private val server = testApp.asServer(Jetty(8080))
+    private val testApp: WsHandler = websockets("/{gameId}" bind wsHandler.gameWsHandler())
+    fun client(gameId: String) =  WebsocketClient.blocking(Uri.of("ws://localhost:8000/$gameId"))
+    private val server = testApp.asServer(Jetty(8000))
 
     @BeforeEach
     fun before() {
         server.start()
         val gameId = "testGameId"
-        val userIds = mutableListOf("testUser1", "testUser2")
-        val game = Game(gameId, "testUser1", userIds)
+        val userIds = mutableMapOf<String, String>()
+        userIds["testId1"] = "testUser1"
+        userIds["testId2"] = "testUser2"
+        val game = Game(gameId, "testId1", userIds)
         GameRepository.createGame(gameId, game)
     }
 
@@ -40,7 +42,7 @@ class GameWebSocketTest {
         val client = client(gameId)
         client.send(WsMessage("Hello from client!"))
         val messages = client.received().take(1).toList()
-        val expected = WsMessage("""{"type":"userJoined","data":["testUser1","testUser2"]}""")
+        val expected = WsMessage("""{"type":"userJoined","data":{"testId1":"testUser1","testId2":"testUser2"}}""")
         assertEquals(listOf(expected), messages)
     }
 }
