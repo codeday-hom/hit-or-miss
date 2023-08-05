@@ -1,4 +1,4 @@
-package org.http4k.examples
+package com.game.main
 
 import org.http4k.core.Method
 import org.http4k.core.Request
