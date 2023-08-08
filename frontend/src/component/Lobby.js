@@ -18,7 +18,7 @@ export default function Lobby() {
   };
 
   useEffect(() => {
-    const url = `http://localhost:8080/game/${gameId}/lobby`;
+    const url = `http://localhost:8080/api/join-game/${gameId}`;
     fetch(url, {
       method: "POST",
       headers: {
@@ -26,7 +26,14 @@ export default function Lobby() {
       },
       body: JSON.stringify({ gameId }),
     })
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status !== 200) {
+          console.log("Error response: ", response)
+          throw Error("Unsuccessful response")
+        }
+        console.log("Response: ", response)
+        return response.json()
+      })
       .then((data) => {
         checkIfHost();
         setUserId(data.userId);
