@@ -15,6 +15,7 @@ import org.http4k.server.Jetty
 import org.http4k.server.asServer
 import org.http4k.core.Request
 import org.http4k.core.Response
+import org.http4k.core.Status.Companion.NOT_FOUND
 import org.http4k.routing.ws.bind
 import org.http4k.routing.websockets
 import org.http4k.server.PolyHandler
@@ -53,11 +54,9 @@ fun lobbyHandler(req: Request, wsHandler: GameWebSocket): Response {
     println("Request body: $requestBodyString")
     val lobbyRequest = Jackson.asA(requestBodyString, LobbyRequest::class)
     val gameId = lobbyRequest.gameId
-
-    val game = GameRepository.addUserToGame(gameId)
-
+    val game = GameRepository.addUserToGame(gameId) ?:
+        return Response(NOT_FOUND).body("Game not found: $gameId")
     wsHandler.sendUserJoinedMessages(gameId, game.userIds)
-
     val responseBody = LobbyResponse(gameId, game.hostId, game.userIds)
     return Response(OK).body(Jackson.asInputStream(responseBody))
 }

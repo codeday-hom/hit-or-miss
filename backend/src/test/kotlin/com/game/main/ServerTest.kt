@@ -47,16 +47,13 @@ class ServerTest {
         assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.userIds.first())
     }
 
-    // Test skipped because it's not implemented yet.
-    // @Test
+     @Test
     fun `should return 404 if game not found`() {
         val gameId = "randomGameId"
         val requestBody = LobbyRequest(gameId)
         val request = Request(Method.POST, "/api/join-game/$gameId")
             .body(Jackson.asInputStream(requestBody))
-
         val response = lobbyHandler(request, wsHandlerMock)
-
         assertEquals(Status.NOT_FOUND, response.status)
     }
 

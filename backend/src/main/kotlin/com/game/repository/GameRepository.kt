@@ -15,12 +15,8 @@ object GameRepository {
         return games[gameId]
     }
 
-    fun addUserToGame(gameId: String): Game {
-        val game = getGame(gameId)
-        if (game == null) {
-            println("Could not find game: $gameId") // TODO: Should result in a HTTP 404.
-            throw IllegalArgumentException("Game not found: $gameId")
-        }
+    fun addUserToGame(gameId: String): Game? {
+        val game = getGame(gameId) ?: return null
         val userId = UUID.randomUUID().toString()
         if (game.hostId.isEmpty()) {
             game.hostId = userId
