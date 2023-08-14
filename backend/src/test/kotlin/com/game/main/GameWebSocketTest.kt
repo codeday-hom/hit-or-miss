@@ -42,7 +42,7 @@ class GameWebSocketTest {
         val client = client(gameId)
         client.send(WsMessage("Hello from client!"))
         val messages = client.received().take(1).toList()
-        val expected = WsMessage("""{"type":"userJoined","data":{"testId1":"testUser1","testId2":"testUser2"}}""")
+        val expected = WsMessage("""{"type":"USER_JOINED","data":{"testId1":"testUser1","testId2":"testUser2"}}""")
         assertEquals(listOf(expected), messages)
     }
 }

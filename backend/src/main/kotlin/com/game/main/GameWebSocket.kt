@@ -19,7 +19,7 @@ class GameWebSocket {
                 wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
 
                 val users = GameRepository.getGame(gameId)!!.users
-                sendWsMessage(ws, "userJoined", users)
+                sendWsMessage(ws, "USER_JOINED", users)
                 ws.onMessage {
                     println("Received a message: ${it.bodyString()}")
                 }
@@ -41,7 +41,12 @@ class GameWebSocket {
 
     fun sendUserJoinedMessages(gameId: String, users: MutableMap<String, String>) {
         wsConnections[gameId]?.forEach { ws ->
-            sendWsMessage(ws, "userJoined", users)
+            sendWsMessage(ws, "USER_JOINED", users)
+        }
+    }
+    fun sendGameStartMessages(gameId: String, users: MutableMap<String, String>) {
+        wsConnections[gameId]?.forEach { ws ->
+            sendWsMessage(ws, "GAME_START", users)
         }
     }
 }

@@ -5,9 +5,8 @@ import useGameWebSocket from "../hook/useGameWebSocket";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
-  //  const [userId, setUserId] = useState("");
   const { gameId } = useParams();
-  const { userIds } = useGameWebSocket(gameId);
+  const { userIds, usernames } = useGameWebSocket(gameId);
 
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -23,7 +22,13 @@ export default function Lobby() {
   };
 
   const handleStartGame = () => {
-    console.log("Game started!");
+    const url = `http://localhost:8080/api/game/${gameId}/start`;
+
+    fetch(url, {
+      method: "POST",
+    }).catch((error) => {
+      console.log("Error starting the game:", error);
+    });
   };
 
   const handleNameChange = (e) => {
@@ -38,8 +43,8 @@ export default function Lobby() {
     }
 
     if (usernames.includes(formattedUsername)) {
-       setInvalidNameWarning("This username is already taken");
-       return;
+      setInvalidNameWarning("This username is already taken");
+      return;
     }
     setUsername(formattedUsername);
     setName("");
@@ -49,25 +54,18 @@ export default function Lobby() {
 
   const sendUserNameToBackend = async (username) => {
     const url = `http://localhost:8080/api/join-game/${gameId}`;
+
     fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ gameId }),
+      body: JSON.stringify({ gameId, username }),
     })
-      .then((response) => {
-        if (response.status !== 200) {
-          console.log("Error response: ", response)
-          throw Error("Unsuccessful response")
-        }
-        console.log("Response: ", response)
-        return response.json()
-      })
+      .then((response) => response.json())
       .then((data) => {
         // data: gameId and hostId
         checkIfHost();
-        //  setUserId(data.userId);
       })
       .catch((error) => {
         console.log("Error fetching data:", error);
@@ -89,11 +87,15 @@ export default function Lobby() {
           {invalidNameWarning && <div>{invalidNameWarning}</div>}
         </div>
       )}
-      {isHost && <button onClick={handleStartGame}>Start Game</button>}
+      {isHost && (
+        <button onClick={handleStartGame} disabled={usernames.length < 2}>
+          Start Game
+        </button>
+      )}
       <h2>User IDs:</h2>
       <ul>
-        {userIds.map((userId, index) => (
-          <li key={index}>{userId}</li>
+        {usernames.map((name, index) => (
+          <li key={index}>{name}</li>
         ))}
       </ul>
     </div>

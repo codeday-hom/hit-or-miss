@@ -16,6 +16,7 @@ import org.http4k.server.asServer
 import org.http4k.core.Request
 import org.http4k.core.Response
 import org.http4k.core.Status.Companion.NOT_FOUND
+import org.http4k.lens.Path
 import org.http4k.routing.ws.bind
 import org.http4k.routing.websockets
 import org.http4k.server.PolyHandler
@@ -39,6 +40,7 @@ fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): Routi
 fun apiHandler(wsHandler: GameWebSocket): RoutingHttpHandler = routes(
     "/new-game" bind POST to { _: Request -> createNewGame() },
     "/join-game/{gameId}" bind POST to { req: Request -> lobbyHandler(req, wsHandler) },
+    "/game/{gameId}/start" bind POST to { req: Request -> startGameHandler(req, wsHandler)},
 )
 
 fun createNewGame(): Response {
@@ -60,4 +62,10 @@ fun lobbyHandler(req: Request, wsHandler: GameWebSocket): Response {
     wsHandler.sendUserJoinedMessages(gameId, game.users)
     val responseBody = LobbyResponse(gameId, game.hostId, game.users)
     return Response(OK).body(Jackson.asInputStream(responseBody))
+}
+
+fun startGameHandler(req: Request, wsHandler: GameWebSocket): Response {
+    val gameId = Path.of("gameId")(req)
+    wsHandler.sendGameStartMessages(gameId, GameRepository.getGame(gameId)!!.users)
+    return Response(OK).body("""{ "message": "Game started" }""")
 }
