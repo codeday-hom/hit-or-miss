@@ -9,3 +9,4 @@ out/
 store/
 target/
 node_modules/
+.history/
