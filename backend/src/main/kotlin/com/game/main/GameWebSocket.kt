@@ -16,12 +16,20 @@ class GameWebSocket {
         return { req: Request ->
             WsResponse { ws: Websocket ->
                 val gameId = Path.of("gameId")(req)
-                wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
-
-                val users = GameRepository.getGame(gameId)!!.users
-                sendWsMessage(ws, "USER_JOINED", users)
+                val connection = wsConnections[gameId]
+                if (connection == null || !connection.contains(ws)) {
+                    wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
+                }
+                val game = GameRepository.getGame(gameId)
+                if (!game!!.started) {
+                    val users = game.users
+                    sendWsMessage(ws, WsMessageType.USER_JOINED, users)
+                }
                 ws.onMessage {
                     println("Received a message: ${it.bodyString()}")
+                    if (it.bodyString() == "NEXT_PLAYER") {
+                        sendNextPlayerMessage(gameId)
+                    }
                 }
                 ws.onClose {
                     println("$gameId is closing")
@@ -31,22 +39,29 @@ class GameWebSocket {
         }
     }
 
-    fun sendWsMessage(ws: Websocket, type: String, data: Any) {
-        val message = mapOf("type" to type, "data" to data)
+    private fun sendWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
+        val message = mapOf("type" to type.name, "data" to data)
         val mapper = ObjectMapper()
         val messageJson = mapper.writeValueAsString(message)
         println("Sending a message: $message")
         ws.send(WsMessage(messageJson))
     }
 
+
     fun sendUserJoinedMessages(gameId: String, users: MutableMap<String, String>) {
         wsConnections[gameId]?.forEach { ws ->
-            sendWsMessage(ws, "USER_JOINED", users)
+            sendWsMessage(ws, WsMessageType.USER_JOINED, users)
         }
     }
-    fun sendGameStartMessages(gameId: String, users: MutableMap<String, String>) {
+    fun sendGameStartMessages(gameId: String, currentPlayer: String) {
         wsConnections[gameId]?.forEach { ws ->
-            sendWsMessage(ws, "GAME_START", users)
+            sendWsMessage(ws, WsMessageType.GAME_START, currentPlayer)
+        }
+    }
+    fun sendNextPlayerMessage(gameId: String) {
+        val nextPlayer = GameRepository.nextPlayer(gameId)
+        wsConnections[gameId]?.forEach { ws ->
+            sendWsMessage(ws, WsMessageType.NEXT_PLAYER, nextPlayer)
         }
     }
 }

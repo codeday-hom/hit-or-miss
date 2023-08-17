@@ -7,6 +7,7 @@ export default function useGameWebSocket(gameId) {
   const [usernames, setUsernames] = useState([]);
   const WS_URL = `ws://localhost:8080/ws/game/${gameId}`;
   const navigate = useNavigate();
+  const [currentPlayer, setCurrentPlayer] = useState("");
 
   const { sendMessage, lastMessage } = useWebSocket(WS_URL, {
     onOpen: () => {
@@ -33,7 +34,11 @@ export default function useGameWebSocket(gameId) {
               return [...prevUsernames, ...newUsernames];
             });
           } else if (message.type === "GAME_START") {
-            navigate(`/game/${gameId}`);
+            navigate(`/game/${gameId}`, {
+              state: { currentPlayer: message.data },
+            });
+          } else if (message.type === "NEXT_PLAYER") {
+            setCurrentPlayer(message.data);
           }
         } catch (e) {
           console.log("Error parsing message:", e);
@@ -46,9 +51,13 @@ export default function useGameWebSocket(gameId) {
     },
   });
 
+  const sendNextPlayerMessage = () => {
+    sendMessage("NEXT_PLAYER");
+  };
+
   useEffect(() => {
     sendMessage("Hello from client!");
   }, []);
 
-  return { userIds, usernames };
+  return { userIds, usernames, currentPlayer, sendNextPlayerMessage };
 }

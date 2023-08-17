@@ -66,6 +66,15 @@ fun lobbyHandler(req: Request, wsHandler: GameWebSocket): Response {
 
 fun startGameHandler(req: Request, wsHandler: GameWebSocket): Response {
     val gameId = Path.of("gameId")(req)
-    wsHandler.sendGameStartMessages(gameId, GameRepository.getGame(gameId)!!.users)
-    return Response(OK).body("""{ "message": "Game started" }""")
+    GameRepository.startGame(gameId)
+    val currentPlayer = GameRepository.getCurrentPlayer(gameId)
+    wsHandler.sendGameStartMessages(gameId, currentPlayer!!)
+//    val afterShuffleOrder = GameRepository.getPlayerOrders(gameId)?.map {
+//        GameRepository.getGame(gameId)?.users?.get(it)
+//    }?.joinToString(", ")
+//    println("Player order after shuffle: $afterShuffleOrder")
+
+    val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
+
+    return Response(OK).body(responseBody)
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../hook/useGameWebSocket";
@@ -7,7 +7,6 @@ export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const { gameId } = useParams();
   const { userIds, usernames } = useGameWebSocket(gameId);
-
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [invalidNameWarning, setInvalidNameWarning] = useState("");

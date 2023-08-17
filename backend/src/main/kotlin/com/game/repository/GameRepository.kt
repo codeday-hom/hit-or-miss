@@ -15,6 +15,11 @@ object GameRepository {
         return games[gameId]
     }
 
+    fun getCurrentPlayer(gameId: String): String? {
+        val game = games[gameId] ?: return null
+        return game.users[game.playerOrders[game.currentPlayerIndex]]
+    }
+
     fun addUserToGame(gameId: String, username: String): Game? {
         val game = getGame(gameId) ?: return null
         val userId = UUID.randomUUID().toString()
@@ -28,5 +33,20 @@ object GameRepository {
 
     fun reset() {
         games.clear()
+    }
+
+    fun startGame(gameId: String): Boolean {
+        val game = games[gameId] ?: return false
+        game.started = true
+        val shuffledPlayerOrders = game.users.keys.shuffled()
+        game.playerOrders.clear()
+        game.playerOrders.addAll(shuffledPlayerOrders)
+        return true
+    }
+
+    fun nextPlayer(gameId: String): String? {
+        val game = games[gameId] ?: return null
+        game.currentPlayerIndex = (game.currentPlayerIndex + 1) % game.playerOrders.size
+        return game.users[game.playerOrders[game.currentPlayerIndex]]
     }
 }
