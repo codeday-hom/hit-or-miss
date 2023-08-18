@@ -2,6 +2,7 @@ package com.game.main
 
 import com.game.model.Game
 import com.game.repository.GameRepository
+import com.game.repository.GameRepository.getGame
 import com.game.services.GameService
 import org.http4k.core.*
 import org.http4k.core.Method.POST
@@ -40,7 +41,7 @@ fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): Routi
 fun apiHandler(wsHandler: GameWebSocket): RoutingHttpHandler = routes(
     "/new-game" bind POST to { _: Request -> createNewGame() },
     "/join-game/{gameId}" bind POST to { req: Request -> lobbyHandler(req, wsHandler) },
-    "/game/{gameId}/start" bind POST to { req: Request -> startGameHandler(req, wsHandler)},
+    "/game/{gameId}/start" bind POST to { req: Request -> startGameHandler(req, wsHandler) },
 )
 
 fun createNewGame(): Response {
@@ -57,8 +58,7 @@ fun lobbyHandler(req: Request, wsHandler: GameWebSocket): Response {
     val lobbyRequest = Jackson.asA(requestBodyString, LobbyRequest::class)
     val gameId = lobbyRequest.gameId
     val username = lobbyRequest.username
-    val game = GameRepository.addUserToGame(gameId, username) ?:
-        return Response(NOT_FOUND).body("Game not found: $gameId")
+    val game = getGame(gameId)?.addUser(username) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
     wsHandler.sendUserJoinedMessages(gameId, game.users)
     val responseBody = LobbyResponse(gameId, game.hostId, game.users)
     return Response(OK).body(Jackson.asInputStream(responseBody))
@@ -66,8 +66,8 @@ fun lobbyHandler(req: Request, wsHandler: GameWebSocket): Response {
 
 fun startGameHandler(req: Request, wsHandler: GameWebSocket): Response {
     val gameId = Path.of("gameId")(req)
-    GameRepository.startGame(gameId)
-    val currentPlayer = GameRepository.getCurrentPlayer(gameId)
+    getGame(gameId)?.start()
+    val currentPlayer = getGame(gameId)?.currentPlayer()
     wsHandler.sendGameStartMessages(gameId, currentPlayer!!)
 //    val afterShuffleOrder = GameRepository.getPlayerOrders(gameId)?.map {
 //        GameRepository.getGame(gameId)?.users?.get(it)
