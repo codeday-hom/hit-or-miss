@@ -2,6 +2,7 @@ package com.game.main
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.game.repository.GameRepository
+import com.game.repository.GameRepository.getGame
 import org.http4k.core.Request
 import org.http4k.lens.Path
 import org.http4k.websocket.Websocket
@@ -20,8 +21,8 @@ class GameWebSocket {
                 if (connection == null || !connection.contains(ws)) {
                     wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
                 }
-                val game = GameRepository.getGame(gameId)
-                if (!game!!.started) {
+                val game = getGame(gameId)
+                if (!game!!.isStarted()) {
                     val users = game.users
                     sendWsMessage(ws, WsMessageType.USER_JOINED, users)
                 }
@@ -59,7 +60,7 @@ class GameWebSocket {
         }
     }
     fun sendNextPlayerMessage(gameId: String) {
-        val nextPlayer = GameRepository.nextPlayer(gameId)
+        val nextPlayer = getGame(gameId)?.nextPlayer()
         wsConnections[gameId]?.forEach { ws ->
             sendWsMessage(ws, WsMessageType.NEXT_PLAYER, nextPlayer)
         }
