@@ -1,17 +1,17 @@
 package com.game.main
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.game.repository.GameRepository
 import com.game.repository.GameRepository.getGame
 import org.http4k.core.Request
 import org.http4k.lens.Path
 import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
-import java.util.concurrent.ConcurrentHashMap
+import java.util.*
+import kotlin.collections.HashMap
 
 class GameWebSocket {
-    private val wsConnections = ConcurrentHashMap<String, MutableList<Websocket>>()
+    private val wsConnections = Collections.synchronizedMap(HashMap<String, MutableList<Websocket>>())
 
     fun gameWsHandler(): (Request) -> WsResponse {
         return { req: Request ->
@@ -22,14 +22,18 @@ class GameWebSocket {
                     wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
                 }
                 val game = getGame(gameId)
-                if (!game!!.isStarted()) {
-                    val users = game.users
-                    sendWsMessage(ws, WsMessageType.USER_JOINED, users)
+                if (game != null) {
+                    if (!game.isStarted()) {
+                        val users = game.users
+                        sendWsMessage(ws, WsMessageType.USER_JOINED, users)
+                    }
+                } else {
+                    sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
                 }
                 ws.onMessage {
                     println("Received a message: ${it.bodyString()}")
-                    if (it.bodyString() == "NEXT_PLAYER") {
-                        sendNextPlayerMessage(gameId)
+                    if (it.bodyString() == WsMessageType.NEXT_PLAYER.name) {
+                        broadcastNextPlayerMessage(gameId)
                     }
                 }
                 ws.onClose {
@@ -49,17 +53,17 @@ class GameWebSocket {
     }
 
 
-    fun sendUserJoinedMessages(gameId: String, users: MutableMap<String, String>) {
+    fun broadcastUserJoinedMessages(gameId: String, users: MutableMap<String, String>) {
         wsConnections[gameId]?.forEach { ws ->
             sendWsMessage(ws, WsMessageType.USER_JOINED, users)
         }
     }
-    fun sendGameStartMessages(gameId: String, currentPlayer: String) {
+    fun broadcastGameStartMessages(gameId: String, currentPlayer: String) {
         wsConnections[gameId]?.forEach { ws ->
             sendWsMessage(ws, WsMessageType.GAME_START, currentPlayer)
         }
     }
-    fun sendNextPlayerMessage(gameId: String) {
+    private fun broadcastNextPlayerMessage(gameId: String) {
         val nextPlayer = getGame(gameId)?.nextPlayer()
         wsConnections[gameId]?.forEach { ws ->
             sendWsMessage(ws, WsMessageType.NEXT_PLAYER, nextPlayer)

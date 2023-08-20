@@ -1,5 +1,5 @@
 import logo from './logo.svg';
-import StartGameButton from './component/StartGameButton'
+import StartGameButton from './components/StartGameButton'
 import './App.css';
 
 function App() {

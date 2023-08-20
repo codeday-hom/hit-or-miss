@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import useWebSocket from "react-use-websocket";
 import { useNavigate } from "react-router-dom";
+import { WsMessageTypes } from "../constants/wsMessageTypes";
 
 export default function useGameWebSocket(gameId) {
   const [userIds, setUserIds] = useState([]);
@@ -20,7 +21,7 @@ export default function useGameWebSocket(gameId) {
           const message = JSON.parse(event.data);
           console.log("Received a message:", message);
 
-          if (message.type === "USER_JOINED") {
+          if (message.type === WsMessageTypes.USER_JOINED) {
             setUserIds((prevUserIds) => {
               const newUserIds = Object.keys(message.data).filter(
                 (id) => !prevUserIds.includes(id)
@@ -33,11 +34,11 @@ export default function useGameWebSocket(gameId) {
               );
               return [...prevUsernames, ...newUsernames];
             });
-          } else if (message.type === "GAME_START") {
+          } else if (message.type === WsMessageTypes.GAME_START) {
             navigate(`/game/${gameId}`, {
               state: { currentPlayer: message.data },
             });
-          } else if (message.type === "NEXT_PLAYER") {
+          } else if (message.type === WsMessageTypes.NEXT_PLAYER) {
             setCurrentPlayer(message.data);
           }
         } catch (e) {
@@ -52,12 +53,12 @@ export default function useGameWebSocket(gameId) {
   });
 
   const sendNextPlayerMessage = () => {
-    sendMessage("NEXT_PLAYER");
+    sendMessage(WsMessageTypes.NEXT_PLAYER);
   };
 
   useEffect(() => {
     sendMessage("Hello from client!");
   }, []);
 
-  return { userIds, usernames, currentPlayer, sendNextPlayerMessage };
+  return { userIds, usernames, currentPlayer, sendNextPlayerMessage, isCountdown, setIsCountdown, startCountdown };
 }

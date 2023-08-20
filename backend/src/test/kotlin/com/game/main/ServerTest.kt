@@ -44,15 +44,15 @@ class ServerTest {
         val username1 = "testUser1"
         val username2 = "testUser2"
         val request1 = Request(Method.POST, "api/game/$gameId/")
-            .body(Jackson.asInputStream(LobbyRequest(gameId, username1)))
+            .body(Jackson.asInputStream(JoinGameRequest(gameId, username1)))
         val request2 = Request(Method.POST, "api/game/$gameId/")
-            .body(Jackson.asInputStream(LobbyRequest(gameId, username2)))
-        lobbyHandler(request1, wsHandlerMock)
+            .body(Jackson.asInputStream(JoinGameRequest(gameId, username2)))
+        joinGameHandler(request1, wsHandlerMock)
         assert(GameRepository.getGame(gameId)!!.users.size == 1)
         assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.users.keys.first())
         assert(GameRepository.getGame(gameId)!!.users.values.contains(username1))
 
-        lobbyHandler(request2, wsHandlerMock)
+        joinGameHandler(request2, wsHandlerMock)
         assert(GameRepository.getGame(gameId)!!.users.size == 2)
         assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.users.keys.first())
         assert(GameRepository.getGame(gameId)!!.users.values.contains(username2))
@@ -61,10 +61,10 @@ class ServerTest {
     @Test
     fun `should return 404 if game not found`() {
         val gameId = "randomGameId"
-        val requestBody = LobbyRequest(gameId, "username")
+        val requestBody = JoinGameRequest(gameId, "username")
         val request = Request(Method.POST, "/join-game/$gameId")
             .body(Jackson.asInputStream(requestBody))
-        val response = lobbyHandler(request, wsHandlerMock)
+        val response = joinGameHandler(request, wsHandlerMock)
         assertEquals(Status.NOT_FOUND, response.status)
     }
 

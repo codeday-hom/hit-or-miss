@@ -1,13 +1,10 @@
 package com.game.model
 
 import java.util.*
-
 data class Game(
     val gameId: String,
     var hostId: String,
-    val users: MutableMap<String, String> = mutableMapOf(),
-    // sortedMap will maintain the sorting order provided by the given comparator.
-    // https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/to-sorted-map.html
+    val users: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
     private var started: Boolean = false,
     private val playerOrders: MutableList<String> = mutableListOf(),
     private var currentPlayerIndex: Int = 0
@@ -30,12 +27,11 @@ data class Game(
         return this
     }
 
-    fun start(): Boolean {
+    fun start() {
         started = true
         val shuffledPlayerOrders = users.keys.shuffled()
         playerOrders.clear()
         playerOrders.addAll(shuffledPlayerOrders)
-        return true
     }
 
     fun isStarted(): Boolean {

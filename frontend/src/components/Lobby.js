@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import Cookies from "js-cookie";
-import useGameWebSocket from "../hook/useGameWebSocket";
+import useGameWebSocket from "../hooks/useGameWebSocket";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
@@ -21,7 +21,7 @@ export default function Lobby() {
   };
 
   const handleStartGame = () => {
-    const url = `http://localhost:8080/api/game/${gameId}/start`;
+    const url = `http://localhost:8080/api/start-game/${gameId}`;
 
     fetch(url, {
       method: "POST",
