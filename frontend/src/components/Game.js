@@ -3,6 +3,7 @@ import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 import CategoryPicker from "./CategoryPicker";
 import {WsMessageTypes} from "../constants/wsMessageTypes";
+import Dice from "./Dice";
 
 export default function Game() {
   const { gameId } = useParams();
@@ -27,6 +28,7 @@ export default function Game() {
       <p>{currentPlayer} is choosing a category</p>
       {currentPlayer === clientUsername ? <button onClick={handleClick}>Next Player</button> : null}
       <CategoryPicker gameId={gameId} clientUsername={clientUsername} currentPlayer={currentPlayer}/>
+      <Dice />
     </div>
   );
 }
