@@ -60,5 +60,5 @@ export default function useGameWebSocket(gameId) {
     sendMessage("Hello from client!");
   }, []);
 
-  return { userIds, usernames, currentPlayer, sendNextPlayerMessage, isCountdown, setIsCountdown, startCountdown };
+  return { userIds, usernames, currentPlayer, sendNextPlayerMessage };
 }
