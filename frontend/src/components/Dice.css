@@ -10,7 +10,7 @@ body {
   position: relative;
   display: inline-block;
   perspective: 1200px;
-  margin: 50px
+  margin: 50px;
 }
 
 .dice {
@@ -33,7 +33,8 @@ body {
 }
 
 .hit-text,
-.miss-text {
+.miss-text,
+.wildcard-text {
   font-size: 18px;
   font-weight: bold;
 }
@@ -44,6 +45,10 @@ body {
 
 .miss-text {
   color: red;
+}
+
+.wildcard-text {
+  color: black;
 }
 
 .show-1 .dice {
@@ -117,4 +122,27 @@ button:active {
   background: #50514f;
   cursor: pointer;
   transform: translateY(5px);
+}
+
+.wildcard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wildcard-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.wildcard-content button {
+  margin: 10px;
 }
