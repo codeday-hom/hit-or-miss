@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 
-export default function GameStart() {
+export default function Game() {
   const { gameId } = useParams();
   const initialPlayer = useLocation().state.currentPlayer;
 
