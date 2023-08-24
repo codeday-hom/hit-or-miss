@@ -39,8 +39,19 @@ class GameWebSocketTest {
         val gameId = "testGameId"
         val client = client(gameId)
         client.send(WsMessage("Hello from client!"))
-        val messages = client.received().take(1).toList()
+        val messages = client.received().toList()
         val expected = WsMessage("""{"type":"userJoined","data":["testUser1","testUser2"]}""")
         assertEquals(listOf(expected), messages)
     }
+
+    @Test
+    fun `receives cardSelected message when a category is selected`() {
+        val gameId = "testGameId"
+        val client = client(gameId)
+        client.send(WsMessage("{\"type\":\"categorySelected\", \"data\":\"Science\"}"))
+        val messages = client.received().toList()
+        val expected = WsMessage("""type":"categoryChosen","data":"Science"}), WsMessage(body={"type":"currentPiker","data":"testUser2""")
+        assertEquals(listOf(expected), messages)
+    }
+
 }
