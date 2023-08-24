@@ -36,7 +36,7 @@ class ServerTest {
     }
 
     @Test
-    fun `lobbyHandler adds a new userId and username each time`() {
+    fun `Game is updated whenever a new player joins`() {
         val gameId = "randomGameId"
         val game = Game(gameId, "", mutableMapOf())
         GameRepository.createGame(gameId, game)
