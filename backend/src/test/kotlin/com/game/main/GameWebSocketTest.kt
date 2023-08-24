@@ -1,4 +1,3 @@
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.game.main.GameWebSocket
 import com.game.main.WsMessageType
@@ -49,12 +48,35 @@ class GameWebSocketTest {
         val client = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
         client.send(WsMessage("Hello from client!"))
         val messages = client.received().take(1).toList()
-
         val expectedData = mapOf("testId1" to "testUser1", "testId2" to "testUser2")
         val expectedMessage = mapOf("type" to WsMessageType.USER_JOINED.name, "data" to expectedData)
-        val mapper: ObjectMapper = jacksonObjectMapper()
-        val expected = WsMessage(mapper.writeValueAsString(expectedMessage))
+        val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
+        assertEquals(listOf(expected), messages)
+    }
 
+    @Test
+    fun `receives error message when the game has already started`() {
+        val gameId = "testGameId"
+
+        GameRepository.getGame(gameId)?.start()
+
+        val client = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
+        client.send(WsMessage("Hello from client!"))
+        val messages = client.received().take(1).toList()
+        val expectedMessage = mapOf("type" to WsMessageType.ERROR.name, "data" to "Game already started")
+        val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
+        assertEquals(listOf(expected), messages)
+    }
+
+    @Test
+    fun `receives error message when the game is not found`() {
+        val gameId = "invalidGameId"
+
+        val client = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
+        client.send(WsMessage("Hello from client!"))
+        val messages = client.received().take(1).toList()
+        val expectedMessage = mapOf("type" to WsMessageType.ERROR.name, "data" to "Game not found")
+        val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
         assertEquals(listOf(expected), messages)
     }
 }

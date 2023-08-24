@@ -26,6 +26,8 @@ class GameWebSocket {
                     if (!game.isStarted()) {
                         val users = game.users
                         sendWsMessage(ws, WsMessageType.USER_JOINED, users)
+                    } else {
+                        sendWsMessage(ws, WsMessageType.ERROR, "Game already started")
                     }
                 } else {
                     sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
