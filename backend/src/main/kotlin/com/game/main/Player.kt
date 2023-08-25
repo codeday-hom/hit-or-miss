@@ -1,6 +1,8 @@
-package org.http4k.main
+package com.game.main
 
-class Players(val name: String, var points: Int) {
+class Player(val name: String) {
+
+    private var points = 0
     fun getPlayerPoints():Int {
         return points
     }
