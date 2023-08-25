@@ -1,6 +1,36 @@
 package com.game.main
 
-class Gameplay {
+enum class DiceResult {
+    HIT, MISS
+}
+enum class TurnResult {
+    HIT, MISS
+}
+class Gameplay(val host: Players) {
+    val players: MutableList<Players> = mutableListOf()
+
+    init {
+        players.add(host)
+    }
+
+    fun startTurn(selector: Players, category: String ): Turn {
+        println("${selector.name} chose $category")
+        return Turn(selector)
+    }
+    class Turn(val selector: Players) {
+
+        fun selectWord(selector: Players, dice: DiceResult, wordChosen: String) {
+            println("${selector.name} rolled the dice and got $dice. He chose the word $wordChosen")
+        }
+
+        fun result(player: Players, result: TurnResult) {
+            println("${player.name} had ${if (result == TurnResult.HIT) "the word" else "no word"} for the category")
+  /*          if (result == TurnResult.HIT) {
+                player.addPoints()
+            }*/
+        }
+    }
+
     fun diceRoll(): Int {
         return (1..2).random()
     }
@@ -41,5 +71,10 @@ class Gameplay {
             Thread.sleep(1000) // Wait for 1 second
         }
         println("$seconds seconds ended.")
+    }
+    fun addPlayer(name: String): Players {
+        val player = Players(name, 0)
+        players.add(player)
+        return player
     }
 }
