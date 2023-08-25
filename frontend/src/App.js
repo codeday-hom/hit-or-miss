@@ -1,6 +1,9 @@
 import logo from './logo.svg';
 import StartGameButton from './components/StartGameButton'
 import './App.css';
+import CountdownTimer from "./components/CountdownTimer";
+
+export default App;
 
 function App() {
     return (
@@ -19,9 +22,9 @@ function App() {
                     Learn React
                 </a>
                 <StartGameButton/>
+                <CountdownTimer/>
             </header>
         </div>
     );
 }
 
-export default App;
