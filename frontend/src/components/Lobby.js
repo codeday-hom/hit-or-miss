@@ -103,7 +103,8 @@ export default function Lobby() {
           Start Game
         </button>
       )}
-      <h2>User IDs:</h2>
+      <h2>Your name: {username}</h2>
+      <h2>Players in the lobby:</h2>
       <ul>
         {usernames.map((name, index) => (
           <li key={index}>{name}</li>

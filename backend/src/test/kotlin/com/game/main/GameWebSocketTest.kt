@@ -21,7 +21,6 @@ import org.junit.jupiter.api.Timeout
 import kotlin.properties.Delegates
 
 class GameWebSocketTest {
-
     private val websocket = GameWebSocket()
     private val testApp: WsHandler = websockets("/{gameId}" bind websocket.handler())
     private lateinit var server: Http4kServer

@@ -124,6 +124,14 @@ button:active {
   transform: translateY(5px);
 }
 
+button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
 .wildcard {
   position: fixed;
   top: 0;

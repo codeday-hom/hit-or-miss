@@ -41,6 +41,7 @@ fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): Routi
     )
 }
 
+
 fun apiHandler(websocket: GameWebSocket): RoutingHttpHandler = routes(
     "/new-game" bind POST to { _: Request -> createNewGame() },
     "/join-game/{gameId}" bind POST to { req: Request -> joinGameHandler(req, websocket) },

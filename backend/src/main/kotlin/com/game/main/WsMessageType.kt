@@ -6,5 +6,7 @@ enum class WsMessageType {
     NEXT_PLAYER,
     ERROR,
     CATEGORY_SELECTED,
-    CATEGORY_CHOSEN
+    CATEGORY_CHOSEN,
+    HEARTBEAT,
+    HEARTBEAT_ACK,
 }
