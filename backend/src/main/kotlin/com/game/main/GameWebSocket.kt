@@ -34,8 +34,14 @@ class GameWebSocket {
                 }
                 ws.onMessage {
                     println("Received a message: ${it.bodyString()}")
+                    val incomingData = ObjectMapper().readValue(it.bodyString(), Map::class.java)
                     if (it.bodyString() == WsMessageType.NEXT_PLAYER.name) {
                         broadcastNextPlayerMessage(gameId)
+                    } else if(it.bodyString() == WsMessageType.CATEGORY_SELECTED.name) {
+                        val selectedCategory = incomingData["data"] as? String
+                        if (selectedCategory != null) {
+                            announceCategoryChosen(gameId, selectedCategory)
+                        }
                     }
                 }
                 ws.onClose {
@@ -54,6 +60,11 @@ class GameWebSocket {
         ws.send(WsMessage(messageJson))
     }
 
+    private fun announceCategoryChosen(gameId: String, category: String) {
+        wsConnections[gameId]?.forEach { ws ->
+            sendWsMessage(ws, WsMessageType.CATEGORY_CHOSEN, category)
+        }
+    }
 
     fun broadcastUserJoinedMessages(gameId: String, users: MutableMap<String, String>) {
         wsConnections[gameId]?.forEach { ws ->

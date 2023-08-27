@@ -33,8 +33,10 @@ class GameWebSocketTest {
         val userIds = mutableMapOf<String, String>()
         userIds["testId1"] = "testUser1"
         userIds["testId2"] = "testUser2"
-        val game = Game(gameId, "testId1", userIds)
-        GameRepository.createGame(gameId, game)
+        val game1 = Game(gameId, "testId1", userIds)
+        GameRepository.createGame(gameId, game1)
+
+
     }
 
     @AfterEach
@@ -77,6 +79,23 @@ class GameWebSocketTest {
         val messages = client.received().take(1).toList()
         val expectedMessage = mapOf("type" to WsMessageType.ERROR.name, "data" to "Game not found")
         val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
+        assertEquals(listOf(expected), messages)
+    }
+    @Test
+    fun `receives cardSelected message when a category is selected`() {
+        val userIds = mutableMapOf<String, String>()
+        userIds["testId1"] = "testUser1"
+        userIds["testId2"] = "testUser2"
+        val game2 = Game("startedGame", "testId1", userIds)
+        GameRepository.createGame("startedGame", game2)
+        val gameId = "startedGame"
+        val client = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
+        game2.start()
+//        val message = mapOf("type" to WsMessageType.CATEGORY_SELECTED.name, "data" to "Science")
+//        client.send(WsMessage())
+        client.send(WsMessage(WsMessageType.CATEGORY_SELECTED.name))
+        val messages = client.received().toList()
+        val expected = WsMessage("""""")
         assertEquals(listOf(expected), messages)
     }
 }
