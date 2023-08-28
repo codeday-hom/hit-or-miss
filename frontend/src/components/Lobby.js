@@ -1,8 +1,8 @@
-import {useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../hooks/useGameWebSocket";
-import {WsMessageTypes} from "../constants/wsMessageTypes";
+import { WsMessageTypes } from "../constants/wsMessageTypes";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
@@ -13,12 +13,13 @@ export default function Lobby() {
   const [invalidNameWarning, setInvalidNameWarning] = useState("");
   const [validName, setValidName] = useState(false);
   const navigate = useNavigate();
+  const [gameStarted, setGameStarted] = useState(false);
 
-  useGameWebSocket(gameId, message => {
+  useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.USER_JOINED) {
       setUsernames((prevUsernames) => {
         const newUsernames = Object.values(message.data).filter(
-            (name) => !prevUsernames.includes(name)
+          (name) => !prevUsernames.includes(name)
         );
         return [...prevUsernames, ...newUsernames];
       });
@@ -26,13 +27,17 @@ export default function Lobby() {
       navigate(`/game/${gameId}`, {
         state: { clientUsername: username, currentPlayer: message.data },
       });
+    } else if (message.type === WsMessageTypes.ERROR) {
+      setGameStarted(true);
     }
   });
 
-    const checkIfHost = () => {
+  const checkIfHost = () => {
     const hostGameId = Cookies.get("game_host");
     const currentUrl = window.location.href;
-    setIsHost(hostGameId && currentUrl.includes("/game/" + hostGameId + "/lobby"));
+    setIsHost(
+      hostGameId && currentUrl.includes("/game/" + hostGameId + "/lobby")
+    );
   };
 
   const handleStartGame = () => {
@@ -63,7 +68,7 @@ export default function Lobby() {
     setName("");
     setValidName(true);
     await sendUserNameToBackend(formattedUsername);
-    setUsername(formattedUsername)
+    setUsername(formattedUsername);
   };
 
   const sendUserNameToBackend = async (username) => {
@@ -82,6 +87,10 @@ export default function Lobby() {
         console.log("Error fetching data:", error);
       });
   };
+
+  if (gameStarted) {
+    return <div>This game has already started.</div>;
+  }
 
   return (
     <div>
