@@ -48,7 +48,7 @@ function CountdownTimer() {
             case 'go':
                 return 'Go!';
             case 'timeout':
-                return 'Time\'s up!';
+                return "Time's up!";
             default:
                 return '';
         }
