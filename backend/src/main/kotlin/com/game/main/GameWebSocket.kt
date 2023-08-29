@@ -75,7 +75,7 @@ class GameWebSocket {
             if (type == WsMessageType.NEXT_PLAYER.name) {
                 broadcastNextPlayerMessage(gameId, game.nextPlayer())
             } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
-                announceCategoryChosen(gameId, data)
+                broadcastCategoryChosen(gameId, data)
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -89,7 +89,7 @@ class GameWebSocket {
         ws.send(WsMessage(mapper.writeValueAsString(message)))
     }
 
-    private fun announceCategoryChosen(gameId: String, category: String) {
+    private fun broadcastCategoryChosen(gameId: String, category: String) {
         broadcast(gameId, WsMessageType.CATEGORY_CHOSEN, category)
     }
 
