@@ -59,7 +59,7 @@ fun joinGameHandler(req: Request, wsHandler: GameWebSocket): Response {
     val gameId = joinGameRequest.gameId
     val username = joinGameRequest.username
     val game = getGame(gameId)?.addUser(username) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
-    wsHandler.broadcastUserJoinedMessages(gameId, game.users)
+    wsHandler.broadcast(gameId, WsMessageType.USER_JOINED, game.users)
     val responseBody = JoinGameResponse(gameId, game.hostId, game.users)
     return Response(OK).body(Jackson.asInputStream(responseBody))
 }
@@ -68,7 +68,7 @@ fun startGameHandler(req: Request, wsHandler: GameWebSocket): Response {
     val gameId = Path.of("gameId")(req)
     getGame(gameId)?.start()
     val currentPlayer = getGame(gameId)?.currentPlayer()
-    wsHandler.broadcastGameStartMessages(gameId, currentPlayer!!)
+    wsHandler.broadcast(gameId, WsMessageType.GAME_START, currentPlayer!!)
     val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
     return Response(OK).body(responseBody)
 }
