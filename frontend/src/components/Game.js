@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
+import CategoryPicker from "./CategoryPicker";
 
 export default function Game() {
   const { gameId } = useParams();
@@ -25,6 +26,7 @@ export default function Game() {
       <h1>Game has started!</h1>
       <p>{currentPlayer} is choosing a category</p>
       <button onClick={handleClick}>Next Player</button>
+      <CategoryPicker gameId = {gameId}/>
     </div>
   );
 }

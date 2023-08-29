@@ -9,6 +9,7 @@ export default function useGameWebSocket(gameId) {
   const WS_URL = `ws://localhost:8080/ws/game/${gameId}`;
   const navigate = useNavigate();
   const [currentPlayer, setCurrentPlayer] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const { sendMessage, lastMessage } = useWebSocket(WS_URL, {
     onOpen: () => {
@@ -40,6 +41,8 @@ export default function useGameWebSocket(gameId) {
             });
           } else if (message.type === WsMessageTypes.NEXT_PLAYER) {
             setCurrentPlayer(message.data);
+          } else if (message.type === WsMessageTypes.CATEGORY_CHOSEN) {
+            setSelectedCategory(message.data)
           }
         } catch (e) {
           console.log("Error parsing message:", e);
@@ -56,9 +59,14 @@ export default function useGameWebSocket(gameId) {
     sendMessage(WsMessageTypes.NEXT_PLAYER);
   };
 
+  const sendCardSelectedMessage = (category) => {
+    sendMessage(category);
+  };
+
+
   useEffect(() => {
     sendMessage("Hello from client!");
   }, []);
 
-  return { userIds, usernames, currentPlayer, sendNextPlayerMessage };
+  return { userIds, usernames, currentPlayer, sendNextPlayerMessage, sendCardSelectedMessage, selectedCategory };
 }
