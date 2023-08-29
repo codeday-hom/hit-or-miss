@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.game.repository.GameRepository.getGame
 import org.http4k.core.Request
+import org.http4k.format.Jackson
 import org.http4k.lens.Path
 import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
@@ -59,16 +60,22 @@ class GameWebSocket {
         val messageBody = wsMessage.bodyString()
         println("Received a message: $messageBody")
 
+        val game = getGame(gameId)
+        if (game == null) {
+            sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
+            return
+        }
+
         try {
-            val incomingData = mapper.readValue(messageBody, Map::class.java)
+            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
             println("Parsed data: $incomingData")
-            if (messageBody == WsMessageType.NEXT_PLAYER.name) {
-                broadcastNextPlayerMessage(gameId, getGame(gameId)?.nextPlayer())
-            } else if (messageBody == WsMessageType.CATEGORY_SELECTED.name) {
-                val selectedCategory = incomingData["data"] as? String
-                if (selectedCategory != null) {
-                    announceCategoryChosen(gameId, selectedCategory)
-                }
+            val type = incomingData.type
+            val data = incomingData.data
+
+            if (type == WsMessageType.NEXT_PLAYER.name) {
+                broadcastNextPlayerMessage(gameId, game.nextPlayer())
+            } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
+                announceCategoryChosen(gameId, data)
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -86,7 +93,7 @@ class GameWebSocket {
         broadcast(gameId, WsMessageType.CATEGORY_CHOSEN, category)
     }
 
-    private fun broadcastNextPlayerMessage(gameId: String, nextPlayer: String?) {
+    private fun broadcastNextPlayerMessage(gameId: String, nextPlayer: String) {
         broadcast(gameId, WsMessageType.NEXT_PLAYER, nextPlayer)
     }
 
