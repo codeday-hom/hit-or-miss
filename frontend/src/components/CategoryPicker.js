@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {WsMessageTypes} from "../constants/wsMessageTypes";
 import useGameWebSocket from "../hooks/useGameWebSocket"
 
-export default function CategoryPicker(gameId) {
+export default function CategoryPicker({ gameId }) {
     const categories = ["Sports", "Music", "Science", "Art", "History"].sort(() => Math.random() - 0.5);
     let categoryIndex = 0;
 
@@ -42,7 +42,7 @@ export default function CategoryPicker(gameId) {
                 <button onClick={fetchNextCategory}>Start Picking</button>
             )}
 
-            {selectedCategory ? <p>Category chosen is: ${selectedCategory}</p> : null}
+            {selectedCategory ? <p>Category chosen is: {selectedCategory}</p> : null}
         </div>
     );
 }

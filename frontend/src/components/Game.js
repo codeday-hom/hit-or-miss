@@ -24,7 +24,7 @@ export default function Game() {
       <h1>Game has started!</h1>
       <p>{currentPlayer} is choosing a category</p>
       <button onClick={handleClick}>Next Player</button>
-      <CategoryPicker gameId = {gameId}/>
+      <CategoryPicker gameId={gameId}/>
     </div>
   );
 }
