@@ -5,7 +5,7 @@ export default function useGameWebSocket(gameId, onMessageFunction) {
 
   return useWebSocket(WS_URL, {
     onOpen: () => {
-      console.log("WebSocket connection established.");
+      console.log("WebSocket connection established for gameId '" + gameId + "'.");
     },
 
     onMessage: (event) => {
@@ -17,6 +17,8 @@ export default function useGameWebSocket(gameId, onMessageFunction) {
         } catch (e) {
           console.log("Error parsing message:", e);
         }
+      } else {
+        console.log("Received a non-string event:", event);
       }
     },
 

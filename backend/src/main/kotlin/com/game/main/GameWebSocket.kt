@@ -19,6 +19,7 @@ class GameWebSocket {
     fun gameWsHandler(): (Request) -> WsResponse {
         return { req: Request ->
             WsResponse { ws: Websocket ->
+                println("Websocket request path: ${req.uri.path}")
                 val gameId = Path.of("gameId")(req)
 
                 onOpen(ws, gameId)
@@ -97,8 +98,12 @@ class GameWebSocket {
         broadcast(gameId, WsMessageType.NEXT_PLAYER, nextPlayer)
     }
 
-    fun broadcast(gameId: String, type: WsMessageType, body: Any?) {
-        wsConnections[gameId]?.forEach { ws ->
+    fun broadcast(game: Game, type: WsMessageType, body: Any?) {
+        val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
+        if (connections.size != game.users.size) {
+            println("Warning! There are ${connections.size} websocket connections, but the game has ${game.users.size} players.")
+        }
+        connections.forEach { ws ->
             sendWsMessage(ws, type, body)
         }
     }
