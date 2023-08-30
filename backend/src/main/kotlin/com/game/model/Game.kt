@@ -19,13 +19,12 @@ data class Game(
         return currentPlayer()
     }
 
-    fun addUser(username: String): Game {
+    fun addUser(username: String) {
         val userId = UUID.randomUUID().toString()
         if (hostId.isEmpty()) {
             hostId = userId
         }
         users[userId] = username
-        return this
     }
 
     fun start() {

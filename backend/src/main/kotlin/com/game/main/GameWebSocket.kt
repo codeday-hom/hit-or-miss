@@ -2,6 +2,7 @@ package com.game.main
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.game.model.Game
 import com.game.repository.GameRepository.getGame
 import org.http4k.core.Request
 import org.http4k.format.Jackson
@@ -16,7 +17,7 @@ class GameWebSocket {
     private val wsConnections = Collections.synchronizedMap(HashMap<String, MutableList<Websocket>>())
     private val mapper = ObjectMapper()
 
-    fun gameWsHandler(): (Request) -> WsResponse {
+    fun handler(): (Request) -> WsResponse {
         return { req: Request ->
             WsResponse { ws: Websocket ->
                 println("Websocket request path: ${req.uri.path}")
@@ -37,15 +38,15 @@ class GameWebSocket {
     }
 
     private fun onOpen(ws: Websocket, gameId: String) {
-        val connection = wsConnections[gameId]
-        if (connection == null || !connection.contains(ws)) {
-            wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
-        }
-
         val game = getGame(gameId)
         if (game == null) {
             sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
             return
+        }
+
+        val connection = wsConnections[gameId]
+        if (connection == null || !connection.contains(ws)) {
+            wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
         }
 
         if (game.isStarted()) {
@@ -53,8 +54,7 @@ class GameWebSocket {
             return
         }
 
-        val users = game.users
-        sendWsMessage(ws, WsMessageType.USER_JOINED, users)
+        sendWsMessage(ws, WsMessageType.USER_JOINED, game.users)
     }
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
@@ -74,9 +74,9 @@ class GameWebSocket {
             val data = incomingData.data
 
             if (type == WsMessageType.NEXT_PLAYER.name) {
-                broadcastNextPlayerMessage(gameId, game.nextPlayer())
+                broadcastNextPlayerMessage(game)
             } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
-                broadcastCategoryChosen(gameId, data)
+                broadcastCategoryChosen(game, data)
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -90,12 +90,12 @@ class GameWebSocket {
         ws.send(WsMessage(mapper.writeValueAsString(message)))
     }
 
-    private fun broadcastCategoryChosen(gameId: String, category: String) {
-        broadcast(gameId, WsMessageType.CATEGORY_CHOSEN, category)
+    private fun broadcastCategoryChosen(game: Game, category: String) {
+        broadcast(game, WsMessageType.CATEGORY_CHOSEN, category)
     }
 
-    private fun broadcastNextPlayerMessage(gameId: String, nextPlayer: String) {
-        broadcast(gameId, WsMessageType.NEXT_PLAYER, nextPlayer)
+    private fun broadcastNextPlayerMessage(game: Game) {
+        broadcast(game, WsMessageType.NEXT_PLAYER, game.nextPlayer())
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
