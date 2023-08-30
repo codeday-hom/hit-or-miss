@@ -21,6 +21,9 @@ import org.http4k.lens.Path
 import org.http4k.routing.ws.bind
 import org.http4k.routing.websockets
 import org.http4k.server.PolyHandler
+import org.slf4j.LoggerFactory
+
+private val LOGGER = LoggerFactory.getLogger("Main")
 
 fun main() {
     val frontendBuild = "../frontend/build/"
@@ -28,7 +31,7 @@ fun main() {
     val ws = websockets("/ws/game/{gameId}" bind websocket.handler())
     val server = PolyHandler(gameServerHandler(frontendBuild, apiHandler(websocket)), ws).asServer(Jetty(8080)).start()
     val localAddress = "http://localhost:" + server.port()
-    println("Server started on $localAddress")
+    LOGGER.info("Server started on $localAddress")
 }
 
 fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): RoutingHttpHandler {
@@ -55,7 +58,7 @@ fun createNewGame(): Response {
 
 fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val requestBodyString = req.bodyString()
-    println("Request body: $requestBodyString")
+    LOGGER.info("Request body: $requestBodyString")
     val joinGameRequest = Jackson.asA(requestBodyString, JoinGameRequest::class)
     val gameId = joinGameRequest.gameId
     val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")

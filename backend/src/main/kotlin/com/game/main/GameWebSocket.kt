@@ -10,7 +10,10 @@ import org.http4k.lens.Path
 import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
+import org.slf4j.LoggerFactory
 import java.util.*
+
+private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
 
 class GameWebSocket {
 
@@ -19,34 +22,30 @@ class GameWebSocket {
 
     fun handler(): (Request) -> WsResponse {
         return { req: Request ->
-            WsResponse { ws: Websocket ->
-                println("Websocket request path: ${req.uri.path}")
-                val gameId = Path.of("gameId")(req)
-
-                onOpen(ws, gameId)
-
-                ws.onMessage {
-                    onMessage(ws, it, gameId)
-                }
-
-                ws.onClose {
-                    println("$gameId is closing")
-                    wsConnections[gameId]?.remove(ws)
+            LOGGER.info("Websocket request path: ${req.uri.path}")
+            val gameId = Path.of("gameId")(req)
+            val game = getGame(gameId)
+            if (game == null) {
+                WsResponse { ws: Websocket -> sendWsMessage(ws, WsMessageType.ERROR, "Game not found") }
+            } else {
+                WsResponse { ws: Websocket ->
+                    onOpen(ws, game)
+                    ws.onMessage {
+                        onMessage(ws, it, game.gameId)
+                    }
+                    ws.onClose {
+                        LOGGER.info("${game.gameId} is closing")
+                        wsConnections[game.gameId]?.remove(ws)
+                    }
                 }
             }
         }
     }
 
-    private fun onOpen(ws: Websocket, gameId: String) {
-        val game = getGame(gameId)
-        if (game == null) {
-            sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
-            return
-        }
-
-        val connection = wsConnections[gameId]
+    private fun onOpen(ws: Websocket, game: Game) {
+        val connection = wsConnections[game.gameId]
         if (connection == null || !connection.contains(ws)) {
-            wsConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
+            wsConnections.getOrPut(game.gameId) { mutableListOf() }.add(ws)
         }
 
         if (game.isStarted()) {
@@ -59,7 +58,7 @@ class GameWebSocket {
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
         val messageBody = wsMessage.bodyString()
-        println("Received a message: $messageBody")
+        LOGGER.info("Received a message: $messageBody")
 
         val game = getGame(gameId)
         if (game == null) {
@@ -69,7 +68,7 @@ class GameWebSocket {
 
         try {
             val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
-            println("Parsed data: $incomingData")
+            LOGGER.info("Parsed data: $incomingData")
             val type = incomingData.type
             val data = incomingData.data
 
@@ -86,7 +85,7 @@ class GameWebSocket {
 
     private fun sendWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
         val message = mapOf("type" to type.name, "data" to data)
-        println("Sending a message: $message")
+        LOGGER.info("Sending a message: $message")
         ws.send(WsMessage(mapper.writeValueAsString(message)))
     }
 
@@ -101,7 +100,10 @@ class GameWebSocket {
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
         val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
         if (connections.size != game.users.size) {
-            println("Warning! There are ${connections.size} websocket connections, but the game has ${game.users.size} players.")
+            // If connections > players, then it means that each player has >1 websocket connection to the server.
+            // For now, that seems to be fine. We can refactor the frontend to share a single websocket connection between components in the view
+            //   at a later time if it becomes necessary.
+            LOGGER.warn("There are ${connections.size} websocket connections, but the game has ${game.users.size} players.")
         }
         connections.forEach { ws ->
             sendWsMessage(ws, type, body)
