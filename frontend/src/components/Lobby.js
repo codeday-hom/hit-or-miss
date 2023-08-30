@@ -8,6 +8,7 @@ export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const { gameId } = useParams();
   const [usernames, setUsernames] = useState([]);
+  const [username, setUsername] = useState("");
   const [name, setName] = useState("");
   const [invalidNameWarning, setInvalidNameWarning] = useState("");
   const [validName, setValidName] = useState(false);
@@ -23,7 +24,7 @@ export default function Lobby() {
       });
     } else if (message.type === WsMessageTypes.GAME_START) {
       navigate(`/game/${gameId}`, {
-        state: { currentPlayer: message.data },
+        state: { clientUsername: username, currentPlayer: message.data },
       });
     }
   });
@@ -62,6 +63,7 @@ export default function Lobby() {
     setName("");
     setValidName(true);
     await sendUserNameToBackend(formattedUsername);
+    setUsername(formattedUsername)
   };
 
   const sendUserNameToBackend = async (username) => {

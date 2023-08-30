@@ -6,7 +6,9 @@ import {WsMessageTypes} from "../constants/wsMessageTypes";
 
 export default function Game() {
   const { gameId } = useParams();
-  const initialPlayer = useLocation().state.currentPlayer;
+  const location = useLocation();
+  const clientUsername = location.state.clientUsername;
+  const initialPlayer = location.state.currentPlayer;
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
 
   const { sendMessage } = useGameWebSocket(gameId, message => {
@@ -23,8 +25,8 @@ export default function Game() {
     <div>
       <h1>Game has started!</h1>
       <p>{currentPlayer} is choosing a category</p>
-      <button onClick={handleClick}>Next Player</button>
-      <CategoryPicker gameId={gameId}/>
+      {currentPlayer === clientUsername ? <button onClick={handleClick}>Next Player</button> : null}
+      <CategoryPicker gameId={gameId} clientUsername={clientUsername} currentPlayer={currentPlayer}/>
     </div>
   );
 }
