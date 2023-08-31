@@ -1,17 +1,31 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+import useGameWebSocket from "../hooks/useGameWebSocket";
 import "./Dice.css";
+import { WsMessageTypes } from "../constants/wsMessageTypes";
 
-function Dice() {
+export default function Dice() {
+  const { gameId } = useParams();
   const [diceState, setDiceState] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
-
-  function rollDice() {
-    const diceResult = Math.floor(Math.random() * 6) + 1;
-    console.log(diceResult);
-    setDiceState("show-" + diceResult);
-    if (diceResult === 6) {
-      setWildcardOption(true);
+  const [diceResult, setDiceResult] = useState();
+  const { sendMessage } = useGameWebSocket(gameId, (message) => {
+    if (message.type === WsMessageTypes.ROLL_DICE_RESULT) {
+      setDiceResult(message.data);
     }
+  });
+
+  useEffect(() => {
+    if (diceResult) {
+      if (diceResult === 6) {
+        setWildcardOption(true);
+      }
+      setDiceState("show-" + diceResult);
+    }
+  }, [diceResult]);
+
+  function handleRollDice() {
+    sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
   }
 
   function handleWildcardOption(option) {
@@ -44,7 +58,7 @@ function Dice() {
         </div>
       </div>
       <div className="roll-button">
-        <button onClick={rollDice}>Roll dice</button>
+        <button onClick={handleRollDice}>Roll dice</button>
       </div>
 
       {wildcardOption && (
@@ -60,5 +74,3 @@ function Dice() {
     </div>
   );
 }
-
-export default Dice;

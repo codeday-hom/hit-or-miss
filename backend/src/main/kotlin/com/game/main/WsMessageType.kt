@@ -9,4 +9,6 @@ enum class WsMessageType {
     CATEGORY_CHOSEN,
     HEARTBEAT,
     HEARTBEAT_ACK,
+    ROLL_DICE,
+    ROLL_DICE_RESULT,
 }

@@ -79,6 +79,9 @@ class GameWebSocket {
             } else if (type == WsMessageType.HEARTBEAT.name) {
                 isAlive[gameId] = true
                 broadcastHeartbeatAckMessage(game)
+            } else if (type == WsMessageType.ROLL_DICE.name) {
+                broadcastHeartbeatAckMessage(game)
+                broadcastRollDiceResultMessage(game)
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -102,6 +105,11 @@ class GameWebSocket {
 
     private fun broadcastHeartbeatAckMessage(game: Game) {
         broadcast(game, WsMessageType.HEARTBEAT_ACK, null)
+    }
+
+    private fun broadcastRollDiceResultMessage(game: Game) {
+        val result = game.rollDice()
+        broadcast(game, WsMessageType.ROLL_DICE_RESULT, result)
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
