@@ -1,23 +1,38 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useNavigate, useParams} from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../hooks/useGameWebSocket";
+import {WsMessageTypes} from "../constants/wsMessageTypes";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const { gameId } = useParams();
-  const { userIds, usernames } = useGameWebSocket(gameId);
-  const [name, setName] = useState("");
+  const [usernames, setUsernames] = useState([]);
   const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [invalidNameWarning, setInvalidNameWarning] = useState("");
   const [validName, setValidName] = useState(false);
+  const navigate = useNavigate();
 
-  const checkIfHost = () => {
+  useGameWebSocket(gameId, message => {
+    if (message.type === WsMessageTypes.USER_JOINED) {
+      setUsernames((prevUsernames) => {
+        const newUsernames = Object.values(message.data).filter(
+            (name) => !prevUsernames.includes(name)
+        );
+        return [...prevUsernames, ...newUsernames];
+      });
+    } else if (message.type === WsMessageTypes.GAME_START) {
+      navigate(`/game/${gameId}`, {
+        state: { clientUsername: username, currentPlayer: message.data },
+      });
+    }
+  });
+
+    const checkIfHost = () => {
     const hostGameId = Cookies.get("game_host");
     const currentUrl = window.location.href;
-    setIsHost(
-      hostGameId && currentUrl.includes("/game/" + hostGameId + "/lobby")
-    );
+    setIsHost(hostGameId && currentUrl.includes("/game/" + hostGameId + "/lobby"));
   };
 
   const handleStartGame = () => {
@@ -34,7 +49,7 @@ export default function Lobby() {
     setName(e.target.value);
   };
 
-  const handleNameSave = () => {
+  const handleNameSave = async () => {
     const formattedUsername = name.trim();
     if (formattedUsername === "") {
       setInvalidNameWarning("Please enter a valid name.");
@@ -45,10 +60,10 @@ export default function Lobby() {
       setInvalidNameWarning("This username is already taken");
       return;
     }
-    setUsername(formattedUsername);
     setName("");
     setValidName(true);
-    sendUserNameToBackend(formattedUsername);
+    await sendUserNameToBackend(formattedUsername);
+    setUsername(formattedUsername)
   };
 
   const sendUserNameToBackend = async (username) => {
@@ -62,10 +77,7 @@ export default function Lobby() {
       body: JSON.stringify({ gameId, username }),
     })
       .then((response) => response.json())
-      .then((data) => {
-        // data: gameId and hostId
-        checkIfHost();
-      })
+      .then(() => checkIfHost())
       .catch((error) => {
         console.log("Error fetching data:", error);
       });

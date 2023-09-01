@@ -21,14 +21,17 @@ import org.http4k.lens.Path
 import org.http4k.routing.ws.bind
 import org.http4k.routing.websockets
 import org.http4k.server.PolyHandler
+import org.slf4j.LoggerFactory
+
+private val LOGGER = LoggerFactory.getLogger("Main")
 
 fun main() {
     val frontendBuild = "../frontend/build/"
-    val wsHandler = GameWebSocket()
-    val ws = websockets("/ws/game/{gameId}" bind wsHandler.gameWsHandler())
-    val server = PolyHandler(gameServerHandler(frontendBuild, apiHandler(wsHandler)), ws).asServer(Jetty(8080)).start()
+    val websocket = GameWebSocket()
+    val ws = websockets("/ws/game/{gameId}" bind websocket.handler())
+    val server = PolyHandler(gameServerHandler(frontendBuild, apiHandler(websocket)), ws).asServer(Jetty(8080)).start()
     val localAddress = "http://localhost:" + server.port()
-    println("Server started on $localAddress")
+    LOGGER.info("Server started on $localAddress")
 }
 
 fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): RoutingHttpHandler {
@@ -38,10 +41,10 @@ fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): Routi
     )
 }
 
-fun apiHandler(wsHandler: GameWebSocket): RoutingHttpHandler = routes(
+fun apiHandler(websocket: GameWebSocket): RoutingHttpHandler = routes(
     "/new-game" bind POST to { _: Request -> createNewGame() },
-    "/join-game/{gameId}" bind POST to { req: Request -> joinGameHandler(req, wsHandler) },
-    "/start-game/{gameId}" bind POST to { req: Request -> startGameHandler(req, wsHandler) },
+    "/join-game/{gameId}" bind POST to { req: Request -> joinGameHandler(req, websocket) },
+    "/start-game/{gameId}" bind POST to { req: Request -> startGameHandler(req, websocket) },
 )
 
 fun createNewGame(): Response {
@@ -49,26 +52,29 @@ fun createNewGame(): Response {
     val game = Game(gameId, "", mutableMapOf())
     GameRepository.createGame(gameId, game)
     return Response(Status.SEE_OTHER)
-        .header("Location", "/game/$gameId/lobby").cookie(Cookie("game_host", gameId, path = "/"))
+        .header("Location", "/game/$gameId/lobby")
+        .cookie(Cookie("game_host", gameId, path = "/"))
 }
 
-fun joinGameHandler(req: Request, wsHandler: GameWebSocket): Response {
+fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val requestBodyString = req.bodyString()
-    println("Request body: $requestBodyString")
+    LOGGER.info("Request body: $requestBodyString")
     val joinGameRequest = Jackson.asA(requestBodyString, JoinGameRequest::class)
     val gameId = joinGameRequest.gameId
+    val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
     val username = joinGameRequest.username
-    val game = getGame(gameId)?.addUser(username) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
-    wsHandler.broadcastUserJoinedMessages(gameId, game.users)
+    game.addUser(username)
+    websocket.broadcast(game, WsMessageType.USER_JOINED, game.users)
     val responseBody = JoinGameResponse(gameId, game.hostId, game.users)
     return Response(OK).body(Jackson.asInputStream(responseBody))
 }
 
-fun startGameHandler(req: Request, wsHandler: GameWebSocket): Response {
+fun startGameHandler(req: Request, websocket: GameWebSocket): Response {
     val gameId = Path.of("gameId")(req)
-    getGame(gameId)?.start()
-    val currentPlayer = getGame(gameId)?.currentPlayer()
-    wsHandler.broadcastGameStartMessages(gameId, currentPlayer!!)
+    val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
+    game.start()
+    val currentPlayer = game.currentPlayer()
+    websocket.broadcast(game, WsMessageType.GAME_START, currentPlayer)
     val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
     return Response(OK).body(responseBody)
 }

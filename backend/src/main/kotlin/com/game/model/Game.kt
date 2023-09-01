@@ -1,5 +1,6 @@
 package com.game.model
 
+import java.lang.RuntimeException
 import java.util.*
 data class Game(
     val gameId: String,
@@ -9,22 +10,21 @@ data class Game(
     private val playerOrders: MutableList<String> = mutableListOf(),
     private var currentPlayerIndex: Int = 0
 ) {
-    fun currentPlayer(): String? {
-        return users[playerOrders[currentPlayerIndex]]
+    fun currentPlayer(): String {
+        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
     }
 
-    fun nextPlayer(): String? {
+    fun nextPlayer(): String {
         currentPlayerIndex = (currentPlayerIndex + 1) % playerOrders.size
         return currentPlayer()
     }
 
-    fun addUser(username: String): Game {
+    fun addUser(username: String) {
         val userId = UUID.randomUUID().toString()
         if (hostId.isEmpty()) {
             hostId = userId
         }
         users[userId] = username
-        return this
     }
 
     fun start() {

@@ -29,6 +29,8 @@ dependencies {
     implementation("commons-codec:commons-codec:1.15")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1")
     implementation("org.http4k:http4k-format-jackson")
+    implementation("org.slf4j:slf4j-simple:2.0.7")
+
     testImplementation(platform("org.junit:junit-bom:5.7.2"))
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
