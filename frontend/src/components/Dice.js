@@ -4,14 +4,18 @@ import useGameWebSocket from "../hooks/useGameWebSocket";
 import "./Dice.css";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 
-export default function Dice() {
+export default function Dice({ currentPlayer, clientUsername }) {
   const { gameId } = useParams();
   const [diceState, setDiceState] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
   const [diceResult, setDiceResult] = useState();
+  const [isDiceRolled, setIsDiceRolled] = useState(false);
+  const [hitOrMiss, setHitOrMiss] = useState("");
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.ROLL_DICE_RESULT) {
       setDiceResult(message.data);
+    } else if (message.type === WsMessageTypes.HIT_OR_MISS) {
+      setHitOrMiss(message.data);
     }
   });
 
@@ -19,6 +23,14 @@ export default function Dice() {
     if (diceResult) {
       if (diceResult === 6) {
         setWildcardOption(true);
+      } else if (diceResult <= 3) {
+        sendMessage(
+          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+        );
+      } else {
+        sendMessage(
+          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+        );
       }
       setDiceState("show-" + diceResult);
     }
@@ -26,11 +38,20 @@ export default function Dice() {
 
   function handleRollDice() {
     sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
+    setIsDiceRolled(true);
   }
 
   function handleWildcardOption(option) {
-    console.log("Player chose", option);
     setWildcardOption(false);
+    if (hitOrMiss === "Hit") {
+      sendMessage(
+        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+      );
+    } else {
+      sendMessage(
+        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+      );
+    }
   }
 
   return (
@@ -58,10 +79,18 @@ export default function Dice() {
         </div>
       </div>
       <div className="roll-button">
-        <button onClick={handleRollDice}>Roll dice</button>
+        {currentPlayer === clientUsername && (
+          <button onClick={handleRollDice} disabled={isDiceRolled}>
+            Roll dice
+          </button>
+        )}
       </div>
 
-      {wildcardOption && (
+      <div className="dice-result">
+        {hitOrMiss ? `Current choice: ${hitOrMiss}` : "Rolling the Dice..."}
+      </div>
+
+      {wildcardOption && currentPlayer === clientUsername && (
         <div className="wildcard">
           <div className="wildcard-content">
             <h2>Wildcard!</h2>

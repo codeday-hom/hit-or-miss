@@ -8,4 +8,5 @@ export const WsMessageTypes = {
   ERROR: "ERROR",
   ROLL_DICE: "ROLL_DICE",
   ROLL_DICE_RESULT: "ROLL_DICE_RESULT",
+  HIT_OR_MISS: "HIT_OR_MISS",
 };

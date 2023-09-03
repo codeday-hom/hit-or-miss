@@ -11,4 +11,5 @@ enum class WsMessageType {
     HEARTBEAT_ACK,
     ROLL_DICE,
     ROLL_DICE_RESULT,
+    HIT_OR_MISS,
 }

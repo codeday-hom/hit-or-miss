@@ -60,11 +60,11 @@ body {
 }
 
 .show-3 .dice {
-  transform: rotateY(-450deg) rotateZ(-1440deg);
+  transform: rotateY(810deg) rotateZ(720deg);
 }
 
 .show-4 .dice {
-  transform: rotateY(810deg) rotateZ(720deg);
+  transform: rotateY(-450deg) rotateZ(-1440deg);
 }
 
 .show-5 .dice {
@@ -101,6 +101,13 @@ body {
 
 .roll-button {
   margin-top: 20px;
+}
+
+.dice-result {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 20px;
+  text-align: center;
 }
 
 button {
