@@ -6,7 +6,7 @@ import { WsMessageTypes } from "../constants/wsMessageTypes";
 
 export default function Dice({ currentPlayer, clientUsername }) {
   const { gameId } = useParams();
-  const [diceState, setDiceState] = useState("");
+  const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
   const [diceResult, setDiceResult] = useState();
   const [isDiceRolled, setIsDiceRolled] = useState(false);
@@ -21,6 +21,45 @@ export default function Dice({ currentPlayer, clientUsername }) {
 
   useEffect(() => {
     if (diceResult) {
+      let randomSpin = 3 + Math.floor(Math.random() * 5);
+      let endRotationValueX = 0;
+      let endRotationValueY = 0;
+      let endRotationValueZ = 0;
+
+      switch (diceResult) {
+        case 1:
+          endRotationValueX = 720 + 360 * randomSpin;
+          endRotationValueZ = -720 - 360 * randomSpin;
+          break;
+        case 2:
+          endRotationValueY = 900 + 360 * randomSpin;
+          endRotationValueZ = -1080 - 360 * randomSpin;
+          break;
+        case 3:
+          endRotationValueY = 810 + 360 * randomSpin;
+          endRotationValueZ = 720 + 360 * randomSpin;
+          break;
+        case 4:
+          endRotationValueY = -450 + 360 * randomSpin;
+          endRotationValueZ = -1440 - 360 * randomSpin;
+          break;
+        case 5:
+          endRotationValueX = -810 + 360 * randomSpin;
+          endRotationValueZ = -1080 - 360 * randomSpin;
+          break;
+        case 6:
+          endRotationValueX = 450 + 360 * randomSpin;
+          endRotationValueZ = -720 - 360 * randomSpin;
+          break;
+
+        default:
+          break;
+      }
+
+      setDiceTransform(
+        `rotateX(${endRotationValueX}deg) rotateY(${endRotationValueY}deg) rotateZ(${endRotationValueZ}deg)`
+      );
+
       if (diceResult === 6) {
         setWildcardOption(true);
       } else if (diceResult <= 3) {
@@ -32,16 +71,15 @@ export default function Dice({ currentPlayer, clientUsername }) {
           JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
         );
       }
-      setDiceState("show-" + diceResult);
     }
   }, [diceResult]);
 
-  function handleRollDice() {
+  const handleRollDice = () => {
     sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
     setIsDiceRolled(true);
   }
 
-  function handleWildcardOption(option) {
+  const handleWildcardOption = () => {
     setWildcardOption(false);
     if (hitOrMiss === "Hit") {
       sendMessage(
@@ -55,9 +93,9 @@ export default function Dice({ currentPlayer, clientUsername }) {
   }
 
   return (
-    <div className={diceState}>
+    <div>
       <div className="container">
-        <div className="dice">
+        <div className="dice" style={{ transform: diceTransform }}>
           <div className="side">
             <div className="hit-text">Hit</div>
           </div>
