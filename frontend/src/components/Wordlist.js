@@ -1,30 +1,28 @@
 import { useState } from "react";
 import "./WordList.css";
+import useGameWebSocket from "../hooks/useGameWebSocket";
+import { WsMessageTypes } from "../constants/wsMessageTypes";
 
-function WordList({ onSelectWord }) {
-  const [text, setText] = useState("");
+export default function WordList({ gameId }) {
+  const wordlist = ["Soccer", "Swimming", "Tennis", "Fencing"];
   const [selectedWord, setSelectedWord] = useState("");
+  const { sendMessage } = useGameWebSocket(gameId, (message) => {
+    if (message.type === WsMessageTypes.SELECTED_WORD) {
+      setSelectedWord(message.data);
+    }
+  });
 
-  function handleTextChange(e) {
-    setText(e.target.value);
-  }
-
-  function handleWordClick(word) {
-    setSelectedWord(word);
-    onSelectWord(word);
-  }
-
-  const words = text.split("\n").filter(word => word.trim() !== "");
+  const handleWordClick = (word) => {
+    if (selectedWord) return;
+    sendMessage(
+      JSON.stringify({ type: WsMessageTypes.SELECTED_WORD, data: word })
+    );
+  };
 
   return (
     <div className="word-list">
-      <textarea
-        placeholder="Write down your words here..."
-        value={text}
-        onChange={handleTextChange}
-      />
       <ul>
-        {words.map((word, index) => (
+        {wordlist.map((word, index) => (
           <li
             key={index}
             className={word === selectedWord ? "selected" : ""}
@@ -37,5 +35,3 @@ function WordList({ onSelectWord }) {
     </div>
   );
 }
-
-export default WordList;

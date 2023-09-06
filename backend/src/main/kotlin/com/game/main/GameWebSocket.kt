@@ -83,6 +83,8 @@ class GameWebSocket {
                 broadcastRollDiceResultMessage(game)
             } else if (type == WsMessageType.HIT_OR_MISS.name) {
                 broadcastHitOrMissMessage(game, data)
+            } else if (type == WsMessageType.SELECTED_WORD.name) {
+                broadcastSelectedWordMessage(game, data)
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -115,6 +117,11 @@ class GameWebSocket {
 
     private fun broadcastHitOrMissMessage(game: Game, hitOrMiss: String) {
         broadcast(game, WsMessageType.HIT_OR_MISS, hitOrMiss)
+    }
+
+
+    private fun broadcastSelectedWordMessage(game: Game, word: String) {
+        broadcast(game, WsMessageType.SELECTED_WORD, word)
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {

@@ -9,4 +9,5 @@ export const WsMessageTypes = {
   ROLL_DICE: "ROLL_DICE",
   ROLL_DICE_RESULT: "ROLL_DICE_RESULT",
   HIT_OR_MISS: "HIT_OR_MISS",
+  SELECTED_WORD: "SELECTED_WORD",
 };

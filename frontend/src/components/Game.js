@@ -4,6 +4,7 @@ import useGameWebSocket from "../hooks/useGameWebSocket";
 import CategoryPicker from "./CategoryPicker";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 import Dice from "./Dice";
+import WordList from "./Wordlist";
 
 export default function Game() {
   const { gameId } = useParams();
@@ -11,10 +12,14 @@ export default function Game() {
   const clientUsername = location.state.clientUsername;
   const initialPlayer = location.state.currentPlayer;
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
+  const [diceResult, setDiceResult] = useState(false);
+  const [selectedWord, setSelectedWord] = useState("");
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.NEXT_PLAYER) {
       setCurrentPlayer(message.data);
+    } else if (message.type === WsMessageTypes.SELECTED_WORD) {
+      setSelectedWord(message.data);
     }
   });
 
@@ -43,6 +48,9 @@ export default function Game() {
     sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: "" }));
   };
 
+  const handleDiceResultChange = (status) => {
+    setDiceResult(status);
+  };
   return (
     <div>
       <h1>Game has started!</h1>
@@ -55,7 +63,16 @@ export default function Game() {
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
       />
-      <Dice currentPlayer={currentPlayer} clientUsername={clientUsername} />
+      {diceResult && currentPlayer === clientUsername ? (
+        <WordList gameId={gameId} />
+      ) : null}
+      {selectedWord && <div>Current word: {selectedWord}</div>}
+      <Dice
+        gameId={gameId}
+        currentPlayer={currentPlayer}
+        clientUsername={clientUsername}
+        onDiceResultChange={handleDiceResultChange}
+      />
     </div>
   );
 }
