@@ -72,20 +72,18 @@ class GameWebSocket {
             val type = incomingData.type
             val data = incomingData.data
 
-            if (type == WsMessageType.NEXT_PLAYER.name) {
-                broadcastNextPlayerMessage(game)
-            } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
-                broadcastCategoryChosen(game, data)
-            } else if (type == WsMessageType.HEARTBEAT.name) {
-                isAlive[gameId] = true
-                broadcastHeartbeatAckMessage(game)
-            } else if (type == WsMessageType.ROLL_DICE.name) {
-                broadcastRollDiceResultMessage(game)
-            } else if (type == WsMessageType.HIT_OR_MISS.name) {
-                broadcastHitOrMissMessage(game, data)
-            } else if (type == WsMessageType.SELECTED_WORD.name) {
-                broadcastSelectedWordMessage(game, data)
+            when (type) {
+                WsMessageType.NEXT_PLAYER.name -> broadcastNextPlayerMessage(game)
+                WsMessageType.CATEGORY_SELECTED.name -> broadcastCategoryChosen(game, data)
+                WsMessageType.HEARTBEAT.name -> {
+                    isAlive[gameId] = true
+                    broadcastHeartbeatAckMessage(game)
+                }
+                WsMessageType.ROLL_DICE.name -> broadcastRollDiceResultMessage(game)
+                WsMessageType.HIT_OR_MISS.name -> broadcastHitOrMissMessage(game, data)
+                WsMessageType.SELECTED_WORD.name -> broadcastSelectedWordMessage(game, data)
             }
+
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
             return
