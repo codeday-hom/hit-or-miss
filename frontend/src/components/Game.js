@@ -55,7 +55,7 @@ export default function Game() {
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
       />
-      <Dice currentPlayer={currentPlayer} clientUsername={clientUsername} />
+      <Dice gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername} />
     </div>
   );
 }

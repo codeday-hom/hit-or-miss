@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 import "./Dice.css";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 
-export default function Dice({ currentPlayer, clientUsername }) {
-  const { gameId } = useParams();
+export default function Dice({ gameId, currentPlayer, clientUsername }) {
   const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
   const [diceResult, setDiceResult] = useState();
@@ -19,6 +17,11 @@ export default function Dice({ currentPlayer, clientUsername }) {
     }
   });
 
+    const sendHitOrMiss = (hitOrMiss) => {
+    sendMessage(
+              JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: hitOrMiss })
+            );
+    }
   useEffect(() => {
     if (diceResult) {
       let randomSpin = 3 + Math.floor(Math.random() * 5);
@@ -63,13 +66,9 @@ export default function Dice({ currentPlayer, clientUsername }) {
       if (diceResult === 6) {
         setWildcardOption(true);
       } else if (diceResult <= 3) {
-        sendMessage(
-          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
-        );
+        sendHitOrMiss("Hit");
       } else {
-        sendMessage(
-          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
-        );
+        sendHitOrMiss("Miss");
       }
     }
   }, [diceResult]);
@@ -81,16 +80,9 @@ export default function Dice({ currentPlayer, clientUsername }) {
 
   const handleWildcardOption = () => {
     setWildcardOption(false);
-    if (hitOrMiss === "Hit") {
-      sendMessage(
-        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
-      );
-    } else {
-      sendMessage(
-        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
-      );
+      sendHitOrMiss(hitOrMiss);
     }
-  }
+
 
   return (
     <div>
@@ -125,7 +117,7 @@ export default function Dice({ currentPlayer, clientUsername }) {
       </div>
 
       <div className="dice-result">
-        {hitOrMiss ? `Current choice: ${hitOrMiss}` : `${currentPlayer} is rolling the dice...`}
+        {hitOrMiss ? `Current choice: ${hitOrMiss}` : "Rolling the Dice..."}
       </div>
 
       {wildcardOption && currentPlayer === clientUsername && (
