@@ -17,7 +17,7 @@ data class Game(
         if (hostId.isEmpty()) {
             hostId = userId
         }
-        players.updateUsername(userId, username)
+        players.addPlayer(userId, username)
     }
 
     fun start() {
@@ -35,5 +35,5 @@ data class Game(
 
     fun countPlayers() = players.count()
 
-    fun userMapForSerialization() = players.users
+    fun userMapForSerialization() = players.userMapForSerialization()
 }
