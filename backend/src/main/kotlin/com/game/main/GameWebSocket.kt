@@ -53,7 +53,7 @@ class GameWebSocket {
             return
         }
 
-        sendWsMessage(ws, WsMessageType.USER_JOINED, game.users)
+        sendWsMessage(ws, WsMessageType.USER_JOINED, game.userMapForSerialization())
     }
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
@@ -119,11 +119,11 @@ class GameWebSocket {
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
         val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
-        if (connections.size != game.users.size) {
+        if (connections.size != game.countPlayers()) {
             // If connections > players, then it means that each player has >1 websocket connection to the server.
             // For now, that seems to be fine. We can refactor the frontend to share a single websocket connection between components in the view
             //   at a later time if it becomes necessary.
-            LOGGER.warn("There are ${connections.size} websocket connections, but the game has ${game.users.size} players.")
+            LOGGER.warn("There are ${connections.size} websocket connections, but the game has ${game.countPlayers()} players.")
         }
         connections.forEach { ws ->
             sendWsMessage(ws, type, body)

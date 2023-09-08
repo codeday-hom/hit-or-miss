@@ -2,13 +2,11 @@ package com.game.main
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.fail
 
 class GameTest {
 
     @Test
     fun `play a turn with a hit`() {
-
         // Set up a game with Ian as the host, and two other players, Rob and Tom.
         val ian = Player("ian")
         val game = Gameplay(ian) // Ian is the host of the game
@@ -37,7 +35,6 @@ class GameTest {
         assertEquals(1, ian.getPlayerPoints())
         assertEquals(2, rob.getPlayerPoints())
         assertEquals(1, tom.getPlayerPoints())
-
     }
 
     @Test

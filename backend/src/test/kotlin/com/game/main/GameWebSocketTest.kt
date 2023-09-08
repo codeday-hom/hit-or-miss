@@ -2,6 +2,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.game.main.GameWebSocket
 import com.game.main.WsMessageType
 import com.game.model.Game
+import com.game.model.Players
 import com.game.repository.GameRepository
 import org.http4k.client.WebsocketClient
 import org.http4k.core.Uri
@@ -35,7 +36,7 @@ class GameWebSocketTest {
         server.start()
         port = server.port()
         val gameId = "testGameId"
-        game = Game(gameId, "aaaa", mutableMapOf("aaaa" to "zuno", "bbbb" to "grace"))
+        game = Game(gameId, "aaaa", false, Players(mutableMapOf("aaaa" to "zuno", "bbbb" to "grace")))
         GameRepository.createGame(gameId, game)
         client = wsClient(gameId)
     }
@@ -91,7 +92,7 @@ class GameWebSocketTest {
         game.start()
         val currentPlayer = game.currentPlayer()
         val nextPlayer = mutableListOf<String>().run {
-            addAll(game.users.values)
+            addAll(game.userMapForSerialization().values)
             remove(currentPlayer)
             first()
         }

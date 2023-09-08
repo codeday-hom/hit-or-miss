@@ -1,37 +1,28 @@
 package com.game.model
 
-import java.lang.RuntimeException
 import java.util.*
+
 data class Game(
     val gameId: String,
     var hostId: String,
-    val users: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
     private var started: Boolean = false,
-    private val playerOrders: MutableList<String> = mutableListOf(),
-    private var currentPlayerIndex: Int = 0
+    private val players: Players = Players()
 ) {
-    fun currentPlayer(): String {
-        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
-    }
+    fun currentPlayer() = players.currentPlayer()
 
-    fun nextPlayer(): String {
-        currentPlayerIndex = (currentPlayerIndex + 1) % playerOrders.size
-        return currentPlayer()
-    }
+    fun nextPlayer() = players.nextPlayer()
 
     fun addUser(username: String) {
         val userId = UUID.randomUUID().toString()
         if (hostId.isEmpty()) {
             hostId = userId
         }
-        users[userId] = username
+        players.updateUsername(userId, username)
     }
 
     fun start() {
         started = true
-        val shuffledPlayerOrders = users.keys.shuffled()
-        playerOrders.clear()
-        playerOrders.addAll(shuffledPlayerOrders)
+        players.shufflePlayerOrders()
     }
 
     fun isStarted(): Boolean {
@@ -41,4 +32,8 @@ data class Game(
     fun rollDice(): Int {
         return Random().nextInt(6) + 1
     }
+
+    fun countPlayers() = players.count()
+
+    fun userMapForSerialization() = players.users
 }
