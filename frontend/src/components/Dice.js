@@ -16,12 +16,16 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
       setHitOrMiss(message.data);
     }
   });
-
-    const sendHitOrMiss = (hitOrMiss) => {
+  const sendHit = () => {
     sendMessage(
-              JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: hitOrMiss })
-            );
-    }
+      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+    );
+  };
+  const sendMiss = () => {
+    sendMessage(
+      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+    );
+  };
   useEffect(() => {
     if (diceResult) {
       let randomSpin = 3 + Math.floor(Math.random() * 5);
@@ -54,7 +58,6 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
           endRotationValueX = 450 + 360 * randomSpin;
           endRotationValueZ = -720 - 360 * randomSpin;
           break;
-
         default:
           break;
       }
@@ -66,9 +69,9 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
       if (diceResult === 6) {
         setWildcardOption(true);
       } else if (diceResult <= 3) {
-        sendHitOrMiss("Hit");
+        sendHit();
       } else {
-        sendHitOrMiss("Miss");
+        sendMiss();
       }
     }
   }, [diceResult]);
@@ -76,13 +79,16 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
   const handleRollDice = () => {
     sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
     setIsDiceRolled(true);
-  }
+  };
 
-  const handleWildcardOption = () => {
+  const handleWildcardOption = (hitOrMiss) => {
     setWildcardOption(false);
-      sendHitOrMiss(hitOrMiss);
+    if (hitOrMiss === "Hit") {
+      sendHit();
+    } else {
+      sendMiss();
     }
-
+  };
 
   return (
     <div>
@@ -110,9 +116,7 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
       </div>
       <div className="roll-button">
         {currentPlayer === clientUsername && !isDiceRolled && (
-          <button onClick={handleRollDice}>
-            Roll dice
-          </button>
+          <button onClick={handleRollDice}>Roll dice</button>
         )}
       </div>
 

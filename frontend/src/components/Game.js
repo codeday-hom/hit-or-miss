@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useParams } from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
+import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
 import CategoryPicker from "./CategoryPicker";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 import Dice from "./Dice";
@@ -18,27 +19,7 @@ export default function Game() {
     }
   });
 
-  const HEARTBEAT_INTERVAL = 1000 * 5;
-  let timeoutId;
-  useEffect(() => {
-    const heartbeatInterval = setInterval(() => {
-      sendMessage(
-        JSON.stringify({
-          type: WsMessageTypes.HEARTBEAT,
-          data: "",
-        })
-      );
-      timeoutId = setTimeout(() => {
-        heartbeatInterval();
-      }, HEARTBEAT_INTERVAL + 2000);
-    }, HEARTBEAT_INTERVAL);
-
-    return () => {
-      clearInterval(heartbeatInterval);
-      clearTimeout(timeoutId);
-    };
-  }, [sendMessage]);
-
+  useWebsocketHeartbeat(sendMessage);
   const handleClick = () => {
     sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: "" }));
   };
@@ -55,7 +36,11 @@ export default function Game() {
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
       />
-      <Dice gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername} />
+      <Dice
+        gameId={gameId}
+        currentPlayer={currentPlayer}
+        clientUsername={clientUsername}
+      />
     </div>
   );
 }
