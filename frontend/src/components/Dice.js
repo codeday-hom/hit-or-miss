@@ -125,7 +125,7 @@ export default function Dice({ currentPlayer, clientUsername }) {
       </div>
 
       <div className="dice-result">
-        {hitOrMiss ? `Current choice: ${hitOrMiss}` : "Rolling the Dice..."}
+        {hitOrMiss ? `Current choice: ${hitOrMiss}` : `${currentPlayer} is rolling the dice...`}
       </div>
 
       {wildcardOption && currentPlayer === clientUsername && (
