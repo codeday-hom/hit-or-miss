@@ -4,6 +4,7 @@ import useGameWebSocket from "../hooks/useGameWebSocket";
 import CategoryPicker from "./CategoryPicker";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 import Dice from "./Dice";
+import HitOrMissButton from "./HitOrMissButton"
 
 export default function Game() {
   const { gameId } = useParams();
@@ -56,6 +57,11 @@ export default function Game() {
         currentPlayer={currentPlayer}
       />
       <Dice currentPlayer={currentPlayer} clientUsername={clientUsername} />
+      <HitOrMissButton
+      gameId={gameId}
+      currentPlayer={currentPlayer}
+      clientUsername={clientUsername}
+      />
     </div>
   );
 }
