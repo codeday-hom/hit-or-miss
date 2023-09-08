@@ -117,8 +117,8 @@ export default function Dice({ currentPlayer, clientUsername }) {
         </div>
       </div>
       <div className="roll-button">
-        {currentPlayer === clientUsername && (
-          <button onClick={handleRollDice} disabled={isDiceRolled}>
+        {currentPlayer === clientUsername && !isDiceRolled && (
+          <button onClick={handleRollDice}>
             Roll dice
           </button>
         )}
