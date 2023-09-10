@@ -111,6 +111,16 @@ class GameWebSocketTest {
         assertNthReplyEquals(2, mapOf("type" to WsMessageType.CATEGORY_CHOSEN.name, "data" to "Science"))
     }
 
+    @Test
+    @Timeout(value = 4)
+    fun `replies to selected-word message with a word selected response`() {
+        game.start()
+
+        send(mapOf("type" to WsMessageType.SELECTED_WORD.name, "data" to "math"))
+
+        assertNthReplyEquals(2, mapOf("type" to WsMessageType.SELECTED_WORD.name, "data" to "math"))
+    }
+
     private fun wsClient(gameId: String): WsClient = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
 
     private fun send(body: Map<String, String>) {
