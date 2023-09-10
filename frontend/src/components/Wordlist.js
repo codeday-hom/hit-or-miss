@@ -4,34 +4,30 @@ import useGameWebSocket from "../hooks/useGameWebSocket";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 
 export default function WordList({ gameId }) {
-  const wordlist = ["Soccer", "Swimming", "Tennis", "Fencing"];
-  const [selectedWord, setSelectedWord] = useState("");
+  const [inputWord, setInputWord] = useState("");
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.SELECTED_WORD) {
-      setSelectedWord(message.data);
+      setInputWord(message.data);
     }
   });
 
-  const handleWordClick = (word) => {
-    if (selectedWord) return;
+  const handleSendClick = () => {
+    if (!inputWord) return;
     sendMessage(
-      JSON.stringify({ type: WsMessageTypes.SELECTED_WORD, data: word })
+      JSON.stringify({ type: WsMessageTypes.SELECTED_WORD, data: inputWord })
     );
+    setInputWord("");
   };
 
   return (
     <div className="word-list">
-      <ul>
-        {wordlist.map((word, index) => (
-          <li
-            key={index}
-            className={word === selectedWord ? "selected" : ""}
-            onClick={() => handleWordClick(word)}
-          >
-            {word}
-          </li>
-        ))}
-      </ul>
+      <input
+        type="text"
+        value={inputWord}
+        onChange={(e) => setInputWord(e.target.value)}
+        placeholder="Enter a word..."
+      />
+      <button onClick={handleSendClick}>Send</button>
     </div>
   );
 }

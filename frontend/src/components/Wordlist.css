@@ -1,23 +1,15 @@
 .word-list {
   display: flex;
   flex-direction: column;
-  width: 300px;
 }
 
-ul {
-  list-style-type: disc;
-  padding-left: 20px;
+.word-list input {
+    padding: 10px;
+    border: 1px;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 10px;
+    font-size: 16px;
 }
 
-li {
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-li:hover {
-  background-color: #f0f0f0;
-}
-
-li.selected {
-  background-color: #e0e0e0;
-}
