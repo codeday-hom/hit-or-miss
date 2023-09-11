@@ -1,5 +1,5 @@
 package com.game.main
-import java.util.Random
+import com.game.model.Player
 
 
 enum class DiceResult {
@@ -12,22 +12,13 @@ enum class TurnResult {
 
 class Gameplay(host: Player) {
     private val players: MutableList<Player> = mutableListOf()
-    private val random = Random()
     private var currentPlayerIndex = 0
-
-    fun getPlayer(index: Int): Player{
-        return players[index]
-    }
 
     init {
         players.add(host)
     }
 
-    fun mixOrder(){
-        players.shuffle(random)
-    }
-
-    fun nextTurn(): Player{
+    fun nextTurn(): Player {
         val firstPlayer = players[currentPlayerIndex]
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size
         return firstPlayer
@@ -38,7 +29,6 @@ class Gameplay(host: Player) {
         println("${selector.name} chose $category, rolled $diceResult and selected the word '$selectedWord'")
         return Turn(selector, diceResult)
     }
-
 
     class Turn(private val selector: Player, private val diceResult: DiceResult) {
 

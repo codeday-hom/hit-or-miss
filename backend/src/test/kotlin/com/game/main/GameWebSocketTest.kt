@@ -2,6 +2,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.game.main.GameWebSocket
 import com.game.main.WsMessageType
 import com.game.model.Game
+import com.game.model.Player
 import com.game.model.Players
 import com.game.repository.GameRepository
 import org.http4k.client.WebsocketClient
@@ -36,7 +37,7 @@ class GameWebSocketTest {
         server.start()
         port = server.port()
         val gameId = "testGameId"
-        game = Game(gameId, "aaaa", false, Players(mutableMapOf("aaaa" to "zuno", "bbbb" to "grace")))
+        game = Game(gameId, "aaaa", false, Players(mutableMapOf("aaaa" to Player("zuno"), "bbbb" to Player("grace"))))
         GameRepository.createGame(gameId, game)
         client = wsClient(gameId)
     }
@@ -49,7 +50,7 @@ class GameWebSocketTest {
     @Test
     @Timeout(value = 4)
     fun `replies to user-joined message with the current list of players`() {
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to mutableMapOf("aaaa" to "zuno", "bbbb" to "grace")))
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to mutableMapOf("aaaa" to mapOf("name" to "zuno","userName" to "zuno","playerPoints" to 0), "bbbb" to mapOf("name" to "grace","userName" to "grace","playerPoints" to 0))))
     }
 
     @Test
@@ -77,7 +78,7 @@ class GameWebSocketTest {
     @Timeout(value = 4)
     fun `replies with game not found if game disappears`() {
         // Wait for the websocket connection to be open
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to mutableMapOf("aaaa" to "zuno", "bbbb" to "grace")))
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to mutableMapOf("aaaa" to mapOf("name" to "zuno","userName" to "zuno","playerPoints" to 0), "bbbb" to mapOf("name" to "grace","userName" to "grace","playerPoints" to 0))))
         // Then make the game disappear
         GameRepository.reset()
 
@@ -91,7 +92,7 @@ class GameWebSocketTest {
     fun `replies to next-player message with the next player in the game`() {
         game.start()
         val currentPlayer = game.currentPlayer()
-        val nextPlayer = mutableListOf<String>().run {
+        val nextPlayer = mutableListOf<Player>().run {
             addAll(game.userMapForSerialization().values)
             remove(currentPlayer)
             first()

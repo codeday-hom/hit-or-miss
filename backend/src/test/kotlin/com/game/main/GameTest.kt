@@ -1,5 +1,6 @@
 package com.game.main
 
+import com.game.model.Player
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

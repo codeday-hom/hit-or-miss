@@ -11,5 +11,6 @@ enum class WsMessageType {
     HEARTBEAT_ACK,
     ROLL_DICE,
     ROLL_DICE_RESULT,
-    HIT_OR_MISS,
+    HIT_OR_MISS, // Current player select Hit or Miss after rolling the dice
+    PLAYER_CHOSE_HIT_OR_MISS // Player chose Hit or Miss after they know the selected word
 }

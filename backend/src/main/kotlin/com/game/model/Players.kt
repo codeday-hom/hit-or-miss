@@ -7,21 +7,21 @@ import java.util.*
  * The set of players in a particular game
  */
 class Players(
-    private val users: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
+    private val users: MutableMap<String, Player> = Collections.synchronizedMap(mutableMapOf()),
     private val playerOrders: MutableList<String> = mutableListOf(),
     private var currentPlayerIndex: Int = 0
 ) {
-    fun currentPlayer(): String {
-        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
+    fun currentPlayer(): Player {
+        return users[playerOrders[currentPlayerIndex]]?: throw RuntimeException("Current player was unexpectedly null")
     }
 
-    fun nextPlayer(): String {
+    fun nextPlayer(): Player {
         currentPlayerIndex = (currentPlayerIndex + 1) % playerOrders.size
         return currentPlayer()
     }
 
     fun addPlayer(id: String, username: String) {
-        users[id] = username
+        users[id] = Player(username)
     }
 
     fun shufflePlayerOrders(random: Random = Random()) {
@@ -36,7 +36,7 @@ class Players(
     fun userMapForSerialization() = users
 
     // For use in tests
-    fun playersInOrder() = playerOrders.map { users[it] }
+    fun playersInOrder() = playerOrders.map { users[it]?.getUserName()}
 
     // For use in tests
     fun useUnshuffledOrder() {

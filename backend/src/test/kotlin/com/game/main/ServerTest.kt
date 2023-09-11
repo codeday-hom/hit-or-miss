@@ -1,6 +1,7 @@
 package com.game.main
 
 import com.game.model.Game
+import com.game.model.Player
 import com.game.repository.GameRepository
 import io.mockk.clearMocks
 import io.mockk.mockk
@@ -51,12 +52,24 @@ class ServerTest {
         assert(game.countPlayers() == 1)
         val users = game.userMapForSerialization()
         assert(game.hostId == users.keys.first())
-        assert(users.values.contains(username1))
+        var userNameList = updateUserNameList(users)
+        assert(userNameList.contains(username1))
 
         joinGameHandler(request2, wsHandlerMock)
+        userNameList = updateUserNameList(users)
         assert(game.countPlayers() == 2)
         assert(game.hostId == users.keys.first())
-        assert(users.values.contains(username2))
+
+        assert(userNameList.contains(username2))
+
+    }
+
+    fun updateUserNameList(users: MutableMap<String, Player>): ArrayList<String> {
+        val userNameList = arrayListOf(String())
+        for (player in users.values) {
+            userNameList.add(player.name)
+        }
+        return userNameList
     }
 
     @Test

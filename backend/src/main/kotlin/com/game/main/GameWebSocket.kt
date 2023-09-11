@@ -65,6 +65,7 @@ class GameWebSocket {
             sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
             return
         }
+        var currentTurn: Game.Turn? = null
 
         try {
             val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
@@ -73,8 +74,14 @@ class GameWebSocket {
             val data = incomingData.data
 
             if (type == WsMessageType.NEXT_PLAYER.name) {
+                currentTurn = game.startTurn(
+                        game.nextPlayer(),
+                        game.currentCategory(),
+                        game.currentDiceResult(),
+                        "a")
                 broadcastNextPlayerMessage(game)
             } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
+                game.updateCurrentCategory(data)
                 broadcastCategoryChosen(game, data)
             } else if (type == WsMessageType.HEARTBEAT.name) {
                 isAlive[gameId] = true
@@ -82,6 +89,7 @@ class GameWebSocket {
             } else if (type == WsMessageType.ROLL_DICE.name) {
                 broadcastRollDiceResultMessage(game)
             } else if (type == WsMessageType.HIT_OR_MISS.name) {
+                game.updateDiceResult(data)
                 broadcastHitOrMissMessage(game, data)
             }
         } catch (e: JsonProcessingException) {
@@ -101,7 +109,7 @@ class GameWebSocket {
     }
 
     private fun broadcastNextPlayerMessage(game: Game) {
-        broadcast(game, WsMessageType.NEXT_PLAYER, game.nextPlayer())
+        broadcast(game, WsMessageType.NEXT_PLAYER, game.currentPlayer())
     }
 
     private fun broadcastHeartbeatAckMessage(game: Game) {
