@@ -79,9 +79,9 @@ export default function Dice({ currentPlayer, clientUsername }) {
     setIsDiceRolled(true);
   }
 
-  const handleWildcardOption = () => {
+  const handleWildcardOption = (result) => {
     setWildcardOption(false);
-    if (hitOrMiss === "Hit") {
+    if (result === "Hit") {
       sendMessage(
         JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
       );

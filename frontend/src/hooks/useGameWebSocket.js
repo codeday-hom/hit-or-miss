@@ -9,7 +9,7 @@ export default function useGameWebSocket(gameId, onMessageFunction) {
     },
 
     onMessage: (event) => {
-      if (typeof event.data === "string") {
+      if ((typeof event.data === "string") || (typeof event.data === "object")) {
         try {
           const message = JSON.parse(event.data);
           console.log("Received a message:", message);
@@ -18,7 +18,7 @@ export default function useGameWebSocket(gameId, onMessageFunction) {
           console.log("Error parsing message:", e);
         }
       } else {
-        console.log("Received a non-string event:", event);
+        console.log("Received a event that couldn't be parsed:", event);
       }
     },
 

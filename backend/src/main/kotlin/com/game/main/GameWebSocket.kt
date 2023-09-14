@@ -3,6 +3,8 @@ package com.game.main
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.game.model.Game
+import com.game.model.Player
+import com.game.model.TurnResult
 import com.game.repository.GameRepository.getGame
 import org.http4k.core.Request
 import org.http4k.format.Jackson
@@ -53,7 +55,7 @@ class GameWebSocket {
             return
         }
 
-        sendWsMessage(ws, WsMessageType.USER_JOINED, game.userMapForSerialization())
+        sendWsMessage(ws, WsMessageType.USER_JOINED, game.userNameMapForSerialization())
     }
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
@@ -65,7 +67,11 @@ class GameWebSocket {
             sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
             return
         }
-        var currentTurn: Game.Turn? = null
+        var currentTurn: Game.Turn? = game.startTurn(
+            game.currentPlayer(),
+            game.currentCategory(),
+            game.currentDiceResult(),
+            "a")
 
         try {
             val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
@@ -78,7 +84,7 @@ class GameWebSocket {
                         game.nextPlayer(),
                         game.currentCategory(),
                         game.currentDiceResult(),
-                        "a")
+                        "b")
                 broadcastNextPlayerMessage(game)
             } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
                 game.updateCurrentCategory(data)
@@ -91,6 +97,19 @@ class GameWebSocket {
             } else if (type == WsMessageType.HIT_OR_MISS.name) {
                 game.updateDiceResult(data)
                 broadcastHitOrMissMessage(game, data)
+            } else if (type == WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name) {
+                val players = game.userMapForSerialization().values
+                for (player in players) {
+                    if (currentTurn != null && player != game.currentPlayer()) {
+                        updatePlayerScore(data, player, currentTurn)
+                    }
+                }
+
+                var playerScoreMap:  MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
+                for (player in players) {
+                    playerScoreMap[player.name] = player.getPlayerPoints()
+                    broadcast(game, WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, playerScoreMap)
+                }
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -109,7 +128,7 @@ class GameWebSocket {
     }
 
     private fun broadcastNextPlayerMessage(game: Game) {
-        broadcast(game, WsMessageType.NEXT_PLAYER, game.currentPlayer())
+        broadcast(game, WsMessageType.NEXT_PLAYER, game.currentPlayer().getUserName())
     }
 
     private fun broadcastHeartbeatAckMessage(game: Game) {
@@ -137,4 +156,17 @@ class GameWebSocket {
             sendWsMessage(ws, type, body)
         }
     }
+
+    private fun updatePlayerScore(turnResult: String,
+                                       player: Player,
+                                       currentTurn: Game.Turn
+    ) {
+        if (turnResult == "HIT") {
+            currentTurn?.result(player, TurnResult.HIT)
+        } else {
+            currentTurn?.result(player, TurnResult.MISS)
+        }
+    }
+
+
 }

@@ -8,9 +8,11 @@ import java.util.*
  */
 class Players(
     private val users: MutableMap<String, Player> = Collections.synchronizedMap(mutableMapOf()),
+    private val userNameMap: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
     private val playerOrders: MutableList<String> = mutableListOf(),
     private var currentPlayerIndex: Int = 0
 ) {
+
     fun currentPlayer(): Player {
         return users[playerOrders[currentPlayerIndex]]?: throw RuntimeException("Current player was unexpectedly null")
     }
@@ -20,8 +22,11 @@ class Players(
         return currentPlayer()
     }
 
-    fun addPlayer(id: String, username: String) {
-        users[id] = Player(username)
+    fun addPlayer(id: String, username: String) : Player {
+        val newPlayer = Player(username)
+        users[id] = newPlayer
+        userNameMap[id] = username
+        return newPlayer
     }
 
     fun shufflePlayerOrders(random: Random = Random()) {
@@ -33,7 +38,10 @@ class Players(
     fun count() = users.size
 
     // Should only be used in Game for serializing the set of users in a wire message.
+    fun userNameMapForSerialization() = userNameMap
+
     fun userMapForSerialization() = users
+
 
     // For use in tests
     fun playersInOrder() = playerOrders.map { users[it]?.getUserName()}

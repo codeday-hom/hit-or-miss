@@ -1,9 +1,14 @@
 package com.game.model
 
-import com.game.main.DiceResult
-import com.game.model.Player
-import com.game.main.TurnResult
 import java.util.*
+
+enum class DiceResult {
+    HIT, MISS
+}
+
+enum class TurnResult {
+    HIT, MISS
+}
 
 data class Game(
     val gameId: String,
@@ -22,11 +27,13 @@ data class Game(
     fun currentDiceResult() = this.diceResult
 
     fun updateDiceResult(diceResult: String) {
-        if (diceResult == "HIT") {
+        println(diceResult)
+        if (diceResult == "Hit") {
             this.diceResult = DiceResult.HIT
         } else {
             this.diceResult = DiceResult.MISS
         }
+        println("Dice result " + this.diceResult)
 
     }
 
@@ -34,12 +41,13 @@ data class Game(
 
     fun nextPlayer() = players.nextPlayer()
 
-    fun addUser(username: String) {
+    fun addUser(username: String): Player {
         val userId = UUID.randomUUID().toString()
         if (hostId.isEmpty()) {
             hostId = userId
         }
-        players.addPlayer(userId, username)
+        val newPlayer = players.addPlayer(userId, username)
+        return newPlayer
     }
 
     fun start() {
@@ -57,7 +65,11 @@ data class Game(
 
     fun countPlayers() = players.count()
 
+
+
     fun userMapForSerialization() = players.userMapForSerialization()
+
+    fun userNameMapForSerialization() = players.userNameMapForSerialization()
 
     fun startTurn(selector: Player, category: String, diceResult: DiceResult, selectedWord: String): Turn {
         println("${selector.name} chose $category, rolled $diceResult and selected the word '$selectedWord'")
@@ -72,8 +84,10 @@ data class Game(
                 TurnResult.HIT -> {
                     when (diceResult) {
                         DiceResult.HIT -> {
+                            println(player.getUserName() + " has " + player.getPlayerPoints())
                             player.addPlayerPoints(1)
                             selector.addPlayerPoints(1)
+                            println(player.getUserName() + " has " + player.getPlayerPoints())
                         }
 
                         DiceResult.MISS -> {
@@ -97,5 +111,10 @@ data class Game(
                 }
             }
         }
+    }
+
+    fun startForTest() {
+        started = true
+        players.useUnshuffledOrder()
     }
 }
