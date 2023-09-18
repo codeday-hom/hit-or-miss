@@ -22,7 +22,6 @@ function App() {
                     Learn React
                 </a>
                 <StartGameButton/>
-                <CountdownTimer/>
             </header>
         </div>
     );

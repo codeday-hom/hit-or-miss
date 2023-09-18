@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {WsMessageTypes} from "../constants/wsMessageTypes";
 import useGameWebSocket from "../hooks/useGameWebSocket"
 
-export default function CategoryPicker({ gameId, clientUsername, currentPlayer }) {
+export default function CategoryPicker({ gameId, clientUsername, currentPlayer, onCategoryResultChange }) {
     const categories = ["Sports", "Music", "Science", "Art", "History"].sort(() => Math.random() - 0.5);
     let categoryIndex = 0;
 
@@ -12,6 +12,7 @@ export default function CategoryPicker({ gameId, clientUsername, currentPlayer }
     const { sendMessage } = useGameWebSocket(gameId, message => {
         if (message.type === WsMessageTypes.CATEGORY_CHOSEN) {
             setSelectedCategory(message.data);
+            onCategoryResultChange(true);
         }
     });
 
@@ -39,6 +40,7 @@ export default function CategoryPicker({ gameId, clientUsername, currentPlayer }
                     <button onClick={selectCategory}>Select</button>
                     <button onClick={skipCategory}>Skip</button>
                 </div>
+
             } else {
                 return <button onClick={fetchNextCategory}>Start Picking</button>
             }

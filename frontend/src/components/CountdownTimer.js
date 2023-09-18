@@ -17,26 +17,26 @@ function CountdownTimer() {
     }
 
     useEffect(() => {
-        if (phase === 'ready') {
-            setTimeout(() => setPhase('set'), 1000); // "Ready" phase
-            setTimeout(() => setPhase('go'), 2000); // "Set" phase
-            setTimeout(() => {
-                setPhase('timeout');
-                secondsLeftRef.current = 30; // Reset countdown for the next round
-            }, 3000);
-        }
+            if (phase === 'ready') {
+                setTimeout(() => setPhase('set'), 1000); // "Ready" phase
+                setTimeout(() => setPhase('go'), 2000); // "Set" phase
+                setTimeout(() => {
+                    setPhase('timeout');
+                    secondsLeftRef.current = 30; // Reset countdown for the next round
+                }, 3000);
+            }
 
-        if (phase === 'timeout' && secondsLeftRef.current > 0) {
-            const interval = setInterval(() => {
-                tick();
-                if (secondsLeftRef.current === 0) {
-                    clearInterval(interval);
-                    setPhase('ready'); // Reset the phase for the next round
-                }
-            }, 1000);
+            if (phase === 'timeout' && secondsLeftRef.current > 0) {
+                const interval = setInterval(() => {
+                    tick();
+                    if (secondsLeftRef.current === 0) {
+                        clearInterval(interval);
+                        setPhase('ready'); // Reset the phase for the next round
+                    }
+                }, 1000);
 
-            return () => clearInterval(interval);
-        }
+                return () => clearInterval(interval);
+            }
     }, [phase]);
 
     const getPhaseMessage = () => {
