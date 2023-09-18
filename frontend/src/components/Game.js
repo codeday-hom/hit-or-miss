@@ -5,6 +5,7 @@ import CategoryPicker from "./CategoryPicker";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 import Dice from "./Dice";
 import WordList from "./Wordlist";
+import CountdownTimer from "./CountdownTimer";
 
 export default function Game() {
   const { gameId } = useParams();
@@ -14,6 +15,7 @@ export default function Game() {
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
   const [diceResult, setDiceResult] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState(false);
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.NEXT_PLAYER) {
@@ -48,6 +50,10 @@ export default function Game() {
     sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: "" }));
   };
 
+  const handleSelectedCategoryChange = (status1) => {
+    setSelectedCategory(status1);
+  };
+
   const handleDiceResultChange = (status) => {
     setDiceResult(status);
   };
@@ -62,9 +68,13 @@ export default function Game() {
         gameId={gameId}
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
+        onCategoryResultChange={handleSelectedCategoryChange}
       />
       {diceResult && currentPlayer === clientUsername ? (
         <WordList gameId={gameId} />
+      ) : null}
+      {selectedCategory ? (
+          <CountdownTimer/>
       ) : null}
       {selectedWord && <div>Current word: {selectedWord}</div>}
       <Dice
