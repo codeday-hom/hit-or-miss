@@ -74,11 +74,9 @@ class GameWebSocket {
             "a")
 
         try {
-            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
-            LOGGER.info("Parsed data: $incomingData")
+            val incomingData = parseData(messageBody)
             val type = incomingData.type
             val data = incomingData.data
-
             if (type == WsMessageType.NEXT_PLAYER.name) {
                 currentTurn = game.startTurn(
                         game.nextPlayer(),
@@ -98,12 +96,16 @@ class GameWebSocket {
                 game.updateDiceResult(data)
                 broadcastHitOrMissMessage(game, data)
             } else if (type == WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name) {
+                val message = parseData(data)
+                val userName = message.type
+                val choice = message.data
                 val players = game.userMapForSerialization().values
-                for (player in players) {
-                    if (currentTurn != null && player != game.currentPlayer()) {
-                        updatePlayerScore(data, player, currentTurn)
-                    }
+
+
+                if (currentTurn != null) {
+                    game.userMapForSerialization()[userName]?.let { updatePlayerScore(choice, it, currentTurn) }
                 }
+
 
                 var playerScoreMap:  MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
                 for (player in players) {
@@ -117,6 +119,11 @@ class GameWebSocket {
         }
     }
 
+    private fun parseData(messageBody: String) : GameWsMessage {
+        val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
+        LOGGER.info("Parsed data: $incomingData")
+        return incomingData
+    }
     private fun sendWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
         val message = mapOf("type" to type.name, "data" to data)
         LOGGER.info("Sending a message: $message")

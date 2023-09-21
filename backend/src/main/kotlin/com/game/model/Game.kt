@@ -42,7 +42,7 @@ data class Game(
     fun nextPlayer() = players.nextPlayer()
 
     fun addUser(username: String): Player {
-        val userId = UUID.randomUUID().toString()
+        val userId = username
         if (hostId.isEmpty()) {
             hostId = userId
         }

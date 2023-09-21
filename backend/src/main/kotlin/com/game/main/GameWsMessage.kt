@@ -1,3 +1,7 @@
 package com.game.main
 
-data class GameWsMessage(val type: String, val data: String)
+import kotlinx.serialization.json.Json
+
+
+data class GameWsMessage(val type: String, val data: Any) {
+}

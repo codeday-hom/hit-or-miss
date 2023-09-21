@@ -10,7 +10,7 @@ class Player(val name: String) {
 
     fun addPlayerPoints(amount: Int){ // every time we call the function will somehow reset the points to be 0
         println(this.userName + " points now: " + this.points)
-        this.points = this.points + amount
+        this.points += amount
     }
 
     fun getUserName() = this.userName
