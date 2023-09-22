@@ -16,7 +16,7 @@ export default function Game() {
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
   const [isDiceRolled, setIsDiceRolled] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState(false);
+  const [isCategorySelected, setIsCategorySelected] = useState(false);
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.NEXT_PLAYER) {
@@ -31,10 +31,6 @@ export default function Game() {
     sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: "" }));
   };
 
-  const handleSelectedCategoryChange = (status1) => {
-    setSelectedCategory(status1);
-  };
-
   return (
     <div>
       <h1>Game has started!</h1>
@@ -46,12 +42,12 @@ export default function Game() {
         gameId={gameId}
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
-        onCategoryResultChange={handleSelectedCategoryChange}
+        onCategorySelected={() => setIsCategorySelected(true)}
       />
       {isDiceRolled && currentPlayer === clientUsername ? (
         <WordList gameId={gameId} />
       ) : null}
-      {selectedCategory ? (
+      {isCategorySelected ? (
           <CountdownTimer/>
       ) : null}
       {selectedWord && <div>Current word: {selectedWord}</div>}
