@@ -7,7 +7,7 @@ export default function Dice({
   gameId,
   currentPlayer,
   clientUsername,
-  onDiceResultChange,
+  onDiceRolled,
 }) {
   const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
@@ -92,7 +92,7 @@ export default function Dice({
   const displayHitOrMissWithDelay = () => {
     const timer = setTimeout(() => {
       setDisplayHitOrMiss(true);
-      onDiceResultChange(true);
+      onDiceRolled();
     }, 1500);
     return () => clearTimeout(timer);
   };

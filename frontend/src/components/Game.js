@@ -12,7 +12,7 @@ export default function Game() {
   const clientUsername = location.state.clientUsername;
   const initialPlayer = location.state.currentPlayer;
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
-  const [diceResult, setDiceResult] = useState(false);
+  const [isDiceRolled, setIsDiceRolled] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
@@ -48,9 +48,6 @@ export default function Game() {
     sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: "" }));
   };
 
-  const handleDiceResultChange = (status) => {
-    setDiceResult(status);
-  };
   return (
     <div>
       <h1>Game has started!</h1>
@@ -63,7 +60,7 @@ export default function Game() {
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
       />
-      {diceResult && currentPlayer === clientUsername ? (
+      {isDiceRolled && currentPlayer === clientUsername ? (
         <WordList gameId={gameId} />
       ) : null}
       {selectedWord && <div>Current word: {selectedWord}</div>}
@@ -71,7 +68,7 @@ export default function Game() {
         gameId={gameId}
         currentPlayer={currentPlayer}
         clientUsername={clientUsername}
-        onDiceResultChange={handleDiceResultChange}
+        onDiceRolled={() => setIsDiceRolled(true)}
       />
     </div>
   );
