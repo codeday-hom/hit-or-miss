@@ -1,0 +1,138 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #70c1b3;
+}
+
+.container {
+  position: relative;
+  display: inline-block;
+  perspective: 1200px;
+  margin: 50px;
+}
+
+.dice {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 1s;
+}
+
+.side {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid #ccc;
+}
+
+.hit-text,
+.miss-text,
+.wildcard-text {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.hit-text {
+  color: green;
+}
+
+.miss-text {
+  color: red;
+}
+
+.wildcard-text {
+  color: black;
+}
+
+.side:nth-child(1) {
+  transform: rotateY(0deg) translateZ(50px); /* front */
+}
+
+.side:nth-child(2) {
+  transform: rotateY(180deg) translateZ(50px); /* back */
+}
+
+.side:nth-child(3) {
+  transform: rotateY(-90deg) translateZ(50px); /* left */
+}
+
+.side:nth-child(4) {
+  transform: rotateY(90deg) translateZ(50px); /* right */
+}
+
+.side:nth-child(5) {
+  transform: rotateX(90deg) translateZ(50px); /* top */
+}
+
+.side:nth-child(6) {
+  transform: rotateX(-90deg) translateZ(50px); /* bottom */
+}
+
+.roll-button {
+  margin-top: 20px;
+}
+
+.dice-result {
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+button {
+  position: relative;
+  padding: 15px 50px;
+  color: #fff;
+  background-color: #f4d35e;
+  border: none;
+  font-size: 20px;
+  border-radius: 20px;
+  box-shadow: 1px 3px #50514f;
+  outline: none;
+  transition: 0.3s;
+}
+
+button:hover,
+button:active {
+  outline: none;
+  background: #50514f;
+  cursor: pointer;
+  transform: translateY(5px);
+}
+
+button:disabled {
+  background-color: #ccc;
+  color: #666;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.wildcard {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wildcard-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+}
+
+.wildcard-content button {
+  margin: 10px;
+}

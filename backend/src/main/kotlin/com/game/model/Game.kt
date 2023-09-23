@@ -37,4 +37,8 @@ data class Game(
     fun isStarted(): Boolean {
         return started
     }
+
+    fun rollDice(): Int {
+        return Random().nextInt(6) + 1
+    }
 }

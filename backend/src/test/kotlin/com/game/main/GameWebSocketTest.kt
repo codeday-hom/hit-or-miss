@@ -14,14 +14,13 @@ import org.http4k.websocket.WsClient
 import org.http4k.websocket.WsHandler
 import org.http4k.websocket.WsMessage
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 import kotlin.properties.Delegates
 
 class GameWebSocketTest {
-
     private val websocket = GameWebSocket()
     private val testApp: WsHandler = websockets("/{gameId}" bind websocket.handler())
     private lateinit var server: Http4kServer
@@ -112,6 +111,41 @@ class GameWebSocketTest {
         assertNthReplyEquals(2, mapOf("type" to WsMessageType.CATEGORY_CHOSEN.name, "data" to "Science"))
     }
 
+    @Test
+    @Timeout(value = 4)
+    fun `replies with heartbeat ack message when receives a heartbeat message`() {
+        game.start()
+
+        send(mapOf("type" to WsMessageType.HEARTBEAT.name, "data" to ""))
+
+        assertNthReplyEquals(2, mapOf("type" to WsMessageType.HEARTBEAT_ACK.name, "data" to ""))
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `replies with dice result when receives a roll dice message`() {
+        game.start()
+        send(mapOf("type" to WsMessageType.ROLL_DICE.name, "data" to ""))
+        assertNthReplyWithinRange(2, WsMessageType.ROLL_DICE_RESULT, 1..6)
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `replies with a hit message when receives a hit message`() {
+        game.start()
+        send(mapOf("type" to WsMessageType.HIT_OR_MISS.name, "data" to "Hit"))
+        assertNthReplyEquals(2, mapOf("type" to WsMessageType.HIT_OR_MISS.name, "data" to "Hit"))
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `replies with a miss message when receives a miss message`() {
+        game.start()
+        send(mapOf("type" to WsMessageType.HIT_OR_MISS.name, "data" to "Miss"))
+        assertNthReplyEquals(2, mapOf("type" to WsMessageType.HIT_OR_MISS.name, "data" to "Miss"))
+    }
+
+
     private fun wsClient(gameId: String): WsClient = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
 
     private fun send(body: Map<String, String>) {
@@ -127,4 +161,15 @@ class GameWebSocketTest {
         val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
         assertEquals(expected, reply)
     }
+
+    private fun assertNthReplyWithinRange(n: Int, expectedType: WsMessageType, range: IntRange) {
+        val reply = client.received().take(n).last()
+        val expected = jacksonObjectMapper().readValue(reply.bodyString(), Map::class.java)
+        val type = expected["type"]
+        val dataValue = expected["data"] as Int
+        assert(type == expectedType.name) { "Expected type: ${expectedType.name}, but was: $type" }
+        assert(dataValue in range) { "Expected data value to be in $range, but was: $dataValue" }
+    }
+
+
 }

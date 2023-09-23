@@ -41,6 +41,7 @@ fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): Routi
     )
 }
 
+
 fun apiHandler(websocket: GameWebSocket): RoutingHttpHandler = routes(
     "/new-game" bind POST to { _: Request -> createNewGame() },
     "/join-game/{gameId}" bind POST to { req: Request -> joinGameHandler(req, websocket) },
@@ -65,7 +66,8 @@ fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val username = joinGameRequest.username
     game.addUser(username)
     websocket.broadcast(game, WsMessageType.USER_JOINED, game.users)
-    val responseBody = JoinGameResponse(gameId, game.hostId, game.users)
+    val isStarted = game.isStarted()
+    val responseBody = JoinGameResponse(gameId, game.hostId, game.users, isStarted)
     return Response(OK).body(Jackson.asInputStream(responseBody))
 }
 

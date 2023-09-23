@@ -16,8 +16,8 @@ import java.util.*
 private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
 
 class GameWebSocket {
-
     private val wsConnections = Collections.synchronizedMap(HashMap<String, MutableList<Websocket>>())
+    private val isAlive = Collections.synchronizedMap(HashMap<String, Boolean>())
     private val mapper = ObjectMapper()
 
     fun handler(): (Request) -> WsResponse {
@@ -76,6 +76,13 @@ class GameWebSocket {
                 broadcastNextPlayerMessage(game)
             } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
                 broadcastCategoryChosen(game, data)
+            } else if (type == WsMessageType.HEARTBEAT.name) {
+                isAlive[gameId] = true
+                broadcastHeartbeatAckMessage(game)
+            } else if (type == WsMessageType.ROLL_DICE.name) {
+                broadcastRollDiceResultMessage(game)
+            } else if (type == WsMessageType.HIT_OR_MISS.name) {
+                broadcastHitOrMissMessage(game, data)
             }
         } catch (e: JsonProcessingException) {
             sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
@@ -95,6 +102,19 @@ class GameWebSocket {
 
     private fun broadcastNextPlayerMessage(game: Game) {
         broadcast(game, WsMessageType.NEXT_PLAYER, game.nextPlayer())
+    }
+
+    private fun broadcastHeartbeatAckMessage(game: Game) {
+        broadcast(game, WsMessageType.HEARTBEAT_ACK, "")
+    }
+
+    private fun broadcastRollDiceResultMessage(game: Game) {
+        val result = game.rollDice()
+        broadcast(game, WsMessageType.ROLL_DICE_RESULT, result)
+    }
+
+    private fun broadcastHitOrMissMessage(game: Game, hitOrMiss: String) {
+        broadcast(game, WsMessageType.HIT_OR_MISS, hitOrMiss)
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
