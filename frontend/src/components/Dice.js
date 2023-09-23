@@ -23,69 +23,63 @@ export default function Dice({
     }
   });
 
-  const computeDiceRotation = (diceResult) => {
-    let randomSpin = 3 + Math.floor(Math.random() * 5);
-    let endRotationValueX = 0;
-    let endRotationValueY = 0;
-    let endRotationValueZ = 0;
-
-    switch (diceResult) {
-      case 1:
-        endRotationValueX = 720 + 360 * randomSpin;
-        endRotationValueZ = -720 - 360 * randomSpin;
-        break;
-      case 2:
-        endRotationValueY = 900 + 360 * randomSpin;
-        endRotationValueZ = -1080 - 360 * randomSpin;
-        break;
-      case 3:
-        endRotationValueY = 810 + 360 * randomSpin;
-        endRotationValueZ = 720 + 360 * randomSpin;
-        break;
-      case 4:
-        endRotationValueY = -450 + 360 * randomSpin;
-        endRotationValueZ = -1440 - 360 * randomSpin;
-        break;
-      case 5:
-        endRotationValueX = -810 + 360 * randomSpin;
-        endRotationValueZ = -1080 - 360 * randomSpin;
-        break;
-      case 6:
-        endRotationValueX = 450 + 360 * randomSpin;
-        endRotationValueZ = -720 - 360 * randomSpin;
-        break;
-      default:
-        break;
-    }
-
-    return `rotateX(${endRotationValueX}deg) rotateY(${endRotationValueY}deg) rotateZ(${endRotationValueZ}deg)`;
+  const sendHit = () => {
+    sendMessage(
+      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+    );
   };
-
-  const sendHitOrMissMessage = (diceResult) => {
-    if (diceResult <= 3) {
-      sendMessage(
-        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
-      );
-    } else if (diceResult < 6) {
-      sendMessage(
-        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
-      );
-    }
-  };
-
-  const processDiceResult = (diceResult) => {
-    const rotation = computeDiceRotation(diceResult);
-    setDiceTransform(rotation);
-
-    if (diceResult === 6) {
-      setWildcardOption(true);
-    } else {
-      sendHitOrMissMessage(diceResult);
-    }
+  const sendMiss = () => {
+    sendMessage(
+      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+    );
   };
   useEffect(() => {
     if (diceResult) {
-      processDiceResult(diceResult);
+      let randomSpin = 3 + Math.floor(Math.random() * 5);
+      let endRotationValueX = 0;
+      let endRotationValueY = 0;
+      let endRotationValueZ = 0;
+
+      switch (diceResult) {
+        case 1:
+          endRotationValueX = 720 + 360 * randomSpin;
+          endRotationValueZ = -720 - 360 * randomSpin;
+          break;
+        case 2:
+          endRotationValueY = 900 + 360 * randomSpin;
+          endRotationValueZ = -1080 - 360 * randomSpin;
+          break;
+        case 3:
+          endRotationValueY = 810 + 360 * randomSpin;
+          endRotationValueZ = 720 + 360 * randomSpin;
+          break;
+        case 4:
+          endRotationValueY = -450 + 360 * randomSpin;
+          endRotationValueZ = -1440 - 360 * randomSpin;
+          break;
+        case 5:
+          endRotationValueX = -810 + 360 * randomSpin;
+          endRotationValueZ = -1080 - 360 * randomSpin;
+          break;
+        case 6:
+          endRotationValueX = 450 + 360 * randomSpin;
+          endRotationValueZ = -720 - 360 * randomSpin;
+          break;
+        default:
+          break;
+      }
+
+      setDiceTransform(
+        `rotateX(${endRotationValueX}deg) rotateY(${endRotationValueY}deg) rotateZ(${endRotationValueZ}deg)`
+      );
+
+      if (diceResult === 6) {
+        setWildcardOption(true);
+      } else if (diceResult <= 3) {
+        sendHit();
+      } else {
+        sendMiss();
+      }
     }
   }, [diceResult]);
 
@@ -107,12 +101,13 @@ export default function Dice({
     setIsDiceRolled(true);
   };
 
-  const handleWildcardOption = (choice) => {
+  const handleWildcardOption = (hitOrMiss) => {
     setWildcardOption(false);
-
-    sendMessage(
-      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: choice })
-    );
+    if (hitOrMiss === "Hit") {
+      sendHit();
+    } else {
+      sendMiss();
+    }
   };
 
   return (
@@ -140,10 +135,8 @@ export default function Dice({
         </div>
       </div>
       <div className="roll-button">
-        {currentPlayer === clientUsername && (
-          <button onClick={handleRollDice} disabled={isDiceRolled}>
-            Roll dice
-          </button>
+        {currentPlayer === clientUsername && !isDiceRolled && (
+          <button onClick={handleRollDice}>Roll dice</button>
         )}
       </div>
 

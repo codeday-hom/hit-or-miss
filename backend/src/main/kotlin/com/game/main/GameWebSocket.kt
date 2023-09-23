@@ -105,7 +105,7 @@ class GameWebSocket {
     }
 
     private fun broadcastHeartbeatAckMessage(game: Game) {
-        broadcast(game, WsMessageType.HEARTBEAT_ACK, null)
+        broadcast(game, WsMessageType.HEARTBEAT_ACK, "")
     }
 
     private fun broadcastRollDiceResultMessage(game: Game) {
