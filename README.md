@@ -1,5 +1,7 @@
 # Hit or Miss
 
+Online version of Gamewright's® Hit or Miss™.
+
 ## Important links:
 
 - [Team board](https://github.com/orgs/codeday-hom/projects/1/views/1)
