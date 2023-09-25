@@ -17,6 +17,7 @@ export default function Game() {
   const [isDiceRolled, setIsDiceRolled] = useState(false);
   const [selectedWord, setSelectedWord] = useState("");
   const [isCategorySelected, setIsCategorySelected] = useState(false);
+  const [isCountdownFinished, setIsCountdownFinished] = useState(false);
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.NEXT_PLAYER) {
@@ -47,9 +48,9 @@ export default function Game() {
       {isDiceRolled && currentPlayer === clientUsername ? (
         <WordList gameId={gameId} />
       ) : null}
-      {isCategorySelected ? (
-          <CountdownTimer/>
-      ) : null}
+          {selectedCategory && !isCountdownFinished ? (
+              <CountdownTimer onTimeout={() => setIsCountdownFinished(true)}/>
+          ) : null}
       {selectedWord && <div>Current word: {selectedWord}</div>}
       <Dice
         gameId={gameId}
