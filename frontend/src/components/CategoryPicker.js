@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {WsMessageTypes} from "../constants/wsMessageTypes";
 import useGameWebSocket from "../hooks/useGameWebSocket"
 
