@@ -1,42 +1,31 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { CircularProgressbar, buildStyles } from 'react-circular-progressbar';
+import React, {useEffect, useState} from 'react';
+import {buildStyles, CircularProgressbar} from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-const red = '#f54e4e';
-const green = '#4aec8c';
+function CountdownTimer({ onTimeout }) {
+    const countdownDuration = 5
 
-function CountdownTimer() {
     const [phase, setPhase] = useState('ready'); // ready / set / go / timeout
-    const [secondsLeft, setSecondsLeft] = useState(30);
-
-    const secondsLeftRef = useRef(secondsLeft);
+    const [secondsLeft, setSecondsLeft] = useState(countdownDuration);
 
     function tick() {
-        secondsLeftRef.current--;
-        setSecondsLeft(secondsLeftRef.current);
+        setSecondsLeft(s => s - 1);
     }
 
+    // Converts seconds to millis.
+    const seconds = (n) => n * 1000;
+
     useEffect(() => {
-            if (phase === 'ready') {
-                setTimeout(() => setPhase('set'), 1000); // "Ready" phase
-                setTimeout(() => setPhase('go'), 2000); // "Set" phase
-                setTimeout(() => {
-                    setPhase('timeout');
-                    secondsLeftRef.current = 30; // Reset countdown for the next round
-                }, 3000);
-            }
+        if (phase === 'ready') {
+            setTimeout(() => setPhase('set'), seconds(1)); // "Ready" phase
+            setTimeout(() => setPhase('go'), seconds(2)); // "Set" phase
+            setTimeout(() => setPhase('timeout'), seconds(countdownDuration + 2)); // "Go" phase
+        }
 
-            if (phase === 'timeout' && secondsLeftRef.current > 0) {
-                const interval = setInterval(() => {
-                    tick();
-                    if (secondsLeftRef.current === 0) {
-                        clearInterval(interval);
-                        setPhase('ready'); // Reset the phase for the next round
-                    }
-                }, 1000);
-
-                return () => clearInterval(interval);
-            }
+        if (phase === 'go') {
+            const interval = setInterval(() => tick(), seconds(1));
+            return () => clearInterval(interval);
+        }
     }, [phase]);
 
     const getPhaseMessage = () => {
@@ -54,26 +43,32 @@ function CountdownTimer() {
         }
     };
 
-    const percentage = Math.round((30 - secondsLeft) / 30 * 100);
-    let seconds = secondsLeft % 60;
-    if (seconds < 10) seconds = '0' + seconds;
+    const percentage = Math.round((countdownDuration - secondsLeft) / countdownDuration * 100);
+
+    function conditionalDisplay() {
+        if (phase === 'go') {
+            return (
+                <div className="timer">
+                    <CircularProgressbar
+                        value={percentage}
+                        text={secondsLeft.toString()}
+                        styles={buildStyles({
+                            textColor: '#fff',
+                            pathColor: '#f4d35e',
+                            tailColor: '#fff'
+                        })}
+                    />
+                </div>
+            )
+        } else if (phase === 'timeout') {
+            return <button onClick={onTimeout}>Continue</button>
+        }
+    }
 
     return (
         <div>
             <div className="message">{getPhaseMessage()}</div>
-            {phase === 'timeout' ? (
-                <div className="timer">
-                    <CircularProgressbar
-                        value={percentage}
-                        text={seconds < 10 ? '0' + seconds : seconds}
-                        styles={buildStyles({
-                            textColor: '#fff',
-                            pathColor: red,
-                            tailColor: 'rgba(255,255,255,.2)',
-                        })}
-                    />
-                </div>
-            ) : null}
+            {conditionalDisplay()}
         </div>
     );
 }

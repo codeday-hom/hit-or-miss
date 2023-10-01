@@ -7,7 +7,7 @@ export default function Dice({
   gameId,
   currentPlayer,
   clientUsername,
-  onDiceRolled,
+  onDiceResult
 }) {
   const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
@@ -86,7 +86,7 @@ export default function Dice({
   const displayHitOrMissWithDelay = () => {
     const timer = setTimeout(() => {
       setDisplayHitOrMiss(true);
-      onDiceRolled();
+      onDiceResult(hitOrMiss)
     }, 1500);
     return () => clearTimeout(timer);
   };
@@ -140,11 +140,13 @@ export default function Dice({
         )}
       </div>
 
-      <div className="dice-result">
-        {displayHitOrMiss
-          ? `Current choice: ${hitOrMiss}`
-          : "Rolling the Dice..."}
-      </div>
+      {currentPlayer !== clientUsername && (
+          <div>{currentPlayer} is rolling the dice...</div>
+      )}
+
+      {displayHitOrMiss
+        ? <div className="dice-result">Result: ${hitOrMiss}</div>
+        : null}
 
       {wildcardOption && currentPlayer === clientUsername && (
         <div className="wildcard">
