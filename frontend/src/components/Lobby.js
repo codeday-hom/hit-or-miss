@@ -2,7 +2,7 @@ import {useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../hooks/useGameWebSocket";
-import {WsMessageTypes} from "../constants/wsMessageTypes";
+import {WsMessageType} from "../constants/wsMessageType";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
@@ -16,18 +16,18 @@ export default function Lobby() {
   const [gameStarted, setGameStarted] = useState(false);
 
   useGameWebSocket(gameId, (message) => {
-    if (message.type === WsMessageTypes.USER_JOINED) {
+    if (message.type === WsMessageType.USER_JOINED) {
       setUsernames((prevUsernames) => {
         const newUsernames = Object.values(message.data).filter(
           (name) => !prevUsernames.includes(name)
         );
         return [...prevUsernames, ...newUsernames];
       });
-    } else if (message.type === WsMessageTypes.GAME_START) {
+    } else if (message.type === WsMessageType.GAME_START) {
       navigate(`/game/${gameId}`, {
         state: { clientUsername: username, currentPlayer: message.data },
       });
-    } else if (message.type === WsMessageTypes.ERROR) {
+    } else if (message.type === WsMessageType.ERROR) {
       setGameStarted(true);
     }
   });

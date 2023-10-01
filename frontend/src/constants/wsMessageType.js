@@ -1,4 +1,4 @@
-export const WsMessageTypes = {
+export const WsMessageType = {
   USER_JOINED: "USER_JOINED",
   GAME_START: "GAME_START",
   NEXT_PLAYER: "NEXT_PLAYER",

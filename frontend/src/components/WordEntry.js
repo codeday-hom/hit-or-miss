@@ -1,6 +1,6 @@
 import {useState} from "react";
 import "./WordEntry.css";
-import {WsMessageTypes} from "../constants/wsMessageTypes";
+import {WsMessageType} from "../constants/wsMessageType";
 
 export default function WordEntry({ sendWebSocketMessage }) {
   const [inputWord, setInputWord] = useState("");
@@ -8,7 +8,7 @@ export default function WordEntry({ sendWebSocketMessage }) {
 
   const send = () => {
     if (!wordSelected) {
-      sendWebSocketMessage(JSON.stringify({ type: WsMessageTypes.SELECTED_WORD, data: inputWord }));
+      sendWebSocketMessage(JSON.stringify({ type: WsMessageType.SELECTED_WORD, data: inputWord }));
       setWordSelected(true)
     }
   };

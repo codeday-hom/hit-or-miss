@@ -2,7 +2,7 @@ import React, {useState} from "react";
 import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
-import {WsMessageTypes} from "../constants/wsMessageTypes";
+import {WsMessageType} from "../constants/wsMessageType";
 import {GamePhases} from "../constants/gamePhases";
 import SelectCategoryPage from "./CategorySelection";
 import WaitForCountdownPage from "./Countdown";
@@ -22,7 +22,7 @@ export default function Game() {
   const [selectedWord, setSelectedWord] = useState("");
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
-    if (message.type === WsMessageTypes.NEXT_PLAYER) {
+    if (message.type === WsMessageType.NEXT_PLAYER) {
       setCurrentPlayer(message.data);
     }
   });

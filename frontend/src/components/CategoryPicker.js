@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {WsMessageTypes} from "../constants/wsMessageTypes";
+import {WsMessageType} from "../constants/wsMessageType";
 
 export default function CategoryPicker({ sendWebSocketMessage }) {
     const categories = ["Sports", "Music", "Science", "Art", "History"].sort(() => Math.random() - 0.5);
@@ -10,7 +10,7 @@ export default function CategoryPicker({ sendWebSocketMessage }) {
 
     const selectCategory = () => {
         setSelectedCategory(currentCategory)
-        sendWebSocketMessage(JSON.stringify({type: WsMessageTypes.CATEGORY_SELECTED, data: currentCategory}));
+        sendWebSocketMessage(JSON.stringify({type: WsMessageType.CATEGORY_SELECTED, data: currentCategory}));
     };
 
     const fetchNextCategory = () => {
