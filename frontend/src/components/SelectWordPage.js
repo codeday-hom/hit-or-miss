@@ -1,7 +1,7 @@
 import WordEntry from "./WordEntry";
 import React from "react";
-import useGameWebSocket from "../hooks/useGameWebSocket";
-import {WsMessageType} from "../constants/wsMessageType";
+import useGameWebSocket from "../websockets/useGameWebSocket";
+import {WsMessageType} from "../websockets/WsMessageType";
 
 export default function SelectWordPage({gameId, currentPlayer, clientUsername, currentSelectedCategory, diceResult, onWordSelected}) {
     const {sendMessage} = useGameWebSocket(gameId, (message) => {

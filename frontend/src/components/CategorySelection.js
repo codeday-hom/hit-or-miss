@@ -1,7 +1,7 @@
 import CategoryPicker from "./CategoryPicker";
 import React from "react";
-import useGameWebSocket from "../hooks/useGameWebSocket";
-import {WsMessageType} from "../constants/wsMessageType";
+import useGameWebSocket from "../websockets/useGameWebSocket";
+import {WsMessageType} from "../websockets/WsMessageType";
 
 export default function CategorySelection({ gameId, currentPlayer, clientUsername, onCategoryChosen }) {
     const { sendMessage } = useGameWebSocket(gameId, (message) => {

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { WsMessageType } from "../constants/wsMessageType";
+import { WsMessageType } from "./WsMessageType";
 
 const HEARTBEAT_INTERVAL = 1000 * 5;
 

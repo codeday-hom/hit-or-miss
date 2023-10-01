@@ -1,6 +1,6 @@
 import {useState} from "react";
 import "./WordEntry.css";
-import {WsMessageType} from "../constants/wsMessageType";
+import {WsMessageType} from "../websockets/WsMessageType";
 
 export default function WordEntry({ sendWebSocketMessage }) {
   const [inputWord, setInputWord] = useState("");

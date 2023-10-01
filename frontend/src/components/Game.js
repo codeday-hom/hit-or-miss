@@ -1,8 +1,8 @@
 import React, {useState} from "react";
 import {useLocation, useParams} from "react-router-dom";
-import useGameWebSocket from "../hooks/useGameWebSocket";
-import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
-import {WsMessageType} from "../constants/wsMessageType";
+import useGameWebSocket from "../websockets/useGameWebSocket";
+import useWebsocketHeartbeat from "../websockets/useWebsocketHeartbeat";
+import {WsMessageType} from "../websockets/WsMessageType";
 import SelectCategoryPage from "./CategorySelection";
 import WaitForCountdownPage from "./Countdown";
 import RollDicePage from "./RollDicePage";
