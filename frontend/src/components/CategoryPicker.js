@@ -1,21 +1,16 @@
 import React, {useState} from 'react';
 import {WsMessageTypes} from "../constants/wsMessageTypes";
-import useGameWebSocket from "../hooks/useGameWebSocket"
 
-export default function CategoryPicker({ gameId }) {
+export default function CategoryPicker({ sendWebSocketMessage }) {
     const categories = ["Sports", "Music", "Science", "Art", "History"].sort(() => Math.random() - 0.5);
     let categoryIndex = 0;
 
     const [currentCategory, setCurrentCategory] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
 
-    const { sendMessage } = useGameWebSocket(gameId, () => {
-        // This component ignores incoming messages. It only sends messages.
-    });
-
     const selectCategory = () => {
         setSelectedCategory(currentCategory)
-        sendMessage(JSON.stringify({type: WsMessageTypes.CATEGORY_SELECTED, data: currentCategory}));
+        sendWebSocketMessage(JSON.stringify({type: WsMessageTypes.CATEGORY_SELECTED, data: currentCategory}));
     };
 
     const fetchNextCategory = () => {

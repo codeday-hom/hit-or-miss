@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import React, {useState} from "react";
+import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
-import CategoryPicker from "./CategoryPicker";
-import { WsMessageTypes } from "../constants/wsMessageTypes";
-import Dice from "./Dice";
-import WordList from "./Wordlist";
-import CountdownTimer from "./CountdownTimer";
+import {WsMessageTypes} from "../constants/wsMessageTypes";
 import {GamePhases} from "../constants/gamePhases";
+import SelectCategoryPage from "./CategorySelection";
+import WaitForCountdownPage from "./Countdown";
+import RollDicePage from "./RollDicePage";
+import SelectWordPage from "./SelectWordPage";
 
 export default function Game() {
   const { gameId } = useParams();
@@ -15,21 +15,15 @@ export default function Game() {
   const clientUsername = location.state.clientUsername;
   const initialPlayer = location.state.currentPlayer;
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
-  const [gamePhase, setGamePhase] = useState(GamePhases.CATEGORY_SELECTION);
+  const [gamePhase, setGamePhase] = useState(GamePhases.SELECT_CATEGORY);
 
   const [currentSelectedCategory, setCurrentSelectedCategory] = useState(null);
-  const [isCountdownFinished, setIsCountdownFinished] = useState(false);
   const [diceResult, setDiceResult] = useState("");
   const [selectedWord, setSelectedWord] = useState("");
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.NEXT_PLAYER) {
       setCurrentPlayer(message.data);
-    } else if (message.type === WsMessageTypes.CATEGORY_CHOSEN) {
-      setCurrentSelectedCategory(message.data);
-      setGamePhase(GamePhases.COUNTDOWN)
-    } else if (message.type === WsMessageTypes.SELECTED_WORD) {
-      setSelectedWord(message.data);
     }
   });
 
@@ -51,51 +45,38 @@ export default function Game() {
    * This continues until a round has been played for each player selecting a category, or until everyone gets bored.
    */
   function conditionalGameState() {
-    if (gamePhase === GamePhases.CATEGORY_SELECTION) {
-      return (
-          <div>
-            {currentPlayer === clientUsername
-                ? <CategoryPicker gameId={gameId} />
-                : <p>{currentPlayer} is choosing a category</p>}
-          </div>
-      )
-    } else if (gamePhase === GamePhases.COUNTDOWN) {
-      return (
-          <div>
-            <p>Current category is: {currentSelectedCategory}</p>
-            {!isCountdownFinished ? (
-                <CountdownTimer onTimeout={() => {
-                    setIsCountdownFinished(true)
-                    setGamePhase(GamePhases.DICE_ROLLING)
-                }}/>
-            ) : null}
-          </div>
-      )
-    } else if (gamePhase === GamePhases.DICE_ROLLING) {
+    if (gamePhase === GamePhases.SELECT_CATEGORY) {
+      return <SelectCategoryPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
+                                 onCategoryChosen={(category) => {
+                                     setCurrentSelectedCategory(category);
+                                     setGamePhase(GamePhases.WAIT_FOR_COUNTDOWN)
+                                 }}/>
+    } else if (gamePhase === GamePhases.WAIT_FOR_COUNTDOWN) {
+      return <WaitForCountdownPage currentSelectedCategory={currentSelectedCategory}
+                                   onTimeout={() => {
+                                       setGamePhase(GamePhases.ROLL_DICE)
+                                   }}/>
+    } else if (gamePhase === GamePhases.ROLL_DICE) {
+        return <RollDicePage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
+                             currentSelectedCategory={currentSelectedCategory}
+                             onDiceResult={(diceResult => {
+                                 setDiceResult(diceResult)
+                                 setGamePhase(GamePhases.SELECT_WORD)
+                             })}/>
+    } else if (gamePhase === GamePhases.SELECT_WORD) {
+        return <SelectWordPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
+                               currentSelectedCategory={currentSelectedCategory} diceResult={diceResult}
+                               onWordSelected={(word) => {
+                                   setSelectedWord(word)
+                                   setGamePhase(GamePhases.SELECT_HIT_OR_MISS)
+                               }}/>
+    } else if (gamePhase === GamePhases.SELECT_HIT_OR_MISS) {
         return (
             <div>
-                <p>Current category is: {currentSelectedCategory}</p>
-                <Dice
-                    gameId={gameId}
-                    currentPlayer={currentPlayer}
-                    clientUsername={clientUsername}
-                    onDiceResult={(diceResult) => {
-                        setDiceResult(diceResult)
-                        setGamePhase(GamePhases.WORD_SELECTION)
-                    }}
-                />
-            </div>
-        )
-    } else if (gamePhase === GamePhases.WORD_SELECTION) {
-        return (
-            <div>
-                <p>Current category is: {currentSelectedCategory}</p>
-                <p>{currentPlayer === clientUsername ? "You" : currentPlayer} rolled the dice and got: {diceResult}</p>
-                <div>Current word: {selectedWord}</div>
-                {currentPlayer === clientUsername ? (
-                    <WordList gameId={gameId} />
-                ) : null}
-                {/* TODO: Upon word selection, all players will be prompted to select "hit" or "miss". */}
+                <h1>WIP</h1>
+                <div>Category: {currentSelectedCategory}</div>
+                <div>Dice result: {diceResult}</div>
+                <div>Word: {selectedWord}</div>
             </div>
         )
     }
