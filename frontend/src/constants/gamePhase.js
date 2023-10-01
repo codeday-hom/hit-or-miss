@@ -1,4 +1,4 @@
-export const GamePhases = {
+export const GamePhase = {
     SELECT_CATEGORY: "CATEGORY_SELECTION",
     WAIT_FOR_COUNTDOWN: "COUNTDOWN",
     ROLL_DICE: "DICE_ROLLING",

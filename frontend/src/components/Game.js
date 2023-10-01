@@ -3,7 +3,7 @@ import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
 import {WsMessageType} from "../constants/wsMessageType";
-import {GamePhases} from "../constants/gamePhases";
+import {GamePhase} from "../constants/gamePhase";
 import SelectCategoryPage from "./CategorySelection";
 import WaitForCountdownPage from "./Countdown";
 import RollDicePage from "./RollDicePage";
@@ -15,7 +15,7 @@ export default function Game() {
   const clientUsername = location.state.clientUsername;
   const initialPlayer = location.state.currentPlayer;
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
-  const [gamePhase, setGamePhase] = useState(GamePhases.SELECT_CATEGORY);
+  const [gamePhase, setGamePhase] = useState(GamePhase.SELECT_CATEGORY);
 
   const [currentSelectedCategory, setCurrentSelectedCategory] = useState(null);
   const [diceResult, setDiceResult] = useState("");
@@ -45,32 +45,32 @@ export default function Game() {
    * This continues until a round has been played for each player selecting a category, or until everyone gets bored.
    */
   function conditionalGameState() {
-    if (gamePhase === GamePhases.SELECT_CATEGORY) {
+    if (gamePhase === GamePhase.SELECT_CATEGORY) {
       return <SelectCategoryPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
                                  onCategoryChosen={(category) => {
                                      setCurrentSelectedCategory(category);
-                                     setGamePhase(GamePhases.WAIT_FOR_COUNTDOWN)
+                                     setGamePhase(GamePhase.WAIT_FOR_COUNTDOWN)
                                  }}/>
-    } else if (gamePhase === GamePhases.WAIT_FOR_COUNTDOWN) {
+    } else if (gamePhase === GamePhase.WAIT_FOR_COUNTDOWN) {
       return <WaitForCountdownPage currentSelectedCategory={currentSelectedCategory}
                                    onTimeout={() => {
-                                       setGamePhase(GamePhases.ROLL_DICE)
+                                       setGamePhase(GamePhase.ROLL_DICE)
                                    }}/>
-    } else if (gamePhase === GamePhases.ROLL_DICE) {
+    } else if (gamePhase === GamePhase.ROLL_DICE) {
         return <RollDicePage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
                              currentSelectedCategory={currentSelectedCategory}
                              onDiceResult={(diceResult => {
                                  setDiceResult(diceResult)
-                                 setGamePhase(GamePhases.SELECT_WORD)
+                                 setGamePhase(GamePhase.SELECT_WORD)
                              })}/>
-    } else if (gamePhase === GamePhases.SELECT_WORD) {
+    } else if (gamePhase === GamePhase.SELECT_WORD) {
         return <SelectWordPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
                                currentSelectedCategory={currentSelectedCategory} diceResult={diceResult}
                                onWordSelected={(word) => {
                                    setSelectedWord(word)
-                                   setGamePhase(GamePhases.SELECT_HIT_OR_MISS)
+                                   setGamePhase(GamePhase.SELECT_HIT_OR_MISS)
                                }}/>
-    } else if (gamePhase === GamePhases.SELECT_HIT_OR_MISS) {
+    } else if (gamePhase === GamePhase.SELECT_HIT_OR_MISS) {
         return (
             <div>
                 <h1>WIP</h1>
