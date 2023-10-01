@@ -48,9 +48,9 @@ export default function Game() {
       {isDiceRolled && currentPlayer === clientUsername ? (
         <WordList gameId={gameId} />
       ) : null}
-          {selectedCategory && !isCountdownFinished ? (
-              <CountdownTimer onTimeout={() => setIsCountdownFinished(true)}/>
-          ) : null}
+      {isCategorySelected && !isCountdownFinished ? (
+          <CountdownTimer onTimeout={() => setIsCountdownFinished(true)}/>
+      ) : null}
       {selectedWord && <div>Current word: {selectedWord}</div>}
       <Dice
         gameId={gameId}
