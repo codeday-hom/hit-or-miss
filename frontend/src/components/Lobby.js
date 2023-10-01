@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {useState} from "react";
+import {useNavigate, useParams} from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../hooks/useGameWebSocket";
-import { WsMessageTypes } from "../constants/wsMessageTypes";
+import {WsMessageTypes} from "../constants/wsMessageTypes";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);

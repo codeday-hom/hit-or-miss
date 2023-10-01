@@ -1,7 +1,6 @@
 import logo from './logo.svg';
 import StartGameButton from './components/StartGameButton'
 import './App.css';
-import CountdownTimer from "./components/CountdownTimer";
 
 export default App;
 
