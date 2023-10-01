@@ -3,19 +3,37 @@ import React from "react";
 import Lobby from "./Lobby";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 
+let stubGameId = null;
+let stubOnMessageFunction = null;
+
 jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
-    console.log(`gameId: ${gameId}`)
+    stubGameId = gameId;
+    stubOnMessageFunction = onMessageFunction;
 })
 
-test('renders header', async () => {
-    const gameId = "abcdef"
+function renderAtRoute(pathPattern, path, element) {
     render(
-        <MemoryRouter initialEntries={[{pathname: `/game/${gameId}/lobby`}]}>
+        <MemoryRouter initialEntries={[{pathname: path}]}>
             <Routes>
-                <Route path={"/game/:gameId/lobby"} element={<Lobby/>} />
+                <Route path={pathPattern} element={element} />
             </Routes>
         </MemoryRouter>
     )
+}
+
+function renderLobby(gameId) {
+    renderAtRoute("/game/:gameId/lobby", `/game/${gameId}/lobby`, <Lobby/>)
+}
+
+test('renders page header', async () => {
+    renderLobby("foo")
 
     expect(screen.getByText(/Welcome to the Game Lobby!/i)).toBeInTheDocument();
+});
+
+test('connects to websocket with provided game id', async () => {
+    const gameId = "abcdef"
+    renderLobby(gameId)
+
+    expect(stubGameId).toBe(gameId)
 });
