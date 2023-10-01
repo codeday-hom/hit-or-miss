@@ -3,11 +3,20 @@ import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../hooks/useGameWebSocket";
 import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
 import {WsMessageType} from "../constants/wsMessageType";
-import {GamePhase} from "../constants/gamePhase";
 import SelectCategoryPage from "./CategorySelection";
 import WaitForCountdownPage from "./Countdown";
 import RollDicePage from "./RollDicePage";
 import SelectWordPage from "./SelectWordPage";
+
+const GamePhase = {
+    SELECT_CATEGORY: "CATEGORY_SELECTION",
+    WAIT_FOR_COUNTDOWN: "COUNTDOWN",
+    ROLL_DICE: "DICE_ROLLING",
+    SELECT_WORD: "WORD_SELECTION",
+    SELECT_HIT_OR_MISS: "SELECT_HIT_OR_MISS"
+
+    // Add more, as more is implemented
+};
 
 export default function Game() {
   const { gameId } = useParams();
