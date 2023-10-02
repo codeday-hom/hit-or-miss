@@ -10,12 +10,13 @@ Online version of Gamewright's® Hit or Miss™.
 
 ### How to set up the development environment
 
-< ... >
+Install Java 17.
 
 ### How to run all the tests
 
-< ... >
+- `./gradlew :backend:test`
+- `./gradlew :frontend:yarnTest`
 
 ### How to run the game server and play a game
 
-< ... >
+- `./gradlew :backend:run`
