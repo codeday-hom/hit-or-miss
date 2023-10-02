@@ -6,7 +6,7 @@ import {WsMessageType} from "../websockets/WsMessageType";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
-  const { gameId } = useParams();
+  const {gameId} = useParams();
   const location = useLocation()
   const [usernames, setUsernames] = useState([]);
   const [username, setUsername] = useState("");
@@ -26,7 +26,7 @@ export default function Lobby() {
       });
     } else if (message.type === WsMessageType.GAME_START) {
       navigate(`/game/${gameId}`, {
-        state: { clientUsername: username, currentPlayer: message.data },
+        state: {clientUsername: username, currentPlayer: message.data},
       });
     } else if (message.type === WsMessageType.ERROR) {
       setGameStarted(true);
@@ -34,8 +34,10 @@ export default function Lobby() {
   });
 
   const checkIfHost = () => {
-    const hostGameId = Cookies.get("game_host");
-    setIsHost(hostGameId && (location.pathname === "/game/" + hostGameId + "/lobby"));
+    if (Cookies.get("game_host") !== undefined) {
+      const hostGameId = Cookies.get("game_host");
+      setIsHost(location.pathname === "/game/" + hostGameId + "/lobby");
+    }
   };
 
   const handleStartGame = () => {
@@ -77,7 +79,7 @@ export default function Lobby() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ gameId, username }),
+      body: JSON.stringify({gameId, username}),
     })
       .then((response) => response.json())
       .then(() => checkIfHost())
