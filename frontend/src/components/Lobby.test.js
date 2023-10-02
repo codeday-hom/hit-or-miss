@@ -29,11 +29,11 @@ function clearCookies() {
     Cookies.remove("game_host")
 }
 
-let requestedUrls = []
+let requests = []
 
 function stubFetch() {
-    global.fetch = jest.fn((url) => {
-        requestedUrls.push(url)
+    global.fetch = jest.fn((url, options) => {
+        requests.push({ url, options })
         if (isHost) {
             Cookies.set("game_host", gameId)
         }
@@ -102,7 +102,10 @@ test('sends your name to the server after entering it', async () => {
 
     await enterName("Zuno")
 
-    expect(requestedUrls).toContain(`/api/join-game/${gameId}`)
+    const request = requests.filter(it => it.url === `/api/join-game/${gameId}`).at(0)
+    const requestBody = JSON.parse(request.options.body)
+    expect(requestBody.gameId).toEqual(gameId)
+    expect(requestBody.username).toEqual("Zuno")
 });
 
 test('new players are shown as they join', async () => {
@@ -149,7 +152,7 @@ test('clicking the start game button causes a request to the server', async () =
     const startGameButton = await screen.findByText(/Start Game/i)
     fireEvent.click(startGameButton)
 
-    expect(requestedUrls).toContain(`/api/start-game/${gameId}`)
+    expect(requests.map(it => it.url)).toContain(`/api/start-game/${gameId}`)
 });
 
 test('client is redirected when the game starts', async () => {
