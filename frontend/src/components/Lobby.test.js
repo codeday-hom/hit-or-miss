@@ -54,6 +54,7 @@ function renderLobby() {
       <MemoryRouter initialEntries={[{pathname: `/game/${gameId}/lobby`}]}>
           <Routes>
               <Route path={"/game/:gameId/lobby"} element={<Lobby/>}/>
+              <Route path={"/game/:gameId"} element={<div>The test was redirected to the game screen</div>}/>
           </Routes>
       </MemoryRouter>
     )
@@ -70,6 +71,10 @@ async function enterName(name) {
 
 function otherPlayersJoin(otherPlayerNames) {
     receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: otherPlayerNames})
+}
+
+function gameStarted() {
+    receiveWebSocketMessage({type: WsMessageType.GAME_START, data: "someone"})
 }
 
 test('renders page header', async () => {
@@ -145,4 +150,12 @@ test('clicking the start game button causes a request to the server', async () =
     fireEvent.click(startGameButton)
 
     expect(requestedUrls).toContain(`/api/start-game/${gameId}`)
+});
+
+test('client is redirected when the game starts', async () => {
+    renderLobby()
+
+    gameStarted()
+
+    expect(screen.getByText(/The test was redirected to the game screen/i)).toBeInTheDocument()
 });
