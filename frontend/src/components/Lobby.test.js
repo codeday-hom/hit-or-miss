@@ -69,6 +69,10 @@ async function enterName(name) {
     await screen.findByText(`Your name: ${name}`)
 }
 
+function otherPlayersJoin(otherPlayerNames) {
+    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: otherPlayerNames})
+}
+
 test('renders page header', async () => {
     renderLobby()
 
@@ -92,7 +96,7 @@ test('shows your name after entering it', async () => {
 test('new players are shown as they join', async () => {
     renderLobby()
 
-    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: ["Grace", "Ian"]})
+    otherPlayersJoin(["Grace", "Ian"])
 
     const otherPlayersList = screen.getByRole("list", {name: /other-players/i})
     expect(otherPlayersList).toBeInTheDocument()
@@ -107,7 +111,7 @@ test('start game button is shown', async () => {
     renderLobby()
 
     await enterName("Zuno")
-    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: ["Grace", "Ian"]})
+    otherPlayersJoin(["Grace", "Ian"])
 
     const startGameButton = await screen.findByText(/Start Game/i)
     expect(startGameButton).toBeInTheDocument()
@@ -118,7 +122,7 @@ test('start game button is not shown if not the host', async () => {
     renderLobby()
 
     await enterName("Zuno")
-    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: ["Grace", "Ian"]})
+    otherPlayersJoin(["Grace", "Ian"])
 
     const startGameButton = screen.queryByText(/Start Game/i)
     expect(startGameButton).toBeNull()
