@@ -39,17 +39,21 @@ test('connects to websocket with provided game id', async () => {
     expect(stubGameId).toBe(gameId)
 });
 
-test('shows your name after entering it', async () => {
-    const gameId = "abcdef"
-
+function stubFetch(gameId) {
     global.fetch = jest.fn(() => {
         Cookies.set("game_host", gameId)
         return Promise.resolve({
             json: () => Promise.resolve({})
         })
     });
+}
+
+test('shows your name after entering it', async () => {
+    const gameId = "abcdef"
+    stubFetch(gameId)
 
     renderLobby(gameId)
+
     const nameInput = screen.getByPlaceholderText(/Choose your name/i)
     fireEvent.change(nameInput, {target: {value: "Zuno"}})
 
