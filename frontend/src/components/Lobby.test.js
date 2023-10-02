@@ -1,8 +1,9 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import React from "react";
 import Lobby from "./Lobby";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 import Cookies from "js-cookie";
+import {WsMessageType} from "../websockets/WsMessageType";
 
 let stubGameId = null;
 let stubOnMessageFunction = null;
@@ -61,4 +62,38 @@ test('shows your name after entering it', async () => {
     fireEvent.click(saveNameButton)
 
     await waitFor(() => expect(screen.getByText(/Your name: Zuno/i)).toBeInTheDocument())
+});
+
+test('new players are shown as they join', async () => {
+    const gameId = "abcdef"
+    stubFetch(gameId)
+
+    renderLobby(gameId)
+
+    act(() => stubOnMessageFunction({type: WsMessageType.USER_JOINED, data: {ignored1: "Grace", ignored2: "Ian"}}))
+
+    const otherPlayersList = screen.getByRole("list", {name: /other-players/i})
+    expect(otherPlayersList).toBeInTheDocument()
+
+    await waitFor(() => expect(within(otherPlayersList)
+        .getAllByRole("listitem")
+        .map(item => item.textContent.trim()))
+        .toEqual(["Grace", "Ian"]))
+});
+
+test('start game button is shown', async () => {
+    const gameId = "abcdef"
+    stubFetch(gameId)
+
+    renderLobby(gameId)
+
+    const nameInput = screen.getByPlaceholderText(/Choose your name/i)
+    fireEvent.change(nameInput, {target: {value: "Zuno"}})
+
+    const saveNameButton = screen.getByText(/Save/i)
+    fireEvent.click(saveNameButton)
+
+    act(() => stubOnMessageFunction({type: WsMessageType.USER_JOINED, data: {ignored1: "Grace", ignored2: "Ian"}}))
+
+    await waitFor(() => !expect(screen.getByText(/Start Game/i)).toBeInTheDocument())
 });

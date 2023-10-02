@@ -1,5 +1,5 @@
 import {useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import {useLocation, useNavigate, useParams} from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import {WsMessageType} from "../websockets/WsMessageType";
@@ -7,6 +7,7 @@ import {WsMessageType} from "../websockets/WsMessageType";
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const { gameId } = useParams();
+  const location = useLocation()
   const [usernames, setUsernames] = useState([]);
   const [username, setUsername] = useState("");
   const [name, setName] = useState("");
@@ -34,10 +35,7 @@ export default function Lobby() {
 
   const checkIfHost = () => {
     const hostGameId = Cookies.get("game_host");
-    const currentUrl = window.location.href;
-    setIsHost(
-      hostGameId && currentUrl.includes("/game/" + hostGameId + "/lobby")
-    );
+    setIsHost(hostGameId && (location.pathname === "/game/" + hostGameId + "/lobby"));
   };
 
   const handleStartGame = () => {
@@ -114,9 +112,9 @@ export default function Lobby() {
       )}
       <h2>Your name: {username}</h2>
       <h2>Players in the lobby:</h2>
-      <ul>
+      <ul aria-label="other-players">
         {usernames.map((name, index) => (
-          <li key={index}>{name}</li>
+          <li key={index}>{name}  </li>
         ))}
       </ul>
     </div>
