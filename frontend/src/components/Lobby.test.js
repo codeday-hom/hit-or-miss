@@ -74,13 +74,15 @@ function renderLobby() {
 
 // Simulates the client choosing their name in the lobby and clicking the "Save" button.
 // This function is async because it needs to wait for the state update following the button click.
-async function enterName(name) {
+async function enterName(name, awaitSuccess = true) {
     const nameInput = screen.getByPlaceholderText(/Choose your name/i)
     fireEvent.change(nameInput, {target: {value: name}})
 
     const saveNameButton = screen.getByText(/Save/i)
     fireEvent.click(saveNameButton)
-    await screen.findByText(`Your name: ${name}`)
+    if (awaitSuccess) {
+        await screen.findByText(`Your name: ${name}`)
+    }
 }
 
 test('renders page header', async () => {
@@ -112,6 +114,24 @@ test('sends your name to the server after entering it', async () => {
     const requestBody = JSON.parse(request.options.body)
     expect(requestBody.gameId).toEqual(gameId)
     expect(requestBody.username).toEqual("Zuno")
+});
+
+test('shows invalid name warning if name is empty', async () => {
+    renderLobby()
+
+    await enterName("", false)
+
+    expect(screen.getByText(/Please enter a valid name/i)).toBeInTheDocument()
+});
+
+test('shows invalid name warning if name is already taken', async () => {
+    renderLobby()
+
+    otherPlayersJoin(["Rob"])
+
+    await enterName("Rob", false)
+
+    expect(screen.getByText(/This username is already taken/i)).toBeInTheDocument()
 });
 
 test('new players are shown as they join', async () => {
