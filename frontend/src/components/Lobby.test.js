@@ -29,8 +29,11 @@ function clearCookies() {
     Cookies.remove("game_host")
 }
 
+let requestedUrls = []
+
 function stubFetch() {
-    global.fetch = jest.fn(() => {
+    global.fetch = jest.fn((url) => {
+        requestedUrls.push(url)
         if (isHost) {
             Cookies.set("game_host", gameId)
         }
@@ -89,6 +92,14 @@ test('shows your name after entering it', async () => {
     expect(screen.getByText(/Your name: Zuno/i)).toBeInTheDocument()
 });
 
+test('sends your name to the server after entering it', async () => {
+    renderLobby()
+
+    await enterName("Zuno")
+
+    expect(requestedUrls).toContain(`/api/join-game/${gameId}`)
+});
+
 test('new players are shown as they join', async () => {
     renderLobby()
 
@@ -122,4 +133,16 @@ test('start game button is not shown if not the host', async () => {
 
     const startGameButton = screen.queryByText(/Start Game/i)
     expect(startGameButton).toBeNull()
+});
+
+test('clicking the start game button causes a request to the server', async () => {
+    renderLobby()
+
+    await enterName("Zuno")
+    otherPlayersJoin(["Grace", "Ian"])
+
+    const startGameButton = await screen.findByText(/Start Game/i)
+    fireEvent.click(startGameButton)
+
+    expect(requestedUrls).toContain(`/api/start-game/${gameId}`)
 });
