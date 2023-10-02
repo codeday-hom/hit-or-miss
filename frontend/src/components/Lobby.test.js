@@ -46,18 +46,14 @@ beforeEach(() => {
     stubFetch()
 })
 
-function renderAtRoute(pathPattern, path, element) {
-    render(
-        <MemoryRouter initialEntries={[{pathname: path}]}>
-            <Routes>
-                <Route path={pathPattern} element={element}/>
-            </Routes>
-        </MemoryRouter>
-    )
-}
-
 function renderLobby() {
-    renderAtRoute("/game/:gameId/lobby", `/game/${gameId}/lobby`, <Lobby/>)
+    render(
+      <MemoryRouter initialEntries={[{pathname: `/game/${gameId}/lobby`}]}>
+          <Routes>
+              <Route path={"/game/:gameId/lobby"} element={<Lobby/>}/>
+          </Routes>
+      </MemoryRouter>
+    )
 }
 
 async function enterName(name) {
