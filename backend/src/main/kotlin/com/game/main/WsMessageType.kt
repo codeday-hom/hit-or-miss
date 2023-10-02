@@ -12,4 +12,5 @@ enum class WsMessageType {
     ROLL_DICE,
     ROLL_DICE_RESULT,
     HIT_OR_MISS,
+    SELECTED_WORD,
 }

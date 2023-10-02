@@ -1,0 +1,15 @@
+.word-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.word-list input {
+    padding: 10px;
+    border: 1px;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 10px;
+    font-size: 16px;
+}
+

@@ -5,6 +5,7 @@ import useWebsocketHeartbeat from "../hooks/useWebsocketHeartbeat";
 import CategoryPicker from "./CategoryPicker";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 import Dice from "./Dice";
+import WordList from "./Wordlist";
 
 export default function Game() {
   const { gameId } = useParams();
@@ -12,10 +13,14 @@ export default function Game() {
   const clientUsername = location.state.clientUsername;
   const initialPlayer = location.state.currentPlayer;
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
+  const [isDiceRolled, setIsDiceRolled] = useState(false);
+  const [selectedWord, setSelectedWord] = useState("");
 
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.NEXT_PLAYER) {
       setCurrentPlayer(message.data);
+    } else if (message.type === WsMessageTypes.SELECTED_WORD) {
+      setSelectedWord(message.data);
     }
   });
 
@@ -36,10 +41,15 @@ export default function Game() {
         clientUsername={clientUsername}
         currentPlayer={currentPlayer}
       />
+      {isDiceRolled && currentPlayer === clientUsername ? (
+        <WordList gameId={gameId} />
+      ) : null}
+      {selectedWord && <div>Current word: {selectedWord}</div>}
       <Dice
         gameId={gameId}
         currentPlayer={currentPlayer}
         clientUsername={clientUsername}
+        onDiceRolled={() => setIsDiceRolled(true)}
       />
     </div>
   );

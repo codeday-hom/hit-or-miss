@@ -3,12 +3,18 @@ import useGameWebSocket from "../hooks/useGameWebSocket";
 import "./Dice.css";
 import { WsMessageTypes } from "../constants/wsMessageTypes";
 
-export default function Dice({ gameId, currentPlayer, clientUsername }) {
+export default function Dice({
+  gameId,
+  currentPlayer,
+  clientUsername,
+  onDiceRolled,
+}) {
   const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
   const [diceResult, setDiceResult] = useState();
   const [isDiceRolled, setIsDiceRolled] = useState(false);
   const [hitOrMiss, setHitOrMiss] = useState("");
+  const [displayHitOrMiss, setDisplayHitOrMiss] = useState(false);
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageTypes.ROLL_DICE_RESULT) {
       setDiceResult(message.data);
@@ -16,6 +22,7 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
       setHitOrMiss(message.data);
     }
   });
+
   const sendHit = () => {
     sendMessage(
       JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
@@ -76,6 +83,19 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
     }
   }, [diceResult]);
 
+  const displayHitOrMissWithDelay = () => {
+    const timer = setTimeout(() => {
+      setDisplayHitOrMiss(true);
+      onDiceRolled();
+    }, 1500);
+    return () => clearTimeout(timer);
+  };
+
+  useEffect(() => {
+    if (hitOrMiss) displayHitOrMissWithDelay();
+    else setDisplayHitOrMiss(false);
+  }, [hitOrMiss]);
+
   const handleRollDice = () => {
     sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
     setIsDiceRolled(true);
@@ -121,7 +141,9 @@ export default function Dice({ gameId, currentPlayer, clientUsername }) {
       </div>
 
       <div className="dice-result">
-        {hitOrMiss ? `Current choice: ${hitOrMiss}` : "Rolling the Dice..."}
+        {displayHitOrMiss
+          ? `Current choice: ${hitOrMiss}`
+          : "Rolling the Dice..."}
       </div>
 
       {wildcardOption && currentPlayer === clientUsername && (

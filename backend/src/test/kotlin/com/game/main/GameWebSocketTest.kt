@@ -113,6 +113,14 @@ class GameWebSocketTest {
 
     @Test
     @Timeout(value = 4)
+    fun `replies to selected-word message with a word selected response`() {
+        game.start()
+
+        send(mapOf("type" to WsMessageType.SELECTED_WORD.name, "data" to "math"))
+
+        assertNthReplyEquals(2, mapOf("type" to WsMessageType.SELECTED_WORD.name, "data" to "math"))
+    }
+
     fun `replies with heartbeat ack message when receives a heartbeat message`() {
         game.start()
 
@@ -144,7 +152,6 @@ class GameWebSocketTest {
         send(mapOf("type" to WsMessageType.HIT_OR_MISS.name, "data" to "Miss"))
         assertNthReplyEquals(2, mapOf("type" to WsMessageType.HIT_OR_MISS.name, "data" to "Miss"))
     }
-
 
     private fun wsClient(gameId: String): WsClient = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
 
