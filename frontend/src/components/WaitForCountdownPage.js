@@ -1,7 +1,7 @@
 import CountdownTimer from "./CountdownTimer";
 import React, {useState} from "react";
 
-export default function Countdown({ currentSelectedCategory, onTimeout }) {
+export default function WaitForCountdownPage({ currentSelectedCategory, onTimeout }) {
     const [isCountdownFinished, setIsCountdownFinished] = useState(false);
 
     return (

@@ -3,8 +3,8 @@ import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import useWebsocketHeartbeat from "../websockets/useWebsocketHeartbeat";
 import {WsMessageType} from "../websockets/WsMessageType";
-import SelectCategoryPage from "./CategorySelection";
-import WaitForCountdownPage from "./Countdown";
+import SelectCategoryPage from "./SelectCategoryPage";
+import WaitForCountdownPage from "./WaitForCountdownPage";
 import RollDicePage from "./RollDicePage";
 import SelectWordPage from "./SelectWordPage";
 
