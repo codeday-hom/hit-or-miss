@@ -4,10 +4,10 @@ import 'react-circular-progressbar/dist/styles.css';
 
 function CountdownTimer({ onTimeout }) {
     // Seconds for main countdown.
-    const countdownDuration = 30
+    const countdownDuration = window['useTestTimeouts'] ? 0.1 : 30
 
     // Seconds between "Ready", "Set" and "Go".
-    const phaseInterval = 2
+    const phaseInterval = window['useTestTimeouts'] ? 0.1 : 2
 
     const [phase, setPhase] = useState('ready'); // ready / set / go / timeout
     const [secondsLeft, setSecondsLeft] = useState(countdownDuration);
@@ -23,7 +23,10 @@ function CountdownTimer({ onTimeout }) {
         if (phase === 'ready') {
             setTimeout(() => setPhase('set'), seconds(phaseInterval)); // "Ready" phase
             setTimeout(() => setPhase('go'), seconds(phaseInterval * 2)); // "Set" phase
-            setTimeout(() => setPhase('timeout'), seconds(countdownDuration + (phaseInterval * 2))); // "Go" phase
+            setTimeout(() => {
+                setPhase('timeout')
+                onTimeout()
+            }, seconds(countdownDuration + (phaseInterval * 2))); // "Go" phase
         }
 
         if (phase === 'go') {
@@ -64,13 +67,12 @@ function CountdownTimer({ onTimeout }) {
                     />
                 </div>
             )
-        } else if (phase === 'timeout') {
-            return <button onClick={onTimeout}>Continue</button>
         }
     }
 
     return (
         <div>
+            <h2>Countdown!</h2>
             <div className="message">{getPhaseMessage()}</div>
             {conditionalDisplay()}
         </div>

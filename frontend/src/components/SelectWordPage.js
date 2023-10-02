@@ -14,6 +14,7 @@ export default function SelectWordPage({gameId, currentPlayer, clientUsername, c
         <div>
             <p>Current category is: {currentSelectedCategory}</p>
             <p>{currentPlayer === clientUsername ? "You" : currentPlayer} rolled the dice and got: {diceResult}</p>
+            <p>{currentPlayer === clientUsername ? "You are" : `${currentPlayer} is`} choosing a word...</p>
             {currentPlayer === clientUsername && <WordEntry sendWebSocketMessage={sendMessage}/>}
             {/* TODO: Upon word selection, all players will be prompted to select "hit" or "miss". */}
         </div>

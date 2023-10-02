@@ -84,10 +84,11 @@ export default function Dice({
   }, [diceResult]);
 
   const displayHitOrMissWithDelay = () => {
+    const delayMillis = window['useTestTimeouts'] ? 100 : 1500
     const timer = setTimeout(() => {
       setDisplayHitOrMiss(true);
       onDiceResult(hitOrMiss)
-    }, 1500);
+    }, delayMillis);
     return () => clearTimeout(timer);
   };
 
