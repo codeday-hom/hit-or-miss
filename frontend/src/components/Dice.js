@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
-import useGameWebSocket from "../hooks/useGameWebSocket";
+import useGameWebSocket from "../websockets/useGameWebSocket";
 import "./Dice.css";
-import { WsMessageTypes } from "../constants/wsMessageTypes";
+import { WsMessageType } from "../websockets/WsMessageType";
 
 export default function Dice({
   gameId,
   currentPlayer,
   clientUsername,
-  onDiceRolled,
+  onDiceResult
 }) {
   const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
@@ -16,21 +16,21 @@ export default function Dice({
   const [hitOrMiss, setHitOrMiss] = useState("");
   const [displayHitOrMiss, setDisplayHitOrMiss] = useState(false);
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
-    if (message.type === WsMessageTypes.ROLL_DICE_RESULT) {
+    if (message.type === WsMessageType.ROLL_DICE_RESULT) {
       setDiceResult(message.data);
-    } else if (message.type === WsMessageTypes.HIT_OR_MISS) {
+    } else if (message.type === WsMessageType.HIT_OR_MISS) {
       setHitOrMiss(message.data);
     }
   });
 
   const sendHit = () => {
     sendMessage(
-      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: "Hit" })
     );
   };
   const sendMiss = () => {
     sendMessage(
-      JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: "Miss" })
     );
   };
   useEffect(() => {
@@ -86,7 +86,7 @@ export default function Dice({
   const displayHitOrMissWithDelay = () => {
     const timer = setTimeout(() => {
       setDisplayHitOrMiss(true);
-      onDiceRolled();
+      onDiceResult(hitOrMiss)
     }, 1500);
     return () => clearTimeout(timer);
   };
@@ -97,7 +97,7 @@ export default function Dice({
   }, [hitOrMiss]);
 
   const handleRollDice = () => {
-    sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE, data: "" }));
     setIsDiceRolled(true);
   };
 
@@ -140,11 +140,13 @@ export default function Dice({
         )}
       </div>
 
-      <div className="dice-result">
-        {displayHitOrMiss
-          ? `Current choice: ${hitOrMiss}`
-          : "Rolling the Dice..."}
-      </div>
+      {currentPlayer !== clientUsername && (
+          <div>{currentPlayer} is rolling the dice...</div>
+      )}
+
+      {displayHitOrMiss
+        ? <div className="dice-result">Result: ${hitOrMiss}</div>
+        : null}
 
       {wildcardOption && currentPlayer === clientUsername && (
         <div className="wildcard">

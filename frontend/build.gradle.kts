@@ -39,5 +39,5 @@ val yarnBuild by tasks.registering(YarnTask::class) {
 tasks.register<YarnTask>("yarnTest") {
     inputs.dir(reactOutputDir)
     dependsOn(yarnInstall)
-    args.set(listOf("test"))
+    args.set(listOf("test", "--detectOpenHandles"))
 }

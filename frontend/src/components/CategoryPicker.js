@@ -1,22 +1,16 @@
 import React, {useState} from 'react';
-import {WsMessageTypes} from "../constants/wsMessageTypes";
-import useGameWebSocket from "../hooks/useGameWebSocket"
+import {WsMessageType} from "../websockets/WsMessageType";
 
-export default function CategoryPicker({ gameId, clientUsername, currentPlayer }) {
+export default function CategoryPicker({ sendWebSocketMessage }) {
     const categories = ["Sports", "Music", "Science", "Art", "History"].sort(() => Math.random() - 0.5);
     let categoryIndex = 0;
 
     const [currentCategory, setCurrentCategory] = useState(null);
     const [selectedCategory, setSelectedCategory] = useState(null);
 
-    const { sendMessage } = useGameWebSocket(gameId, message => {
-        if (message.type === WsMessageTypes.CATEGORY_CHOSEN) {
-            setSelectedCategory(message.data);
-        }
-    });
-
     const selectCategory = () => {
-        sendMessage(JSON.stringify({type: WsMessageTypes.CATEGORY_SELECTED, data: currentCategory}));
+        setSelectedCategory(currentCategory)
+        sendWebSocketMessage(JSON.stringify({type: WsMessageType.CATEGORY_SELECTED, data: currentCategory}));
     };
 
     const fetchNextCategory = () => {
@@ -28,30 +22,26 @@ export default function CategoryPicker({ gameId, clientUsername, currentPlayer }
         fetchNextCategory();
     }
 
-    const categoryPicker = () => {
-        // If I am picking, and I haven't chosen yet, then I can see these controls.
-        // If someone else is picking, I don't see them.
-        // If I already selected a category, I don't see them.
-        if ((currentPlayer === clientUsername) && !selectedCategory) {
-            if (currentCategory) {
-                return <div>
+    if (selectedCategory) {
+        return null
+    }
+
+    if (currentCategory) {
+        return (
+            <div>
+                <h2>Pick a category</h2>
+                <div>
                     <p>Category: {currentCategory}</p>
                     <button onClick={selectCategory}>Select</button>
                     <button onClick={skipCategory}>Skip</button>
                 </div>
-            } else {
-                return <button onClick={fetchNextCategory}>Start Picking</button>
-            }
-        } else {
-            return null
-        }
+            </div>
+        )
+    } else {
+        return (
+            <div>
+                <button onClick={fetchNextCategory}>Pick a category</button>
+            </div>
+        )
     }
-
-    return (
-        <div>
-            <h2>Category Picker</h2>
-            {categoryPicker()}
-            {selectedCategory ? <p>Category chosen is: {selectedCategory}</p> : null}
-        </div>
-    );
 }

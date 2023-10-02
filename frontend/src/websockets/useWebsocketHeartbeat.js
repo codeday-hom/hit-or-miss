@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { WsMessageTypes } from "../constants/wsMessageTypes";
+import { WsMessageType } from "./WsMessageType";
 
 const HEARTBEAT_INTERVAL = 1000 * 5;
 
@@ -10,7 +10,7 @@ export default function useWebsocketHeartbeat(sendMessage) {
     const heartbeatInterval = setInterval(() => {
       sendMessage(
         JSON.stringify({
-          type: WsMessageTypes.HEARTBEAT,
+          type: WsMessageType.HEARTBEAT,
           data: "",
         })
       );
