@@ -5,11 +5,10 @@ import java.util.Random
 
 object IdGenerator {
     private val random = Random()
-    private val base32 = Base32()
+    private val base32 = Base32(true, 'z'.code.toByte())
 
     fun generateId(): String {
-        val randomLong = random.nextLong()
-        return base32.encodeAsString(randomLong.toString().toByteArray())
+        return base32.encodeAsString(random.nextInt().toString().toByteArray()).lowercase()
     }
 }
 
