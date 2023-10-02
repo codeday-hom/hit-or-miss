@@ -1,9 +1,10 @@
 import useWebSocket from "react-use-websocket";
 
 export default function useGameWebSocket(gameId, onMessageFunction) {
-  const WS_URL = `ws://localhost:8080/ws/game/${gameId}`;
+  const url = new URL(`/ws/game/${gameId}`, window.location.href);
+  url.protocol = url.protocol.replace('http', 'ws');
 
-  return useWebSocket(WS_URL, {
+  return useWebSocket(url.href, {
     onOpen: () => {
       console.log("WebSocket connection established for gameId '" + gameId + "'.");
     },
