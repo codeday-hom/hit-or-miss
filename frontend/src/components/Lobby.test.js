@@ -10,27 +10,27 @@ global.console.warn = (message) => {
     throw message
 }
 
+// Mock web socket connection
 let webSocketGameId = null;
 let webSocketOnMessageFunction = null;
-
 jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
     webSocketGameId = gameId;
     webSocketOnMessageFunction = onMessageFunction;
 })
-
 function receiveWebSocketMessage(message) {
     act(() => webSocketOnMessageFunction(message))
 }
-
-let isHost = null
-let gameId = "abcdef"
-
-function clearCookies() {
-    Cookies.remove("game_host")
+function otherPlayersJoin(otherPlayerNames) {
+    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: otherPlayerNames})
+}
+function gameStarted() {
+    receiveWebSocketMessage({type: WsMessageType.GAME_START, data: "someone"})
 }
 
+// Mock HTTP responses
+let isHost = null
+let gameId = "abcdef"
 let requests = []
-
 function stubFetch() {
     global.fetch = jest.fn((url, options) => {
         requests.push({ url, options })
@@ -43,23 +43,37 @@ function stubFetch() {
     });
 }
 
+// Clear the cookie that is used by the Lobby component. There is only one.
+function clearCookies() {
+    Cookies.remove("game_host")
+}
+
+// Before each test:
+// - Set isHost to its default value in these tests: true.
+// - Ensure that http response mocking is in place.
+// - Ensure that cookies from previous test runs are cleared.
 beforeEach(() => {
     isHost = true
-    clearCookies()
     stubFetch()
+    clearCookies()
 })
 
+// The component is rendered within a router, because this is important to the component's behaviour.
 function renderLobby() {
     render(
       <MemoryRouter initialEntries={[{pathname: `/game/${gameId}/lobby`}]}>
           <Routes>
               <Route path={"/game/:gameId/lobby"} element={<Lobby/>}/>
-              <Route path={"/game/:gameId"} element={<div>The test was redirected to the game screen</div>}/>
+
+              {/* This route is set up to capture the case where the game is started and players are redirected. */}
+              <Route path={"/game/:gameId"} element={<div>The client was redirected to the game screen</div>}/>
           </Routes>
       </MemoryRouter>
     )
 }
 
+// Simulates the client choosing their name in the lobby and clicking the "Save" button.
+// This function is async because it needs to wait for the state update following the button click.
 async function enterName(name) {
     const nameInput = screen.getByPlaceholderText(/Choose your name/i)
     fireEvent.change(nameInput, {target: {value: name}})
@@ -67,14 +81,6 @@ async function enterName(name) {
     const saveNameButton = screen.getByText(/Save/i)
     fireEvent.click(saveNameButton)
     await screen.findByText(`Your name: ${name}`)
-}
-
-function otherPlayersJoin(otherPlayerNames) {
-    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: otherPlayerNames})
-}
-
-function gameStarted() {
-    receiveWebSocketMessage({type: WsMessageType.GAME_START, data: "someone"})
 }
 
 test('renders page header', async () => {
@@ -160,5 +166,5 @@ test('client is redirected when the game starts', async () => {
 
     gameStarted()
 
-    expect(screen.getByText(/The test was redirected to the game screen/i)).toBeInTheDocument()
+    expect(screen.getByText(/The client was redirected to the game screen/i)).toBeInTheDocument()
 });
