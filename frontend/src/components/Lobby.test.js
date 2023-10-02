@@ -1,7 +1,8 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import React from "react";
 import Lobby from "./Lobby";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
+import Cookies from "js-cookie";
 
 let stubGameId = null;
 let stubOnMessageFunction = null;
@@ -15,7 +16,7 @@ function renderAtRoute(pathPattern, path, element) {
     render(
         <MemoryRouter initialEntries={[{pathname: path}]}>
             <Routes>
-                <Route path={pathPattern} element={element} />
+                <Route path={pathPattern} element={element}/>
             </Routes>
         </MemoryRouter>
     )
@@ -36,4 +37,24 @@ test('connects to websocket with provided game id', async () => {
     renderLobby(gameId)
 
     expect(stubGameId).toBe(gameId)
+});
+
+test('shows your name after entering it', async () => {
+    const gameId = "abcdef"
+
+    global.fetch = jest.fn(() => {
+        Cookies.set("game_host", gameId)
+        return Promise.resolve({
+            json: () => Promise.resolve({})
+        })
+    });
+
+    renderLobby(gameId)
+    const nameInput = screen.getByPlaceholderText(/Choose your name/i)
+    fireEvent.change(nameInput, {target: {value: "Zuno"}})
+
+    const saveNameButton = screen.getByText(/Save/i)
+    fireEvent.click(saveNameButton)
+
+    await waitFor(() => expect(screen.getByText(/Your name: Zuno/i)).toBeInTheDocument())
 });
