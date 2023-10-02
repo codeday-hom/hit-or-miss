@@ -9,6 +9,9 @@ import {WsMessageType} from "../websockets/WsMessageType";
 global.console.warn = (message) => {
     throw message
 }
+global.console.error = (message) => {
+    throw message
+}
 
 // Mock web socket connection
 let webSocketGameId = null;
