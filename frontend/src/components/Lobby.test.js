@@ -10,16 +10,20 @@ global.console.warn = (message) => {
     throw message
 }
 
-let stubGameId = null;
-let stubOnMessageFunction = null;
+let webSocketGameId = null;
+let webSocketOnMessageFunction = null;
 
 jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
-    stubGameId = gameId;
-    stubOnMessageFunction = onMessageFunction;
+    webSocketGameId = gameId;
+    webSocketOnMessageFunction = onMessageFunction;
 })
 
+function receiveWebSocketMessage(message) {
+    act(() => webSocketOnMessageFunction(message))
+}
+
 let isHost = null
-let gameId = null
+let gameId = "abcdef"
 
 function clearCookies() {
     Cookies.remove("game_host")
@@ -72,14 +76,12 @@ test('renders page header', async () => {
 });
 
 test('connects to websocket with provided game id', async () => {
-    gameId = "abcdef"
     renderLobby()
 
-    expect(stubGameId).toBe(gameId)
+    expect(webSocketGameId).toBe(gameId)
 });
 
 test('shows your name after entering it', async () => {
-    gameId = "abcdef"
     renderLobby()
 
     await enterName("Zuno")
@@ -88,10 +90,9 @@ test('shows your name after entering it', async () => {
 });
 
 test('new players are shown as they join', async () => {
-    gameId = "abcdef"
     renderLobby()
 
-    act(() => stubOnMessageFunction({type: WsMessageType.USER_JOINED, data: {ignored1: "Grace", ignored2: "Ian"}}))
+    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: ["Grace", "Ian"]})
 
     const otherPlayersList = screen.getByRole("list", {name: /other-players/i})
     expect(otherPlayersList).toBeInTheDocument()
@@ -103,23 +104,21 @@ test('new players are shown as they join', async () => {
 });
 
 test('start game button is shown', async () => {
-    gameId = "abcdef"
     renderLobby()
 
     await enterName("Zuno")
-    act(() => stubOnMessageFunction({type: WsMessageType.USER_JOINED, data: {ignored1: "Grace", ignored2: "Ian"}}))
+    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: ["Grace", "Ian"]})
 
     const startGameButton = await screen.findByText(/Start Game/i)
     expect(startGameButton).toBeInTheDocument()
 });
 
 test('start game button is not shown if not the host', async () => {
-    gameId = "abcdef"
     isHost = false
     renderLobby()
 
     await enterName("Zuno")
-    act(() => stubOnMessageFunction({type: WsMessageType.USER_JOINED, data: {ignored1: "Grace", ignored2: "Ian"}}))
+    receiveWebSocketMessage({type: WsMessageType.USER_JOINED, data: ["Grace", "Ian"]})
 
     const startGameButton = screen.queryByText(/Start Game/i)
     expect(startGameButton).toBeNull()
