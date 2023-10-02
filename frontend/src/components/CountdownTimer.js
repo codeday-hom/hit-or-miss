@@ -3,7 +3,11 @@ import {buildStyles, CircularProgressbar} from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
 function CountdownTimer({ onTimeout }) {
-    const countdownDuration = 5
+    // Seconds for main countdown.
+    const countdownDuration = 30
+
+    // Seconds between "Ready", "Set" and "Go".
+    const phaseInterval = 2
 
     const [phase, setPhase] = useState('ready'); // ready / set / go / timeout
     const [secondsLeft, setSecondsLeft] = useState(countdownDuration);
@@ -17,9 +21,9 @@ function CountdownTimer({ onTimeout }) {
 
     useEffect(() => {
         if (phase === 'ready') {
-            setTimeout(() => setPhase('set'), seconds(1)); // "Ready" phase
-            setTimeout(() => setPhase('go'), seconds(2)); // "Set" phase
-            setTimeout(() => setPhase('timeout'), seconds(countdownDuration + 2)); // "Go" phase
+            setTimeout(() => setPhase('set'), seconds(phaseInterval)); // "Ready" phase
+            setTimeout(() => setPhase('go'), seconds(phaseInterval * 2)); // "Set" phase
+            setTimeout(() => setPhase('timeout'), seconds(countdownDuration + (phaseInterval * 2))); // "Go" phase
         }
 
         if (phase === 'go') {
