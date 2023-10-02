@@ -49,17 +49,21 @@ function stubFetch(gameId) {
     });
 }
 
+function enterName(name) {
+    const nameInput = screen.getByPlaceholderText(/Choose your name/i)
+    fireEvent.change(nameInput, {target: {value: name}})
+
+    const saveNameButton = screen.getByText(/Save/i)
+    fireEvent.click(saveNameButton)
+}
+
 test('shows your name after entering it', async () => {
     const gameId = "abcdef"
     stubFetch(gameId)
 
     renderLobby(gameId)
 
-    const nameInput = screen.getByPlaceholderText(/Choose your name/i)
-    fireEvent.change(nameInput, {target: {value: "Zuno"}})
-
-    const saveNameButton = screen.getByText(/Save/i)
-    fireEvent.click(saveNameButton)
+    enterName("Zuno")
 
     await waitFor(() => expect(screen.getByText(/Your name: Zuno/i)).toBeInTheDocument())
 });
@@ -87,11 +91,7 @@ test('start game button is shown', async () => {
 
     renderLobby(gameId)
 
-    const nameInput = screen.getByPlaceholderText(/Choose your name/i)
-    fireEvent.change(nameInput, {target: {value: "Zuno"}})
-
-    const saveNameButton = screen.getByText(/Save/i)
-    fireEvent.click(saveNameButton)
+    enterName("Zuno")
 
     act(() => stubOnMessageFunction({type: WsMessageType.USER_JOINED, data: {ignored1: "Grace", ignored2: "Ian"}}))
 
