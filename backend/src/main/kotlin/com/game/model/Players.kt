@@ -14,7 +14,7 @@ class Players(
 ) {
 
     fun currentPlayer(): Player {
-        return users[playerOrders[currentPlayerIndex]]?: throw RuntimeException("Current player was unexpectedly null")
+        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
     }
 
     fun nextPlayer(): Player {
@@ -22,7 +22,7 @@ class Players(
         return currentPlayer()
     }
 
-    fun addPlayer(id: String, username: String) : Player {
+    fun addPlayer(id: String, username: String): Player {
         val newPlayer = Player(username)
         users[id] = newPlayer
         userNameMap[id] = username
@@ -44,11 +44,16 @@ class Players(
 
 
     // For use in tests
-    fun playersInOrder() = playerOrders.map { users[it]?.getUserName()}
+    fun playersInOrder() = playerOrders.map { users[it]?.getUserName() }
 
     // For use in tests
     fun useUnshuffledOrder() {
         playerOrders.clear()
         playerOrders.addAll(users.keys)
+    }
+
+    fun getPlayer(userName: String): Player? {
+        val userId = userNameMap.entries.find { it.value == userName }?.key ?: return null
+        return users[userId]
     }
 }

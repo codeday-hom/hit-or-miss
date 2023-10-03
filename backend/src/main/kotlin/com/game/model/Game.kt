@@ -117,4 +117,6 @@ data class Game(
         started = true
         players.useUnshuffledOrder()
     }
+
+    fun getPlayer(userName: String) = players.getPlayer(userName)
 }

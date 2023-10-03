@@ -25,7 +25,7 @@ export default function Game() {
     const heartbeatInterval = setInterval(() => {
       sendMessage(
         JSON.stringify({
-          type: WsMessageTypes.HEARTBEAT, data: JSON.stringify({data: ""})
+          type: WsMessageTypes.HEARTBEAT, data:{data: ""}
         })
       );
       timeoutId = setTimeout(() => {
@@ -40,7 +40,7 @@ export default function Game() {
   }, [sendMessage]);
 
   const handleClick = () => {
-    sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: JSON.stringify({data: "" })}));
+    sendMessage(JSON.stringify({ type: WsMessageTypes.NEXT_PLAYER, data: {data: "" }}));
   };
 
   return (

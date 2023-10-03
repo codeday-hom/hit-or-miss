@@ -1,6 +1,7 @@
 package com.game.main
 
 import com.fasterxml.jackson.core.JsonProcessingException
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.game.model.Game
 import com.game.model.Player
@@ -13,6 +14,7 @@ import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
 import org.slf4j.LoggerFactory
+import java.lang.IllegalArgumentException
 import java.util.*
 
 private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
@@ -62,6 +64,12 @@ class GameWebSocket {
         val messageBody = wsMessage.bodyString()
         LOGGER.info("Received a message: $messageBody")
 
+        val incomingData =
+            parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
+        val type = incomingData.type
+        val body = incomingData.data
+        val data = body["data"] ?: throw IllegalArgumentException("Message body doesn't include data")
+
         val game = getGame(gameId)
         if (game == null) {
             sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
@@ -71,58 +79,58 @@ class GameWebSocket {
             game.currentPlayer(),
             game.currentCategory(),
             game.currentDiceResult(),
-            "a")
+            "a"
+        )
 
-        try {
-            val incomingData = parseData(messageBody)
-            val type = incomingData.type
-            val dataMap = parseData(incomingData.data)
-            val data = dataMap.data
-            if (type == WsMessageType.NEXT_PLAYER.name) {
-                currentTurn = game.startTurn(
-                        game.nextPlayer(),
-                        game.currentCategory(),
-                        game.currentDiceResult(),
-                        "b")
-                broadcastNextPlayerMessage(game)
-            } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
-                game.updateCurrentCategory(data)
-                broadcastCategoryChosen(game, data)
-            } else if (type == WsMessageType.HEARTBEAT.name) {
-                isAlive[gameId] = true
-                broadcastHeartbeatAckMessage(game)
-            } else if (type == WsMessageType.ROLL_DICE.name) {
-                broadcastRollDiceResultMessage(game)
-            } else if (type == WsMessageType.HIT_OR_MISS.name) {
-                game.updateDiceResult(data)
-                broadcastHitOrMissMessage(game, data)
-            } else if (type == WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name) {
-                val message = parseData(data)
-                val userName = message.type
-                val choice = message.data
-                val players = game.userMapForSerialization().values
+        if (type == WsMessageType.NEXT_PLAYER.name) {
+            currentTurn = game.startTurn(
+                game.nextPlayer(),
+                game.currentCategory(),
+                game.currentDiceResult(),
+                "b"
+            )
+            broadcastNextPlayerMessage(game)
+        } else if (type == WsMessageType.CATEGORY_SELECTED.name) {
+            game.updateCurrentCategory(data)
+            broadcastCategoryChosen(game, data)
+        } else if (type == WsMessageType.HEARTBEAT.name) {
+            isAlive[gameId] = true
+            broadcastHeartbeatAckMessage(game)
+        } else if (type == WsMessageType.ROLL_DICE.name) {
+            broadcastRollDiceResultMessage(game)
+        } else if (type == WsMessageType.HIT_OR_MISS.name) {
+            game.updateDiceResult(data)
+            broadcastHitOrMissMessage(game, data)
+        } else if (type == WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name) {
+            val players = game.userMapForSerialization().values
+            val userName =
+                body["username"] ?: throw IllegalArgumentException("The message body doesn't include userName")
+            println(userName)
 
-                if (currentTurn != null) {
-                    game.userMapForSerialization()[userName]?.let { updatePlayerScore(choice, it, currentTurn) }
-                }
-
-                val playerScoreMap:  MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
-                for (player in players) {
-                    playerScoreMap[player.name] = player.getPlayerPoints()
-                    broadcast(game, WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, playerScoreMap)
-                }
+            val player = game.getPlayer(userName) ?: throw IllegalArgumentException("Player doesn't exist: $userName")
+            if (currentTurn != null) {
+                updatePlayerScore(data, player, currentTurn)
             }
-        } catch (e: JsonProcessingException) {
-            sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
-            return
+
+            val playerScoreMap: MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
+            for (player in players) {
+                playerScoreMap[player.name] = player.getPlayerPoints()
+                broadcast(game, WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, playerScoreMap)
+            }
         }
     }
 
-    private fun parseData(messageBody: String) : GameWsMessage {
-        val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
-        LOGGER.info("Parsed data: $incomingData")
-        return incomingData
+    private fun parseMessage(messageBody: String, ws: Websocket): GameWsMessage? {
+        return try {
+            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
+            LOGGER.info("Parsed data: $incomingData")
+            incomingData
+        } catch (e: JsonProcessingException) {
+            sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
+            null
+        }
     }
+
     private fun sendWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
         val message = mapOf("type" to type.name, "data" to data)
         LOGGER.info("Sending a message: $message")
@@ -151,7 +159,8 @@ class GameWebSocket {
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
-        val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
+        val connections = wsConnections[game.gameId]
+            ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
         if (connections.size != game.countPlayers()) {
             // If connections > players, then it means that each player has >1 websocket connection to the server.
             // For now, that seems to be fine. We can refactor the frontend to share a single websocket connection between components in the view
@@ -163,9 +172,10 @@ class GameWebSocket {
         }
     }
 
-    private fun updatePlayerScore(turnResult: String,
-                                       player: Player,
-                                       currentTurn: Game.Turn
+    private fun updatePlayerScore(
+        turnResult: String,
+        player: Player,
+        currentTurn: Game.Turn
     ) {
         if (turnResult == "HIT") {
             currentTurn?.result(player, TurnResult.HIT)

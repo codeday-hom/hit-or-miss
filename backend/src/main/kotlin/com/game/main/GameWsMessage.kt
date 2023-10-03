@@ -3,5 +3,5 @@ package com.game.main
 import kotlinx.serialization.json.Json
 
 
-data class GameWsMessage(val type: String, val data: String) {
+data class GameWsMessage(val type: String, val data: Map<String, String>) {
 }
