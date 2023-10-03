@@ -64,18 +64,18 @@ export default function Dice({ currentPlayer, clientUsername }) {
         setWildcardOption(true);
       } else if (diceResult <= 3) {
         sendMessage(
-          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: JSON.stringify({userName: clientUsername, data: "Hit"}) })
         );
       } else {
         sendMessage(
-          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+          JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: JSON.stringify({userName: clientUsername, data: "Miss"}) })
         );
       }
     }
   }, [diceResult]);
 
   const handleRollDice = () => {
-    sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: "" }));
+    sendMessage(JSON.stringify({ type: WsMessageTypes.ROLL_DICE, data: JSON.stringify({data: ""}) }));
     setIsDiceRolled(true);
   }
 
@@ -83,11 +83,11 @@ export default function Dice({ currentPlayer, clientUsername }) {
     setWildcardOption(false);
     if (result === "Hit") {
       sendMessage(
-        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Hit" })
+        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: JSON.stringify({data: "Hit"}) })
       );
     } else {
       sendMessage(
-        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: "Miss" })
+        JSON.stringify({ type: WsMessageTypes.HIT_OR_MISS, data: JSON.stringify({data: "Miss"}) })
       );
     }
   }

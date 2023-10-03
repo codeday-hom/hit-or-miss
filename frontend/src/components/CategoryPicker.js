@@ -16,7 +16,7 @@ export default function CategoryPicker({ gameId, clientUsername, currentPlayer }
     });
 
     const selectCategory = () => {
-        sendMessage(JSON.stringify({type: WsMessageTypes.CATEGORY_SELECTED, data: currentCategory}));
+        sendMessage(JSON.stringify({type: WsMessageTypes.CATEGORY_SELECTED, data: JSON.stringify({data: currentCategory})}));
     };
 
     const fetchNextCategory = () => {

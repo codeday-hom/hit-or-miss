@@ -76,7 +76,8 @@ class GameWebSocket {
         try {
             val incomingData = parseData(messageBody)
             val type = incomingData.type
-            val data = incomingData.data
+            val dataMap = parseData(incomingData.data)
+            val data = dataMap.data
             if (type == WsMessageType.NEXT_PLAYER.name) {
                 currentTurn = game.startTurn(
                         game.nextPlayer(),
@@ -101,13 +102,11 @@ class GameWebSocket {
                 val choice = message.data
                 val players = game.userMapForSerialization().values
 
-
                 if (currentTurn != null) {
                     game.userMapForSerialization()[userName]?.let { updatePlayerScore(choice, it, currentTurn) }
                 }
 
-
-                var playerScoreMap:  MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
+                val playerScoreMap:  MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
                 for (player in players) {
                     playerScoreMap[player.name] = player.getPlayerPoints()
                     broadcast(game, WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, playerScoreMap)
