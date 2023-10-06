@@ -7,6 +7,7 @@ import SelectCategoryPage from "./SelectCategoryPage";
 import WaitForCountdownPage from "./WaitForCountdownPage";
 import RollDicePage from "./RollDicePage";
 import SelectWordPage from "./SelectWordPage";
+import HitOrMissButton from "./HitOrMissButton";
 
 const GamePhase = {
     SELECT_CATEGORY: "CATEGORY_SELECTION",
@@ -86,6 +87,11 @@ export default function Game() {
                 <div>Category: {currentSelectedCategory}</div>
                 <div>Dice result: {diceResult}</div>
                 <div>Word: {selectedWord}</div>
+                <HitOrMissButton
+                    gameId={gameId}
+                    currentPlayer={currentPlayer}
+                    clientUsername={clientUsername}
+                />
             </div>
         )
     }

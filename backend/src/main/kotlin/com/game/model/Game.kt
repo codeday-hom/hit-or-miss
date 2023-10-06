@@ -1,37 +1,58 @@
 package com.game.model
 
-import java.lang.RuntimeException
 import java.util.*
+
+enum class DiceResult {
+    HIT, MISS
+}
+
+enum class TurnResult {
+    HIT, MISS
+}
+
 data class Game(
     val gameId: String,
     var hostId: String,
-    val users: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
     private var started: Boolean = false,
-    private val playerOrders: MutableList<String> = mutableListOf(),
-    private var currentPlayerIndex: Int = 0
+    private val players: Players = Players(),
+    private var chosenCategory: String = "",
+    private var diceResult: DiceResult = DiceResult.HIT
 ) {
-    fun currentPlayer(): String {
-        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
+    fun currentCategory() = this.chosenCategory
+
+    fun updateCurrentCategory(category: String) {
+        this.chosenCategory = category
     }
 
-    fun nextPlayer(): String {
-        currentPlayerIndex = (currentPlayerIndex + 1) % playerOrders.size
-        return currentPlayer()
+    fun currentDiceResult() = this.diceResult
+
+    fun updateDiceResult(diceResult: String) {
+        println(diceResult)
+        if (diceResult == "Hit") {
+            this.diceResult = DiceResult.HIT
+        } else {
+            this.diceResult = DiceResult.MISS
+        }
+        println("Dice result " + this.diceResult)
+
     }
 
-    fun addUser(username: String) {
-        val userId = UUID.randomUUID().toString()
+    fun currentPlayer() = players.currentPlayer()
+
+    fun nextPlayer() = players.nextPlayer()
+
+    fun addUser(username: String): Player {
+        val userId = username
         if (hostId.isEmpty()) {
             hostId = userId
         }
-        users[userId] = username
+        val newPlayer = players.addPlayer(userId, username)
+        return newPlayer
     }
 
     fun start() {
         started = true
-        val shuffledPlayerOrders = users.keys.shuffled()
-        playerOrders.clear()
-        playerOrders.addAll(shuffledPlayerOrders)
+        players.shufflePlayerOrders()
     }
 
     fun isStarted(): Boolean {
@@ -41,4 +62,61 @@ data class Game(
     fun rollDice(): Int {
         return Random().nextInt(6) + 1
     }
+
+    fun countPlayers() = players.count()
+
+
+
+    fun userMapForSerialization() = players.userMapForSerialization()
+
+    fun userNameMapForSerialization() = players.userNameMapForSerialization()
+
+    fun startTurn(selector: Player, category: String, diceResult: DiceResult): Turn {
+        println("${selector.name} chose $category, rolled $diceResult")
+        return Turn(selector, diceResult)
+    }
+
+    class Turn(private val selector: Player, private val diceResult: DiceResult) {
+
+        fun result(player: Player, result: TurnResult) {
+            println("${player.name} ${if (result == TurnResult.HIT) "had the word" else "didn't have the word"}")
+            when (result) {
+                TurnResult.HIT -> {
+                    when (diceResult) {
+                        DiceResult.HIT -> {
+                            println(player.getUserName() + " has " + player.getPlayerPoints())
+                            player.addPlayerPoints(1)
+                            selector.addPlayerPoints(1)
+                            println(player.getUserName() + " has " + player.getPlayerPoints())
+                        }
+
+                        DiceResult.MISS -> {
+                            player.addPlayerPoints(3)
+                            selector.addPlayerPoints(0)
+                        }
+                    }
+                }
+
+                TurnResult.MISS -> {
+                    when (diceResult) {
+                        DiceResult.HIT -> {
+                            player.addPlayerPoints(0)
+                            selector.addPlayerPoints(0)
+                        }
+                        DiceResult.MISS -> {
+                            player.addPlayerPoints(0)
+                            selector.addPlayerPoints(1)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun startForTest() {
+        started = true
+        players.useUnshuffledOrder()
+    }
+
+    fun getPlayer(userName: String) = players.getPlayer(userName)
 }

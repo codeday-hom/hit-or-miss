@@ -25,12 +25,12 @@ export default function Dice({
 
   const sendHit = () => {
     sendMessage(
-      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: "Hit" })
+      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: {userName: clientUsername, data: "Hit"} })
     );
   };
   const sendMiss = () => {
     sendMessage(
-      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: "Miss" })
+      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: {userName: clientUsername, data: "Miss"} })
     );
   };
   useEffect(() => {
@@ -98,7 +98,7 @@ export default function Dice({
   }, [hitOrMiss]);
 
   const handleRollDice = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE, data: "" }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE, data: {data: ""} }));
     setIsDiceRolled(true);
   };
 
