@@ -84,10 +84,10 @@ data class Game(
                 TurnResult.HIT -> {
                     when (diceResult) {
                         DiceResult.HIT -> {
-                            println(player.getUserName() + " has " + player.getPlayerPoints())
+                            println(selector.getUserName() + " has " + player.getPlayerPoints())
                             player.addPlayerPoints(1)
                             selector.addPlayerPoints(1)
-                            println(player.getUserName() + " has " + player.getPlayerPoints())
+                            println(selector.getUserName() + " has " + player.getPlayerPoints())
                         }
 
                         DiceResult.MISS -> {

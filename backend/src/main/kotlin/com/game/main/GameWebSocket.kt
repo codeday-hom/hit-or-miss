@@ -110,7 +110,7 @@ class GameWebSocket {
 
                 val playerScoreMap: MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
                 for (p in players) {
-                    playerScoreMap[player.name] = player.getPlayerPoints()
+                    playerScoreMap[p.name] = p.getPlayerPoints()
                     broadcast(game, WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, playerScoreMap)
                 }
             }
