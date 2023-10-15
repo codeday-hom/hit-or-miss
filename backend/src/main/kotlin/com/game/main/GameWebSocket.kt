@@ -74,11 +74,12 @@ class GameWebSocket {
             sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
             return
         }
-        var currentTurn: Game.Turn? = startNewTurn(game)
+        var currentTurn: Game.Turn? = game.getCurrentTurn()
 
         when (type) {
             WsMessageType.NEXT_PLAYER.name -> {
                 currentTurn = startNewTurn(game)
+                game.updateCurrentTurn(currentTurn)
                 broadcastNextPlayerMessage(game)
             }
             WsMessageType.CATEGORY_SELECTED.name -> {
@@ -101,11 +102,12 @@ class GameWebSocket {
                 val players = game.userMapForSerialization().values
                 val userName =
                     body["username"] ?: throw IllegalArgumentException("The message body doesn't include userName")
-                println(userName)
 
                 val player = game.getPlayer(userName) ?: throw IllegalArgumentException("Player doesn't exist: $userName")
                 if (currentTurn != null) {
                     updatePlayerScore(data, player, currentTurn)
+                } else {
+                    throw IllegalArgumentException("Turn is not stared:  ${game.gameId}")
                 }
 
                 val playerScoreMap: MutableMap<String, Int> = Collections.synchronizedMap(mutableMapOf())
@@ -115,34 +117,11 @@ class GameWebSocket {
                 }
             }
         }
-//        try {
-//            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
-//            LOGGER.info("Parsed data: $incomingData")
-//            val type = incomingData.type
-//            val data = incomingData.data
-//
-//            when (type) {
-//                WsMessageType.NEXT_PLAYER.name -> broadcastNextPlayerMessage(game)
-//                WsMessageType.CATEGORY_SELECTED.name -> broadcastCategoryChosen(game, data)
-//                WsMessageType.HEARTBEAT.name -> {
-//                    isAlive[gameId] = true
-//                    broadcastHeartbeatAckMessage(game)
-//                }
-//                WsMessageType.ROLL_DICE.name -> broadcastRollDiceResultMessage(game)
-//                WsMessageType.HIT_OR_MISS.name -> broadcastHitOrMissMessage(game, data)
-//                WsMessageType.SELECTED_WORD.name -> broadcastSelectedWordMessage(game, data)
-//            }
-//
-//        } catch (e: JsonProcessingException) {
-//            sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
-//            return
-//        }
     }
 
-    private fun startNewTurn(game: Game): Game.Turn? {
+    private fun startNewTurn(game: Game): Game.Turn {
         return game.startTurn(
             game.currentPlayer(),
-            game.currentCategory(),
             game.currentDiceResult()
         )
     }

@@ -16,7 +16,8 @@ data class Game(
     private var started: Boolean = false,
     private val players: Players = Players(),
     private var chosenCategory: String = "",
-    private var diceResult: DiceResult = DiceResult.HIT
+    private var diceResult: DiceResult = DiceResult.HIT,
+    private var currentTurn: Turn? = null
 ) {
     fun currentCategory() = this.chosenCategory
 
@@ -27,13 +28,11 @@ data class Game(
     fun currentDiceResult() = this.diceResult
 
     fun updateDiceResult(diceResult: String) {
-        println(diceResult)
         if (diceResult == "Hit") {
             this.diceResult = DiceResult.HIT
         } else {
             this.diceResult = DiceResult.MISS
         }
-        println("Dice result " + this.diceResult)
 
     }
 
@@ -42,16 +41,18 @@ data class Game(
     fun nextPlayer() = players.nextPlayer()
 
     fun addUser(username: String): Player {
-        val userId = username
         if (hostId.isEmpty()) {
-            hostId = userId
+            hostId = username
         }
-        val newPlayer = players.addPlayer(userId, username)
-        return newPlayer
+        return players.addPlayer(username, username)
     }
 
     fun start() {
         started = true
+        this.currentTurn = startTurn(
+            currentPlayer(),
+            currentDiceResult()
+        )
         players.shufflePlayerOrders()
     }
 
@@ -66,28 +67,28 @@ data class Game(
     fun countPlayers() = players.count()
 
 
-
     fun userMapForSerialization() = players.userMapForSerialization()
 
     fun userNameMapForSerialization() = players.userNameMapForSerialization()
 
-    fun startTurn(selector: Player, category: String, diceResult: DiceResult): Turn {
-        println("${selector.name} chose $category, rolled $diceResult")
+    fun startTurn(selector: Player, diceResult: DiceResult): Turn {
         return Turn(selector, diceResult)
     }
+
+    fun getCurrentTurn(): Turn? {return this.currentTurn; }
+
+    fun updateCurrentTurn(currentTurn: Turn) {this.currentTurn = currentTurn; }
+
 
     class Turn(private val selector: Player, private val diceResult: DiceResult) {
 
         fun result(player: Player, result: TurnResult) {
-            println("${player.name} ${if (result == TurnResult.HIT) "had the word" else "didn't have the word"}")
             when (result) {
                 TurnResult.HIT -> {
                     when (diceResult) {
                         DiceResult.HIT -> {
-                            println(selector.getUserName() + " has " + player.getPlayerPoints())
                             player.addPlayerPoints(1)
                             selector.addPlayerPoints(1)
-                            println(selector.getUserName() + " has " + player.getPlayerPoints())
                         }
 
                         DiceResult.MISS -> {
@@ -103,6 +104,7 @@ data class Game(
                             player.addPlayerPoints(0)
                             selector.addPlayerPoints(0)
                         }
+
                         DiceResult.MISS -> {
                             player.addPlayerPoints(0)
                             selector.addPlayerPoints(1)

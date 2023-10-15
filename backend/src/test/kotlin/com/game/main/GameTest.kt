@@ -13,12 +13,7 @@ class GameTest {
         val ian = game.userMapForSerialization().values.first()
         val rob = game.addUser("rob")  // Rob and Tom are other players of the game
         val tom = game.addUser("tom")
-        println(game.userMapForSerialization().count())
         game.startForTest()
-
-
-//        Mix who the first selector
-//        game.mixOrder()
 
         // Play the first turn of the round
         // Ian's turn is first and randomly selects a category
