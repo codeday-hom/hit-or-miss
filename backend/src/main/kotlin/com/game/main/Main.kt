@@ -49,25 +49,11 @@ fun apiHandler(websocket: GameWebSocket): RoutingHttpHandler = routes(
 
 fun createNewGame(): Response {
     val gameId = GameService().createGame()
-    val game = Game(gameId, "")
+    val game = Game(gameId)
     GameRepository.createGame(gameId, game)
     return Response(Status.SEE_OTHER)
         .header("Location", "/game/$gameId/lobby")
         .cookie(Cookie("game_host", gameId, path = "/"))
-}
-
-fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
-    val requestBodyString = req.bodyString()
-    LOGGER.info("Request body: $requestBodyString")
-    val joinGameRequest = Jackson.asA(requestBodyString, JoinGameRequest::class)
-    val gameId = joinGameRequest.gameId
-    val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
-    val username = joinGameRequest.username
-    game.addUser(username)
-    websocket.broadcast(game, WsMessageType.USER_JOINED, game.userNameMapForSerialization())
-    val isStarted = game.isStarted()
-    val responseBody = JoinGameResponse(gameId, game.hostId, game.userMapForSerialization(), isStarted)
-    return Response(OK).body(Jackson.asInputStream(responseBody))
 }
 
 fun startGameHandler(req: Request, websocket: GameWebSocket): Response {
@@ -78,4 +64,18 @@ fun startGameHandler(req: Request, websocket: GameWebSocket): Response {
     websocket.broadcast(game, WsMessageType.GAME_START, currentPlayer)
     val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
     return Response(OK).body(responseBody)
+}
+
+fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
+    val requestBodyString = req.bodyString()
+    LOGGER.info("Request body: $requestBodyString")
+    val joinGameRequest = Jackson.asA(requestBodyString, JoinGameRequest::class)
+    val gameId = joinGameRequest.gameId
+    val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
+    val username = joinGameRequest.username
+    game.addUser(username)
+    websocket.broadcast(game, WsMessageType.USER_JOINED, game.playerListForSerialization())
+    val isStarted = game.isStarted()
+    val responseBody = JoinGameResponse(gameId, game.hostId, game.userMapForSerialization(), isStarted)
+    return Response(OK).body(Jackson.asInputStream(responseBody))
 }

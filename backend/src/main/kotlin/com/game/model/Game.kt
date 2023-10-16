@@ -10,50 +10,35 @@ enum class TurnResult {
     HIT, MISS
 }
 
-data class Game(
-    val gameId: String,
-    var hostId: String,
-    private var started: Boolean = false,
-    private val players: Players = Players(),
-    private var chosenCategory: String = "",
-    private var diceResult: DiceResult = DiceResult.HIT,
+data class Game(val gameId: String) {
+
+    lateinit var hostId: String
+
+    private val players: Players = Players()
+
+    private var started: Boolean = false
     private var currentTurn: Turn? = null
-) {
-    fun currentCategory() = this.chosenCategory
 
-    fun updateCurrentCategory(category: String) {
-        this.chosenCategory = category
-    }
-
-    fun currentDiceResult() = this.diceResult
-
-    fun updateDiceResult(diceResult: String) {
-        if (diceResult == "Hit") {
-            this.diceResult = DiceResult.HIT
-        } else {
-            this.diceResult = DiceResult.MISS
-        }
-
+    fun updateDiceResult(diceResult: DiceResult) {
+        currentTurn = Turn(currentPlayer(), diceResult)
     }
 
     fun currentPlayer() = players.currentPlayer()
 
-    fun nextPlayer() = players.nextPlayer()
-
     fun addUser(username: String): Player {
-        if (hostId.isEmpty()) {
+        if (players.count() == 0) {
             hostId = username
         }
-        return players.addPlayer(username, username)
+        return players.addPlayer(username)
     }
 
-    fun start() {
+    fun start(shufflePlayerOrders: (Players) -> Unit = { _ -> players.shufflePlayerOrders() }) {
         started = true
-        this.currentTurn = startTurn(
-            currentPlayer(),
-            currentDiceResult()
-        )
-        players.shufflePlayerOrders()
+        shufflePlayerOrders(players)
+    }
+
+    fun startForTest() {
+        start { it.useUnshuffledOrder() }
     }
 
     fun isStarted(): Boolean {
@@ -66,19 +51,23 @@ data class Game(
 
     fun countPlayers() = players.count()
 
-
     fun userMapForSerialization() = players.userMapForSerialization()
 
-    fun userNameMapForSerialization() = players.userNameMapForSerialization()
+    fun playerListForSerialization() = players.playerListForSerialization()
 
-    fun startTurn(selector: Player, diceResult: DiceResult): Turn {
-        return Turn(selector, diceResult)
+    fun nextTurn() {
+        players.nextPlayer()
     }
 
-    fun getCurrentTurn(): Turn? {return this.currentTurn; }
+    fun getPlayer(userName: String) = players.getPlayer(userName)
 
-    fun updateCurrentTurn(currentTurn: Turn) {this.currentTurn = currentTurn; }
+    fun turnResult(player: Player, turnResult: TurnResult) {
+        Optional.ofNullable(currentTurn)
+            .orElseThrow { IllegalStateException("Game not started: $gameId") }
+            .result(player, turnResult)
+    }
 
+    fun playerPoints(): Map<String, Int> = players.playerPoints()
 
     class Turn(private val selector: Player, private val diceResult: DiceResult) {
 
@@ -114,11 +103,4 @@ data class Game(
             }
         }
     }
-
-    fun startForTest() {
-        started = true
-        players.useUnshuffledOrder()
-    }
-
-    fun getPlayer(userName: String) = players.getPlayer(userName)
 }

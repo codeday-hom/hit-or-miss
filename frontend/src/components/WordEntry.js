@@ -8,7 +8,7 @@ export default function WordEntry({ sendWebSocketMessage }) {
 
   const send = () => {
     if (!wordSelected) {
-      sendWebSocketMessage(JSON.stringify({ type: WsMessageType.SELECTED_WORD, data: {data: inputWord} }));
+      sendWebSocketMessage(JSON.stringify({ type: WsMessageType.SELECTED_WORD, data: {selectedWord: inputWord} }));
       setWordSelected(true)
     }
   };

@@ -1,9 +1,8 @@
+package com.game.main
+
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.game.main.GameWebSocket
-import com.game.main.WsMessageType
+import com.game.model.DiceResult
 import com.game.model.Game
-import com.game.model.Player
-import com.game.model.Players
 import com.game.repository.GameRepository
 import org.http4k.client.WebsocketClient
 import org.http4k.core.Uri
@@ -37,7 +36,10 @@ class GameWebSocketTest {
         server.start()
         port = server.port()
         val gameId = "testGameId"
-        game = Game(gameId, "aaaa", false, Players(mutableMapOf("aaaa" to Player("zuno"), "bbbb" to Player("grace"))))
+        game = Game(gameId)
+        game.addUser("alice")
+        game.addUser("zuno")
+        game.addUser("grace")
         GameRepository.createGame(gameId, game)
         client = wsClient(gameId)
     }
@@ -50,12 +52,14 @@ class GameWebSocketTest {
     @Test
     @Timeout(value = 4)
     fun `replies to user-joined message with the current list of players`() {
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to mutableMapOf("aaaa" to mapOf("name" to "zuno","userName" to "zuno","playerPoints" to 0), "bbbb" to mapOf("name" to "grace","userName" to "grace","playerPoints" to 0))))
+        assertReceivedUserJoinedMessage()
     }
 
     @Test
     @Timeout(value = 4)
     fun `replies with an error when the game has already started`() {
+        assertReceivedUserJoinedMessage()
+
         game.start()
         client = wsClient(game.gameId)
         assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Game already started"))
@@ -78,11 +82,11 @@ class GameWebSocketTest {
     @Timeout(value = 4)
     fun `replies with game not found if game disappears`() {
         // Wait for the websocket connection to be open
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to mutableMapOf("aaaa" to mapOf("name" to "zuno","userName" to "zuno","playerPoints" to 0), "bbbb" to mapOf("name" to "grace","userName" to "grace","playerPoints" to 0))))
+        assertReceivedUserJoinedMessage()
         // Then make the game disappear
         GameRepository.reset()
 
-        send(mapOf("type" to WsMessageType.CATEGORY_SELECTED.name, "data" to "Science"))
+        send(GameWsMessage(WsMessageType.CATEGORY_SELECTED.name, mapOf("category" to "Science")))
 
         assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Game not found"))
     }
@@ -90,42 +94,40 @@ class GameWebSocketTest {
     @Test
     @Timeout(value = 4)
     fun `replies to next-player message with the next player in the game`() {
-        game.start()
-        val currentPlayer = game.currentPlayer()
-        val nextPlayer = mutableListOf<Player>().run {
-            addAll(game.userMapForSerialization().values)
-            remove(currentPlayer)
-            first()
-        }
+        assertReceivedUserJoinedMessage()
+        game.startForTest()
 
-        send(mapOf("type" to WsMessageType.NEXT_PLAYER.name, "data" to ""))
+        send(GameWsMessage(WsMessageType.NEXT_PLAYER.name, emptyMap()))
 
-        assertNthReplyEquals(2, mapOf("type" to WsMessageType.NEXT_PLAYER.name, "data" to nextPlayer))
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.NEXT_PLAYER.name, "data" to "zuno"))
     }
 
     @Test
     @Timeout(value = 4)
     fun `replies to card-selected message with a category chosen response`() {
+        assertReceivedUserJoinedMessage()
         game.start()
 
-        send(mapOf("type" to WsMessageType.CATEGORY_SELECTED.name, "data" to "Science"))
+        send(GameWsMessage(WsMessageType.CATEGORY_SELECTED.name, mapOf("category" to "Science")))
 
-        assertNthReplyEquals(2, mapOf("type" to WsMessageType.CATEGORY_CHOSEN.name, "data" to "Science"))
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.CATEGORY_CHOSEN.name, "data" to "Science"))
     }
 
     @Test
     @Timeout(value = 4)
     fun `replies to player-hit-or-miss message with a updated score response`() {
-        game.start()
+        assertReceivedUserJoinedMessage()
+        game.startForTest()
+        game.updateDiceResult(DiceResult.HIT)
 
-        send(mapOf("type" to WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, "data" to "HIT"))
+        send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
 
-        assertNthReplyEquals(2, mapOf("type" to WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, "data" to mapOf("zuno" to 0)))
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, "data" to mapOf("alice" to 1, "zuno" to 0, "grace" to 1)))
     }
 
     private fun wsClient(gameId: String): WsClient = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
 
-    private fun send(body: Map<String, String>) {
+    private fun send(body: GameWsMessage) {
         client.send(WsMessage(jacksonObjectMapper().writeValueAsString(body)))
     }
 
@@ -137,5 +139,9 @@ class GameWebSocketTest {
         val reply = client.received().take(n).last()
         val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
         assertEquals(expected, reply)
+    }
+
+    private fun assertReceivedUserJoinedMessage() {
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to listOf("alice", "zuno", "grace")))
     }
 }

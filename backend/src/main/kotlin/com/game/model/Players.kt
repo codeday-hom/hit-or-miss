@@ -1,20 +1,17 @@
 package com.game.model
 
-import java.lang.RuntimeException
 import java.util.*
 
 /**
  * The set of players in a particular game
  */
-class Players(
-    private val users: MutableMap<String, Player> = Collections.synchronizedMap(mutableMapOf()),
-    private val userNameMap: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
-    private val playerOrders: MutableList<String> = mutableListOf(),
+class Players {
+    private val players: MutableMap<String, Player> = Collections.synchronizedMap(mutableMapOf())
+    private val playerOrders: MutableList<String> = mutableListOf()
     private var currentPlayerIndex: Int = 0
-) {
 
     fun currentPlayer(): Player {
-        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
+        return players[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
     }
 
     fun nextPlayer(): Player {
@@ -22,38 +19,41 @@ class Players(
         return currentPlayer()
     }
 
-    fun addPlayer(id: String, username: String): Player {
+    fun addPlayer(username: String): Player {
         val newPlayer = Player(username)
-        users[id] = newPlayer
-        userNameMap[id] = username
+        players[username] = newPlayer
         return newPlayer
     }
 
     fun shufflePlayerOrders(random: Random = Random()) {
-        val shuffledPlayerOrders = users.keys.shuffled(random)
+        val shuffledPlayerOrders = players.keys.shuffled(random)
         playerOrders.clear()
         playerOrders.addAll(shuffledPlayerOrders)
     }
 
-    fun count() = users.size
+    fun count() = players.size
 
     // Should only be used in Game for serializing the set of users in a wire message.
-    fun userNameMapForSerialization() = userNameMap
+    fun playerListForSerialization() = players.keys.toList()
 
-    fun userMapForSerialization() = users
+    fun userMapForSerialization() = players
 
 
     // For use in tests
-    fun playersInOrder() = playerOrders.map { users[it]?.getUserName() }
+    fun playersInOrder() = playerOrders.map { players[it]?.getUsername() }
 
     // For use in tests
     fun useUnshuffledOrder() {
         playerOrders.clear()
-        playerOrders.addAll(users.keys)
+        playerOrders.addAll(players.keys)
     }
 
-    fun getPlayer(userName: String): Player? {
-        val userId = userNameMap.entries.find { it.value == userName }?.key ?: return null
-        return users[userId]
+    fun getPlayer(username: String): Player? {
+        return players[username]
     }
+
+    fun playerPoints() = players.values.associateBy(
+        { p -> p.getUsername() },
+        { p -> p.getPlayerPoints() }
+    )
 }

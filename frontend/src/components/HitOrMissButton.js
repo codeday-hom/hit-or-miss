@@ -13,7 +13,7 @@ export default function HitOrMissButton({ gameId, clientUsername, currentPlayer 
 
     const handleHitOrMiss = (status) => {
         setWordStatus(status);
-        sendMessage(JSON.stringify({type: WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, data:{username: clientUsername, data: status}}));
+        sendMessage(JSON.stringify({type: WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, data: {username: clientUsername, hitOrMiss: status}}));
     }
 
     const hitOrMissButton = () => {
