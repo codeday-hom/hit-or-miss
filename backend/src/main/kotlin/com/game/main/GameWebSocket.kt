@@ -80,9 +80,7 @@ class GameWebSocket {
 
         when (type) {
             NEXT_PLAYER.name -> {
-                LOGGER.info("E")
                 game.nextTurn()
-                LOGGER.info("D")
                 broadcastNextPlayerMessage(game)
             }
 
