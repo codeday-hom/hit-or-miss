@@ -51,8 +51,6 @@ data class Game(val gameId: String) {
 
     fun countPlayers() = players.count()
 
-    fun userMapForSerialization() = players.userMapForSerialization()
-
     fun playerListForSerialization() = players.playerListForSerialization()
 
     fun nextTurn() {

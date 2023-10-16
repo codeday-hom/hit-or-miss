@@ -47,29 +47,22 @@ class ServerTest {
             .body(Jackson.asInputStream(JoinGameRequest(gameId, username1)))
         val request2 = Request(Method.POST, "api/game/$gameId/")
             .body(Jackson.asInputStream(JoinGameRequest(gameId, username2)))
-        joinGameHandler(request1, wsHandlerMock)
         val game = GameRepository.getGame(gameId)!!
+
+        joinGameHandler(request1, wsHandlerMock)
+        val players1 = game.playerListForSerialization()
+        assert(players1.size == 1)
         assert(game.countPlayers() == 1)
-        val users = game.userMapForSerialization()
-        assert(game.hostId == users.keys.first())
-        var userNameList = updateUserNameList(users)
-        assert(userNameList.contains(username1))
+        assert(game.hostId == username1)
+        assert(players1.contains(username1))
 
         joinGameHandler(request2, wsHandlerMock)
-        userNameList = updateUserNameList(users)
+        val players2 = game.playerListForSerialization()
+        assert(players2.size == 2)
         assert(game.countPlayers() == 2)
-        assert(game.hostId == users.keys.first())
-
-        assert(userNameList.contains(username2))
-
-    }
-
-    fun updateUserNameList(users: MutableMap<String, Player>): ArrayList<String> {
-        val userNameList = arrayListOf(String())
-        for (player in users.values) {
-            userNameList.add(player.name)
-        }
-        return userNameList
+        assert(game.hostId == username1)
+        assert(players2.contains(username1))
+        assert(players2.contains(username2))
     }
 
     @Test

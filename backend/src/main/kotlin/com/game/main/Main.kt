@@ -76,6 +76,6 @@ fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     game.addUser(username)
     websocket.broadcast(game, WsMessageType.USER_JOINED, game.playerListForSerialization())
     val isStarted = game.isStarted()
-    val responseBody = JoinGameResponse(gameId, game.hostId, game.userMapForSerialization(), isStarted)
+    val responseBody = JoinGameResponse(gameId, game.hostId, game.playerListForSerialization(), isStarted)
     return Response(OK).body(Jackson.asInputStream(responseBody))
 }
