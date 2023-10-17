@@ -38,7 +38,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("com.game.main.Http4kReactMainKt")
+    mainClass.set("com.game.main.MainKt")
 }
 
 tasks.named("run") {

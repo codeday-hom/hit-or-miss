@@ -24,14 +24,10 @@ export default function Dice({
   });
 
   const sendHit = () => {
-    sendMessage(
-      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: "Hit" })
-    );
+    sendMessage(JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: {diceResult: "Hit"} }));
   };
   const sendMiss = () => {
-    sendMessage(
-      JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: "Miss" })
-    );
+    sendMessage(JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: {diceResult: "Miss"} }));
   };
   useEffect(() => {
     if (diceResult) {
@@ -98,7 +94,7 @@ export default function Dice({
   }, [hitOrMiss]);
 
   const handleRollDice = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE, data: "" }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE, data: {} }));
     setIsDiceRolled(true);
   };
 

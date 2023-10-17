@@ -10,7 +10,7 @@ export default function CategoryPicker({ sendWebSocketMessage }) {
 
     const selectCategory = () => {
         setSelectedCategory(currentCategory)
-        sendWebSocketMessage(JSON.stringify({type: WsMessageType.CATEGORY_SELECTED, data: currentCategory}));
+        sendWebSocketMessage(JSON.stringify({type: WsMessageType.CATEGORY_SELECTED, data: {category: currentCategory}}));
     };
 
     const fetchNextCategory = () => {

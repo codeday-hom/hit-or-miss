@@ -1,37 +1,44 @@
 package com.game.model
 
-import java.lang.RuntimeException
 import java.util.*
-data class Game(
-    val gameId: String,
-    var hostId: String,
-    val users: MutableMap<String, String> = Collections.synchronizedMap(mutableMapOf()),
-    private var started: Boolean = false,
-    private val playerOrders: MutableList<String> = mutableListOf(),
-    private var currentPlayerIndex: Int = 0
-) {
-    fun currentPlayer(): String {
-        return users[playerOrders[currentPlayerIndex]] ?: throw RuntimeException("Current player was unexpectedly null")
+
+enum class DiceResult {
+    HIT, MISS
+}
+
+enum class TurnResult {
+    HIT, MISS
+}
+
+data class Game(val gameId: String) {
+
+    lateinit var hostId: String
+
+    private val players: Players = Players()
+
+    private var started: Boolean = false
+    private var currentTurn: Turn? = null
+
+    fun updateDiceResult(diceResult: DiceResult) {
+        currentTurn = Turn(currentPlayer(), diceResult)
     }
 
-    fun nextPlayer(): String {
-        currentPlayerIndex = (currentPlayerIndex + 1) % playerOrders.size
-        return currentPlayer()
-    }
+    fun currentPlayer() = players.currentPlayer()
 
-    fun addUser(username: String) {
-        val userId = UUID.randomUUID().toString()
-        if (hostId.isEmpty()) {
-            hostId = userId
+    fun addUser(username: String): Player {
+        if (players.count() == 0) {
+            hostId = username
         }
-        users[userId] = username
+        return players.addPlayer(username)
     }
 
-    fun start() {
+    fun start(shufflePlayerOrders: (Players) -> Unit = { _ -> players.shufflePlayerOrders() }) {
         started = true
-        val shuffledPlayerOrders = users.keys.shuffled()
-        playerOrders.clear()
-        playerOrders.addAll(shuffledPlayerOrders)
+        shufflePlayerOrders(players)
+    }
+
+    fun startForTest() {
+        start { it.useUnshuffledOrder() }
     }
 
     fun isStarted(): Boolean {
@@ -40,5 +47,58 @@ data class Game(
 
     fun rollDice(): Int {
         return Random().nextInt(6) + 1
+    }
+
+    fun countPlayers() = players.count()
+
+    fun playerListForSerialization() = players.playerListForSerialization()
+
+    fun nextTurn() {
+        players.nextPlayer()
+    }
+
+    fun getPlayer(userName: String) = players.getPlayer(userName)
+
+    fun turnResult(player: Player, turnResult: TurnResult) {
+        Optional.ofNullable(currentTurn)
+            .orElseThrow { IllegalStateException("Game not started: $gameId") }
+            .result(player, turnResult)
+    }
+
+    fun playerPoints(): Map<String, Int> = players.playerPoints()
+
+    class Turn(private val selector: Player, private val diceResult: DiceResult) {
+
+        fun result(player: Player, result: TurnResult) {
+            when (result) {
+                TurnResult.HIT -> {
+                    when (diceResult) {
+                        DiceResult.HIT -> {
+                            player.addPlayerPoints(1)
+                            selector.addPlayerPoints(1)
+                        }
+
+                        DiceResult.MISS -> {
+                            player.addPlayerPoints(3)
+                            selector.addPlayerPoints(0)
+                        }
+                    }
+                }
+
+                TurnResult.MISS -> {
+                    when (diceResult) {
+                        DiceResult.HIT -> {
+                            player.addPlayerPoints(0)
+                            selector.addPlayerPoints(0)
+                        }
+
+                        DiceResult.MISS -> {
+                            player.addPlayerPoints(0)
+                            selector.addPlayerPoints(1)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

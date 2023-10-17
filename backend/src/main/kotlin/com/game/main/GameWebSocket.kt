@@ -2,7 +2,10 @@ package com.game.main
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.game.main.WsMessageType.*
+import com.game.model.DiceResult
 import com.game.model.Game
+import com.game.model.TurnResult
 import com.game.repository.GameRepository.getGame
 import org.http4k.core.Request
 import org.http4k.format.Jackson
@@ -26,12 +29,16 @@ class GameWebSocket {
             val gameId = Path.of("gameId")(req)
             val game = getGame(gameId)
             if (game == null) {
-                WsResponse { ws: Websocket -> sendWsMessage(ws, WsMessageType.ERROR, "Game not found") }
+                WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Game not found") }
             } else {
                 WsResponse { ws: Websocket ->
                     onOpen(ws, game)
                     ws.onMessage {
-                        onMessage(ws, it, game.gameId)
+                        try {
+                            onMessage(ws, it, game.gameId)
+                        } catch (e: Exception) {
+                            LOGGER.info("Uncaught exception while processing message: ${e.message}")
+                        }
                     }
                     ws.onClose {
                         LOGGER.info("${game.gameId} is closing")
@@ -48,45 +55,83 @@ class GameWebSocket {
             wsConnections.getOrPut(game.gameId) { mutableListOf() }.add(ws)
         }
 
+        // You can't join (i.e. open a websocket connection to) a game that has already started.
         if (game.isStarted()) {
-            sendWsMessage(ws, WsMessageType.ERROR, "Game already started")
+            sendWsMessage(ws, ERROR, "Game already started")
             return
         }
 
-        sendWsMessage(ws, WsMessageType.USER_JOINED, game.users)
+        sendWsMessage(ws, USER_JOINED, game.playerListForSerialization())
     }
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
         val messageBody = wsMessage.bodyString()
         LOGGER.info("Received a message: $messageBody")
 
+        val incomingData = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
+        val type = incomingData.type
+        val data = incomingData.data
+
         val game = getGame(gameId)
         if (game == null) {
-            sendWsMessage(ws, WsMessageType.ERROR, "Game not found")
+            sendWsMessage(ws, ERROR, "Game not found")
             return
         }
 
-        try {
-            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
-            LOGGER.info("Parsed data: $incomingData")
-            val type = incomingData.type
-            val data = incomingData.data
-
-            when (type) {
-                WsMessageType.NEXT_PLAYER.name -> broadcastNextPlayerMessage(game)
-                WsMessageType.CATEGORY_SELECTED.name -> broadcastCategoryChosen(game, data)
-                WsMessageType.HEARTBEAT.name -> {
-                    isAlive[gameId] = true
-                    broadcastHeartbeatAckMessage(game)
-                }
-                WsMessageType.ROLL_DICE.name -> broadcastRollDiceResultMessage(game)
-                WsMessageType.HIT_OR_MISS.name -> broadcastHitOrMissMessage(game, data)
-                WsMessageType.SELECTED_WORD.name -> broadcastSelectedWordMessage(game, data)
+        when (type) {
+            NEXT_PLAYER.name -> {
+                game.nextTurn()
+                broadcastNextPlayerMessage(game)
             }
 
+            CATEGORY_SELECTED.name -> {
+                val dataField = "category"
+                val category = data[dataField] ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
+                broadcastCategoryChosen(game, category)
+            }
+
+            HEARTBEAT.name -> {
+                isAlive[gameId] = true
+                broadcastHeartbeatAckMessage(game)
+            }
+
+            ROLL_DICE.name -> {
+                broadcastRollDiceResultMessage(game)
+            }
+
+            HIT_OR_MISS.name -> {
+                val dataField = "diceResult"
+                val diceResultString = data[dataField] ?: throw IllegalArgumentException("Message of type $HIT_OR_MISS requires data field '$dataField'")
+                val diceResult = DiceResult.valueOf(diceResultString.uppercase())
+                game.updateDiceResult(diceResult)
+                broadcastHitOrMissMessage(game, diceResult)
+            }
+
+            SELECTED_WORD.name -> {
+                val dataField = "selectedWord"
+                val selectedWord = data[dataField] ?: throw IllegalArgumentException("Message of type $SELECTED_WORD requires data field '$dataField'")
+                broadcastSelectedWordMessage(game, selectedWord)
+            }
+
+            PLAYER_CHOSE_HIT_OR_MISS.name -> {
+                val username = data["username"] ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'username'")
+                val hitOrMiss = data["hitOrMiss"] ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'hitOrMiss'")
+                val player = game.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
+                game.turnResult(player, TurnResult.valueOf(hitOrMiss.uppercase()))
+                broadcast(game, PLAYER_CHOSE_HIT_OR_MISS, game.playerPoints())
+            }
+        }
+    }
+
+    private fun parseMessage(messageBody: String, ws: Websocket): GameWsMessage? {
+        return try {
+            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
+            LOGGER.info("Parsed data: $incomingData")
+            incomingData
         } catch (e: JsonProcessingException) {
-            sendWsMessage(ws, WsMessageType.ERROR, "Invalid message")
-            return
+            LOGGER.info("Rejected message '${messageBody}': ${e.message}")
+            sendWsMessage(ws, ERROR, "Invalid message")
+            null
         }
     }
 
@@ -97,38 +142,37 @@ class GameWebSocket {
     }
 
     private fun broadcastCategoryChosen(game: Game, category: String) {
-        broadcast(game, WsMessageType.CATEGORY_CHOSEN, category)
+        broadcast(game, CATEGORY_CHOSEN, category)
     }
 
     private fun broadcastNextPlayerMessage(game: Game) {
-        broadcast(game, WsMessageType.NEXT_PLAYER, game.nextPlayer())
+        broadcast(game, NEXT_PLAYER, game.currentPlayer().name)
     }
 
     private fun broadcastHeartbeatAckMessage(game: Game) {
-        broadcast(game, WsMessageType.HEARTBEAT_ACK, "")
+        broadcast(game, HEARTBEAT_ACK, "")
     }
 
     private fun broadcastRollDiceResultMessage(game: Game) {
-        val result = game.rollDice()
-        broadcast(game, WsMessageType.ROLL_DICE_RESULT, result)
+        broadcast(game, ROLL_DICE_RESULT, game.rollDice())
     }
 
-    private fun broadcastHitOrMissMessage(game: Game, hitOrMiss: String) {
-        broadcast(game, WsMessageType.HIT_OR_MISS, hitOrMiss)
+    private fun broadcastHitOrMissMessage(game: Game, hitOrMiss: DiceResult) {
+        broadcast(game, HIT_OR_MISS, hitOrMiss.name.lowercase().replaceFirstChar { it.titlecaseChar() })
     }
 
 
     private fun broadcastSelectedWordMessage(game: Game, word: String) {
-        broadcast(game, WsMessageType.SELECTED_WORD, word)
+        broadcast(game, SELECTED_WORD, word)
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
         val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
-        if (connections.size != game.users.size) {
+        if (connections.size != game.countPlayers()) {
             // If connections > players, then it means that each player has >1 websocket connection to the server.
             // For now, that seems to be fine. We can refactor the frontend to share a single websocket connection between components in the view
             //   at a later time if it becomes necessary.
-            LOGGER.warn("There are ${connections.size} websocket connections, but the game has ${game.users.size} players.")
+            LOGGER.warn("There are ${connections.size} websocket connections, but the game has ${game.countPlayers()} players.")
         }
         connections.forEach { ws ->
             sendWsMessage(ws, type, body)

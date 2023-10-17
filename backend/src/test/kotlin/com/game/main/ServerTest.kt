@@ -1,6 +1,7 @@
 package com.game.main
 
 import com.game.model.Game
+import com.game.model.Player
 import com.game.repository.GameRepository
 import io.mockk.clearMocks
 import io.mockk.mockk
@@ -38,8 +39,7 @@ class ServerTest {
     @Test
     fun `Game is updated whenever a new player joins`() {
         val gameId = "randomGameId"
-        val game = Game(gameId, "", mutableMapOf())
-        GameRepository.createGame(gameId, game)
+        GameRepository.createGame(gameId, Game(gameId))
 
         val username1 = "testUser1"
         val username2 = "testUser2"
@@ -47,15 +47,22 @@ class ServerTest {
             .body(Jackson.asInputStream(JoinGameRequest(gameId, username1)))
         val request2 = Request(Method.POST, "api/game/$gameId/")
             .body(Jackson.asInputStream(JoinGameRequest(gameId, username2)))
+        val game = GameRepository.getGame(gameId)!!
+
         joinGameHandler(request1, wsHandlerMock)
-        assert(GameRepository.getGame(gameId)!!.users.size == 1)
-        assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.users.keys.first())
-        assert(GameRepository.getGame(gameId)!!.users.values.contains(username1))
+        val players1 = game.playerListForSerialization()
+        assert(players1.size == 1)
+        assert(game.countPlayers() == 1)
+        assert(game.hostId == username1)
+        assert(players1.contains(username1))
 
         joinGameHandler(request2, wsHandlerMock)
-        assert(GameRepository.getGame(gameId)!!.users.size == 2)
-        assert(GameRepository.getGame(gameId)!!.hostId == GameRepository.getGame(gameId)!!.users.keys.first())
-        assert(GameRepository.getGame(gameId)!!.users.values.contains(username2))
+        val players2 = game.playerListForSerialization()
+        assert(players2.size == 2)
+        assert(game.countPlayers() == 2)
+        assert(game.hostId == username1)
+        assert(players2.contains(username1))
+        assert(players2.contains(username2))
     }
 
     @Test

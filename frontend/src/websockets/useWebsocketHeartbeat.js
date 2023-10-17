@@ -11,7 +11,7 @@ export default function useWebsocketHeartbeat(sendMessage) {
       sendMessage(
         JSON.stringify({
           type: WsMessageType.HEARTBEAT,
-          data: "",
+          data: {},
         })
       );
       timeoutId = setTimeout(() => {
