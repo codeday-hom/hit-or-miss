@@ -13,6 +13,7 @@ enum class WsMessageType {
     ROLL_DICE_RESULT,
     HIT_OR_MISS, // Current player select Hit or Miss after rolling the dice
     SELECTED_WORD,
-    PLAYER_CHOSE_HIT_OR_MISS // Player chose Hit or Miss after they know the selected word
+    PLAYER_CHOSE_HIT_OR_MISS, // Player chose Hit or Miss after they know the selected word
+    SHOW_SCOREBOARD,
 
 }

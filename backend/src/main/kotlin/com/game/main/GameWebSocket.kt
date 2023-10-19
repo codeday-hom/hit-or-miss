@@ -119,6 +119,14 @@ class GameWebSocket {
                 val player = game.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
                 game.turnResult(player, TurnResult.valueOf(hitOrMiss.uppercase()))
                 broadcast(game, PLAYER_CHOSE_HIT_OR_MISS, game.playerPoints())
+
+                game.addPlayerWhoChoseHitOrMiss(username)
+
+                if (game.allPlayersChoseHitOrMiss()) {
+                    broadcastScoreboardMessage(game)
+                    game.resetPlayersWhoChoseHitOrMiss()
+                    println("scoreboard!")
+                }
             }
         }
     }
@@ -164,6 +172,14 @@ class GameWebSocket {
 
     private fun broadcastSelectedWordMessage(game: Game, word: String) {
         broadcast(game, SELECTED_WORD, word)
+    }
+
+    private fun broadcastScoreboardMessage(game: Game) {
+        val scoresMap = game.playerPoints()
+        val scores = scoresMap.map { mapEntry ->
+            mapOf("username" to mapEntry.key, "score" to mapEntry.value)
+        }.toList()
+        broadcast(game, SHOW_SCOREBOARD, scores)
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {

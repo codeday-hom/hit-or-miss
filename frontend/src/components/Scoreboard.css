@@ -1,0 +1,13 @@
+.scoreboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: white;
+  margin: 20px;
+}
+
+.scoreboard tr {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

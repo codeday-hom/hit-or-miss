@@ -18,6 +18,7 @@ data class Game(val gameId: String) {
 
     private var started: Boolean = false
     private var currentTurn: Turn? = null
+    private val playersWhoChoseHitOrMiss = mutableSetOf<String>()
 
     fun updateDiceResult(diceResult: DiceResult) {
         currentTurn = Turn(currentPlayer(), diceResult)
@@ -66,6 +67,18 @@ data class Game(val gameId: String) {
     }
 
     fun playerPoints(): Map<String, Int> = players.playerPoints()
+
+    fun addPlayerWhoChoseHitOrMiss(username: String) {
+        playersWhoChoseHitOrMiss.add(username)
+    }
+
+    fun allPlayersChoseHitOrMiss(): Boolean {
+        return playersWhoChoseHitOrMiss.size == countPlayers() - 1
+    }
+
+    fun resetPlayersWhoChoseHitOrMiss() {
+        playersWhoChoseHitOrMiss.clear()
+    }
 
     class Turn(private val selector: Player, private val diceResult: DiceResult) {
 

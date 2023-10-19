@@ -1,0 +1,14 @@
+.game-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.game-content {
+    flex: 3;
+    padding: 20px;
+}
+
+.game-scoreboard {
+    flex: 1;
+    padding: 20px;
+}
