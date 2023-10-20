@@ -86,7 +86,8 @@ class GameWebSocket {
 
             CATEGORY_SELECTED.name -> {
                 val dataField = "category"
-                val category = data[dataField] ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
+                val category = data[dataField]
+                    ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
                 broadcastCategoryChosen(game, category)
             }
 
@@ -101,7 +102,8 @@ class GameWebSocket {
 
             HIT_OR_MISS.name -> {
                 val dataField = "diceResult"
-                val diceResultString = data[dataField] ?: throw IllegalArgumentException("Message of type $HIT_OR_MISS requires data field '$dataField'")
+                val diceResultString = data[dataField]
+                    ?: throw IllegalArgumentException("Message of type $HIT_OR_MISS requires data field '$dataField'")
                 val diceResult = DiceResult.valueOf(diceResultString.uppercase())
                 game.updateDiceResult(diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
@@ -109,23 +111,23 @@ class GameWebSocket {
 
             SELECTED_WORD.name -> {
                 val dataField = "selectedWord"
-                val selectedWord = data[dataField] ?: throw IllegalArgumentException("Message of type $SELECTED_WORD requires data field '$dataField'")
+                val selectedWord = data[dataField]
+                    ?: throw IllegalArgumentException("Message of type $SELECTED_WORD requires data field '$dataField'")
                 broadcastSelectedWordMessage(game, selectedWord)
             }
 
             PLAYER_CHOSE_HIT_OR_MISS.name -> {
-                val username = data["username"] ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'username'")
-                val hitOrMiss = data["hitOrMiss"] ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'hitOrMiss'")
-                val player = game.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
+                val username = data["username"]
+                    ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'username'")
+                val hitOrMiss = data["hitOrMiss"]
+                    ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'hitOrMiss'")
+                val player =
+                    game.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
                 game.turnResult(player, TurnResult.valueOf(hitOrMiss.uppercase()))
                 broadcast(game, PLAYER_CHOSE_HIT_OR_MISS, game.playerPoints())
 
-                game.addPlayerWhoChoseHitOrMiss(username)
-
                 if (game.allPlayersChoseHitOrMiss()) {
                     broadcastScoreboardMessage(game)
-                    game.resetPlayersWhoChoseHitOrMiss()
-                    println("scoreboard!")
                 }
             }
         }
