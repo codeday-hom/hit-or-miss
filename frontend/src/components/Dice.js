@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import {useEffect, useState} from "react";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import "./Dice.css";
-import { WsMessageType } from "../websockets/WsMessageType";
+import {WsMessageType} from "../websockets/WsMessageType";
 
 export default function Dice({
   gameId,
