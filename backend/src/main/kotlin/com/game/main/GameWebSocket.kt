@@ -88,7 +88,7 @@ class GameWebSocket {
                 val dataField = "category"
                 val category = data[dataField]
                     ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
-                broadcastCategoryChosen(game, category)
+                broadcastCategorySelected(game, category)
             }
 
             HEARTBEAT.name -> {
@@ -100,10 +100,10 @@ class GameWebSocket {
                 broadcastRollDiceResultMessage(game)
             }
 
-            HIT_OR_MISS.name -> {
+            ROLL_DICE_HIT_OR_MISS.name -> {
                 val dataField = "diceResult"
                 val diceResultString = data[dataField]
-                    ?: throw IllegalArgumentException("Message of type $HIT_OR_MISS requires data field '$dataField'")
+                    ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field '$dataField'")
                 val diceResult = DiceResult.valueOf(diceResultString.uppercase())
                 game.updateDiceResult(diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
@@ -151,8 +151,8 @@ class GameWebSocket {
         ws.send(WsMessage(mapper.writeValueAsString(message)))
     }
 
-    private fun broadcastCategoryChosen(game: Game, category: String) {
-        broadcast(game, CATEGORY_CHOSEN, category)
+    private fun broadcastCategorySelected(game: Game, category: String) {
+        broadcast(game, CATEGORY_SELECTED, category)
     }
 
     private fun broadcastNextPlayerMessage(game: Game) {
@@ -168,9 +168,8 @@ class GameWebSocket {
     }
 
     private fun broadcastHitOrMissMessage(game: Game, hitOrMiss: DiceResult) {
-        broadcast(game, HIT_OR_MISS, hitOrMiss.name.lowercase().replaceFirstChar { it.titlecaseChar() })
+        broadcast(game, ROLL_DICE_HIT_OR_MISS, hitOrMiss.name.lowercase().replaceFirstChar { it.titlecaseChar() })
     }
-
 
     private fun broadcastSelectedWordMessage(game: Game, word: String) {
         broadcast(game, SELECTED_WORD, word)

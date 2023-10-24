@@ -18,16 +18,16 @@ export default function Dice({
   const { sendMessage } = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageType.ROLL_DICE_RESULT) {
       setDiceResult(message.data);
-    } else if (message.type === WsMessageType.HIT_OR_MISS) {
+    } else if (message.type === WsMessageType.ROLL_DICE_HIT_OR_MISS) {
       setHitOrMiss(message.data);
     }
   });
 
   const sendHit = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: {diceResult: "Hit"} }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Hit"} }));
   };
   const sendMiss = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.HIT_OR_MISS, data: {diceResult: "Miss"} }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Miss"} }));
   };
   useEffect(() => {
     if (diceResult) {

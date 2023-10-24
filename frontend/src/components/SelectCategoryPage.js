@@ -3,10 +3,10 @@ import React from "react";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import {WsMessageType} from "../websockets/WsMessageType";
 
-export default function SelectCategoryPage({ gameId, currentPlayer, clientUsername, onCategoryChosen }) {
+export default function SelectCategoryPage({ gameId, currentPlayer, clientUsername, onCategorySelected }) {
     const { sendMessage } = useGameWebSocket(gameId, (message) => {
-        if (message.type === WsMessageType.CATEGORY_CHOSEN) {
-            onCategoryChosen(message.data);
+        if (message.type === WsMessageType.CATEGORY_SELECTED) {
+            onCategorySelected(message.data);
         }
     });
 

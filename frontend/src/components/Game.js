@@ -67,7 +67,7 @@ export default function Game() {
     function conditionalGameState() {
         if (gamePhase === GamePhase.SELECT_CATEGORY) {
             return <SelectCategoryPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
-                                       onCategoryChosen={(category) => {
+                                       onCategorySelected={(category) => {
                                            setCurrentSelectedCategory(category);
                                            setGamePhase(GamePhase.WAIT_FOR_COUNTDOWN)
                                        }}/>

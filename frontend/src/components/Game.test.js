@@ -45,8 +45,8 @@ function renderGame() {
   )
 }
 
-function categoryChosen(category) {
-  receiveWebSocketMessage({type: WsMessageType.CATEGORY_CHOSEN, data: category})
+function categorySelected(category) {
+  receiveWebSocketMessage({type: WsMessageType.CATEGORY_SELECTED, data: category})
 }
 
 async function waitForCountdown() {
@@ -57,7 +57,7 @@ async function rollDiceAndGetHit() {
   receiveWebSocketMessage({type: WsMessageType.ROLL_DICE_RESULT, data: 1})
   await act(() => new Promise((r) => setTimeout(r, 500)))
 
-  receiveWebSocketMessage({type: WsMessageType.HIT_OR_MISS, data: 'Hit'})
+  receiveWebSocketMessage({type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: 'Hit'})
   await act(() => new Promise((r) => setTimeout(r, 500)))
 }
 
@@ -76,7 +76,7 @@ test('first state is category selection', async () => {
 test('second state is countdown', async () => {
   renderGame()
 
-  categoryChosen("Types of Category")
+  categorySelected("Types of Category")
 
   expect(screen.getByText(/Countdown!/i)).toBeInTheDocument();
 });
@@ -86,7 +86,7 @@ test('third state is dice roll', async () => {
 
   renderGame()
 
-  categoryChosen("Types of Category")
+  categorySelected("Types of Category")
   await waitForCountdown()
 
   await screen.findByText(/Bob is rolling the dice.../i)
@@ -96,7 +96,7 @@ test('fourth state is word selection', async () => {
   window['useTestTimeouts'] = true
   renderGame()
 
-  categoryChosen("Types of Category")
+  categorySelected("Types of Category")
   await waitForCountdown()
   await rollDiceAndGetHit()
 

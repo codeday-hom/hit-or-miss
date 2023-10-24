@@ -104,13 +104,13 @@ class GameWebSocketTest {
 
     @Test
     @Timeout(value = 4)
-    fun `replies to card-selected message with a category chosen response`() {
+    fun `replies to category selected message with a corresponding response`() {
         assertReceivedUserJoinedMessage()
         game.start()
 
         send(GameWsMessage(WsMessageType.CATEGORY_SELECTED.name, mapOf("category" to "Science")))
 
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.CATEGORY_CHOSEN.name, "data" to "Science"))
+        assertFirstReplyEquals(mapOf("type" to WsMessageType.CATEGORY_SELECTED.name, "data" to "Science"))
     }
 
     @Test
