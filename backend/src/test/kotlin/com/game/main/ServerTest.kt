@@ -32,7 +32,7 @@ class ServerTest {
     @Test
     fun `serves files`() {
         assertEquals(Status.OK, get("/").status)
-        assertEquals(Status.OK, get("/game/123/lobby").status)
+        assertEquals(Status.OK, get("/lobby/123").status)
         assertEquals(Status.OK, get("/anything").status)
     }
 

@@ -64,9 +64,9 @@ beforeEach(() => {
 // The component is rendered within a router, because this is important to the component's behaviour.
 function renderLobby() {
     render(
-      <MemoryRouter initialEntries={[{pathname: `/game/${gameId}/lobby`}]}>
+      <MemoryRouter initialEntries={[{pathname: `/lobby/${gameId}`}]}>
           <Routes>
-              <Route path={"/game/:gameId/lobby"} element={<Lobby/>}/>
+              <Route path={"/lobby/:gameId"} element={<Lobby/>}/>
 
               {/* This route is set up to capture the case where the game is started and players are redirected. */}
               <Route path={"/game/:gameId"} element={<div>The client was redirected to the game screen</div>}/>

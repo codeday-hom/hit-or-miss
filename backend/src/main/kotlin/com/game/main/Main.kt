@@ -52,7 +52,7 @@ fun createNewGame(): Response {
     val game = Game(gameId)
     GameRepository.createGame(gameId, game)
     return Response(Status.SEE_OTHER)
-        .header("Location", "/game/$gameId/lobby")
+        .header("Location", "/lobby/$gameId")
         .cookie(Cookie("game_host", gameId, path = "/"))
 }
 

@@ -36,7 +36,7 @@ export default function Lobby() {
   const checkIfHost = () => {
     if (Cookies.get("game_host") !== undefined) {
       const hostGameId = Cookies.get("game_host");
-      setIsHost(location.pathname === "/game/" + hostGameId + "/lobby");
+      setIsHost(location.pathname === "/lobby/" + hostGameId);
     }
   };
 
