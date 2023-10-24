@@ -20,7 +20,7 @@ data class Game(val gameId: String) {
     private var currentTurn: Turn? = null
 
     fun updateDiceResult(diceResult: DiceResult) {
-        currentTurn = Turn(currentPlayer(), diceResult)
+        currentTurn = Turn(currentPlayer(), diceResult, countPlayers())
     }
 
     fun currentPlayer() = players.currentPlayer()
@@ -66,10 +66,22 @@ data class Game(val gameId: String) {
     }
 
     fun playerPoints(): Map<String, Int> = players.playerPoints()
+    fun allPlayersChoseHitOrMiss(): Boolean {
+        return Optional.ofNullable(currentTurn)
+                .orElseThrow { IllegalStateException("Game not started: $gameId") }
+                .allPlayersChoseHitOrMiss()
+    }
 
-    class Turn(private val selector: Player, private val diceResult: DiceResult) {
+    class Turn(private val selector: Player, private val diceResult: DiceResult, private val numberOfPlayers: Int) {
+
+        private val playersWhoChoseHitOrMiss = mutableSetOf<String>()
+
+        fun allPlayersChoseHitOrMiss(): Boolean {
+            return playersWhoChoseHitOrMiss.size == numberOfPlayers - 1
+        }
 
         fun result(player: Player, result: TurnResult) {
+            playersWhoChoseHitOrMiss.add(player.getUsername())
             when (result) {
                 TurnResult.HIT -> {
                     when (diceResult) {

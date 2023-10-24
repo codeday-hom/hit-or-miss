@@ -1,14 +1,6 @@
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #70c1b3;
-}
-
 .container {
   position: relative;
-  display: inline-block;
+  display: flex;
   perspective: 1200px;
   margin: 50px;
 }

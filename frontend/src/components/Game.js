@@ -8,6 +8,7 @@ import WaitForCountdownPage from "./WaitForCountdownPage";
 import RollDicePage from "./RollDicePage";
 import SelectWordPage from "./SelectWordPage";
 import HitOrMissButtonPage from "./HitOrMissButtonPage";
+import Scoreboard from "./Scoreboard";
 
 const GamePhase = {
     SELECT_CATEGORY: "CATEGORY_SELECTION",
@@ -30,12 +31,21 @@ export default function Game() {
     const [currentSelectedCategory, setCurrentSelectedCategory] = useState(null);
     const [diceResult, setDiceResult] = useState("");
     const [selectedWord, setSelectedWord] = useState("");
+    const [scoreboard, setScoreboard] = useState("");
+    const [isScoreUpdated, setIsScoreUpdated] = useState(false);
+    const [scoreUpdatedMessage, setScoreUpdatedMessage] = useState("");
 
     const {sendMessage} = useGameWebSocket(gameId, (message) => {
         if (message.type === WsMessageType.NEXT_PLAYER) {
             setCurrentPlayer(message.data);
         }
+        if (message.type === WsMessageType.SHOW_SCOREBOARD) {
+            setScoreboard(message.data);
+            setIsScoreUpdated(true);
+            setScoreUpdatedMessage("Everyone’s score has been updated");
+        }
     });
+
 
     useWebsocketHeartbeat(sendMessage);
 
@@ -88,9 +98,17 @@ export default function Game() {
     }
 
     return (
-        <div>
-            <h1>Hit or Miss!</h1>
-            {conditionalGameState()}
+        <div className="game-container">
+            <div className="game-content">
+                <h1>Hit or Miss!</h1>
+                {isScoreUpdated && <h1>{scoreUpdatedMessage}</h1>}
+                {conditionalGameState()}
+            </div>
+            <div className="game-scoreboard">
+                <Scoreboard scoreboardData={scoreboard} />
+            </div>
         </div>
     );
+
+
 }
