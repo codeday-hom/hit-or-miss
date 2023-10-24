@@ -2,14 +2,6 @@ package com.game.main
 
 import java.util.*
 
-enum class DiceResult {
-    HIT, MISS
-}
-
-enum class TurnResult {
-    HIT, MISS
-}
-
 data class Game(val gameId: String) {
 
     lateinit var hostId: String
@@ -68,8 +60,8 @@ data class Game(val gameId: String) {
     fun playerPoints(): Map<String, Int> = players.playerPoints()
     fun allPlayersChoseHitOrMiss(): Boolean {
         return Optional.ofNullable(currentTurn)
-                .orElseThrow { IllegalStateException("Game not started: $gameId") }
-                .allPlayersChoseHitOrMiss()
+            .orElseThrow { IllegalStateException("Game not started: $gameId") }
+            .allPlayersChoseHitOrMiss()
     }
 
     class Turn(private val selector: Player, private val diceResult: DiceResult, private val numberOfPlayers: Int) {
