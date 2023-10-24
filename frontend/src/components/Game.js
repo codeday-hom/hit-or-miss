@@ -30,8 +30,9 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
   const [scores, setScores] = useState(playerNames.map(name => ({username: name, score: 0})));
 
   const {sendMessage} = useGameWebSocket(gameId, (message) => {
-    if (message.type === WsMessageType.NEXT_PLAYER) {
+    if (message.type === WsMessageType.NEXT_TURN) {
       setCurrentPlayer(message.data);
+      setGamePhase(GamePhase.ROLL_DICE)
     } else if (message.type === WsMessageType.SHOW_SCOREBOARD) {
       setScores(message.data);
     }

@@ -78,11 +78,6 @@ class GameWebSocket {
         }
 
         when (type) {
-            NEXT_PLAYER.name -> {
-                game.nextTurn()
-                broadcastNextPlayerMessage(game)
-            }
-
             CATEGORY_SELECTED.name -> {
                 val dataField = "category"
                 val category = data[dataField]
@@ -127,6 +122,8 @@ class GameWebSocket {
 
                 if (game.allPlayersChoseHitOrMiss()) {
                     broadcastScoreboardMessage(game)
+                    game.nextTurn()
+                    broadcastNextTurnMessage(game)
                 }
             }
         }
@@ -154,8 +151,8 @@ class GameWebSocket {
         broadcast(game, CATEGORY_SELECTED, category)
     }
 
-    private fun broadcastNextPlayerMessage(game: Game) {
-        broadcast(game, NEXT_PLAYER, game.currentPlayer().name)
+    private fun broadcastNextTurnMessage(game: Game) {
+        broadcast(game, NEXT_TURN, game.currentPlayer().name)
     }
 
     private fun broadcastHeartbeatAckMessage(game: Game) {

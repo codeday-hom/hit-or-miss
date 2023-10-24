@@ -3,7 +3,7 @@ package com.game.main
 enum class WsMessageType {
     USER_JOINED,
     GAME_START,
-    NEXT_PLAYER,
+    NEXT_TURN, // The next person should roll the dice
     ERROR,
     CATEGORY_SELECTED,
     HEARTBEAT,

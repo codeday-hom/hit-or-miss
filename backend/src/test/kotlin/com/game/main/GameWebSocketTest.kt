@@ -90,17 +90,6 @@ class GameWebSocketTest {
 
     @Test
     @Timeout(value = 4)
-    fun `replies to next-player message with the next player in the game`() {
-        assertReceivedUserJoinedMessage()
-        game.startForTest()
-
-        send(GameWsMessage(WsMessageType.NEXT_PLAYER.name, emptyMap()))
-
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.NEXT_PLAYER.name, "data" to "zuno"))
-    }
-
-    @Test
-    @Timeout(value = 4)
     fun `replies to category selected message with a corresponding response`() {
         assertReceivedUserJoinedMessage()
         game.start()
@@ -120,6 +109,38 @@ class GameWebSocketTest {
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
 
         assertFirstReplyEquals(mapOf("type" to WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, "data" to mapOf("alice" to 1, "zuno" to 0, "grace" to 1)))
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `when all players have chosen hit-or-miss a scoreboard message is broadcast`() {
+        assertReceivedUserJoinedMessage()
+        game.startForTest()
+        game.updateDiceResult(DiceResult.HIT)
+
+        send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
+        send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
+
+        assertNthReplyEquals(3, mapOf("type" to WsMessageType.SHOW_SCOREBOARD.name, "data" to listOf(
+            mapOf("username" to "alice", "score" to 2),
+            mapOf("username" to "zuno", "score" to 1),
+            mapOf("username" to "grace", "score" to 1)
+        )))
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `when all players have chosen hit-or-miss a next turn message is broadcast`() {
+        assertReceivedUserJoinedMessage()
+        game.startForTest()
+        game.updateDiceResult(DiceResult.HIT)
+
+        send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
+        send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
+
+        assertNthReplyEquals(4, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "zuno"))
+
+        assertEquals("zuno", game.currentPlayer().name)
     }
 
     private fun wsClient(gameId: String): WsClient = WebsocketClient.blocking(Uri.of("ws://localhost:$port/$gameId"))
