@@ -68,6 +68,29 @@ test('renders page header', async () => {
   expect(screen.getByText(/Hit or Miss!/i)).toBeInTheDocument();
 });
 
+test('renders scoreboard with all player names', async () => {
+  renderGame()
+
+  const rows = screen.getAllByRole('row')
+
+  function findRowByContent(playerRowValue, scoreRowValue) {
+    const row = rows.find((row) => {
+      const playerRow = row.cells.item(0).textContent === playerRowValue
+      const scoreRow = row.cells.item(1).textContent === scoreRowValue
+      return playerRow && scoreRow
+    })
+    if (row === undefined) {
+      console.error("Couldn't find row matching '" + playerRowValue + ", " + scoreRowValue + "'.")
+    }
+    return row
+  }
+
+  expect(findRowByContent("Player", "Score")).toBeInTheDocument()
+  expect(findRowByContent("Alice", "0")).toBeInTheDocument()
+  expect(findRowByContent("Bob", "0")).toBeInTheDocument()
+  expect(findRowByContent("Charlie", "0")).toBeInTheDocument()
+});
+
 test('first state is category selection', async () => {
   renderGame()
 
