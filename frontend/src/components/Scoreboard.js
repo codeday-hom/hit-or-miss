@@ -1,8 +1,9 @@
 import {useEffect, useState} from "react";
 import "./Scoreboard.css";
 
-export default function Scoreboard({ scoreboardData }) {
-  const [sortedPlayers, setSortedPlayers] = useState([]);
+export default function Scoreboard({playerNames, scoreboardData}) {
+  const initialScoreboard = playerNames.map(name => ({username: name, score: 0}))
+  const [sortedPlayers, setSortedPlayers] = useState(initialScoreboard);
 
   useEffect(() => {
     if (scoreboardData) {
@@ -17,20 +18,18 @@ export default function Scoreboard({ scoreboardData }) {
     <div className="scoreboard">
       <table>
         <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Player</th>
-            <th>Score</th>
-          </tr>
+        <tr>
+          <th>Player</th>
+          <th>Score</th>
+        </tr>
         </thead>
         <tbody>
-          {sortedPlayers.map((player, index) => (
-            <tr key={player.username}>
-              <td>{index + 1}</td>
-              <td>{player.username}</td>
-              <td>{player.score}</td>
-            </tr>
-          ))}
+        {sortedPlayers.map(player => (
+          <tr key={player.username}>
+            <td>{player.username}</td>
+            <td>{player.score}</td>
+          </tr>
+        ))}
         </tbody>
       </table>
     </div>

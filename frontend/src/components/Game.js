@@ -1,5 +1,4 @@
 import React, {useState} from "react";
-import {useLocation, useParams} from "react-router-dom";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import useWebsocketHeartbeat from "../websockets/useWebsocketHeartbeat";
 import {WsMessageType} from "../websockets/WsMessageType";
@@ -9,6 +8,7 @@ import RollDicePage from "./RollDicePage";
 import SelectWordPage from "./SelectWordPage";
 import HitOrMissButtonPage from "./HitOrMissButtonPage";
 import Scoreboard from "./Scoreboard";
+import "./Game.css";
 
 const GamePhase = {
     SELECT_CATEGORY: "CATEGORY_SELECTION",
@@ -20,11 +20,7 @@ const GamePhase = {
     // Add more, as more is implemented
 };
 
-export default function Game() {
-    const {gameId} = useParams();
-    const location = useLocation();
-    const clientUsername = location.state.clientUsername;
-    const initialPlayer = location.state.currentPlayer;
+export default function Game({gameId, clientUsername, initialPlayer, playerNames}) {
     const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
     const [gamePhase, setGamePhase] = useState(GamePhase.SELECT_CATEGORY);
 
@@ -32,17 +28,12 @@ export default function Game() {
     const [diceResult, setDiceResult] = useState("");
     const [selectedWord, setSelectedWord] = useState("");
     const [scoreboard, setScoreboard] = useState("");
-    const [isScoreUpdated, setIsScoreUpdated] = useState(false);
-    const [scoreUpdatedMessage, setScoreUpdatedMessage] = useState("");
 
     const {sendMessage} = useGameWebSocket(gameId, (message) => {
         if (message.type === WsMessageType.NEXT_PLAYER) {
             setCurrentPlayer(message.data);
-        }
-        if (message.type === WsMessageType.SHOW_SCOREBOARD) {
+        } else if (message.type === WsMessageType.SHOW_SCOREBOARD) {
             setScoreboard(message.data);
-            setIsScoreUpdated(true);
-            setScoreUpdatedMessage("Everyone’s score has been updated");
         }
     });
 
@@ -101,14 +92,11 @@ export default function Game() {
         <div className="game-container">
             <div className="game-content">
                 <h1>Hit or Miss!</h1>
-                {isScoreUpdated && <h1>{scoreUpdatedMessage}</h1>}
                 {conditionalGameState()}
             </div>
             <div className="game-scoreboard">
-                <Scoreboard scoreboardData={scoreboard} />
+                <Scoreboard playerNames={playerNames} scoreboardData={scoreboard} />
             </div>
         </div>
     );
-
-
 }

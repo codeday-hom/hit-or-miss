@@ -26,7 +26,7 @@ export default function Lobby() {
       });
     } else if (message.type === WsMessageType.GAME_START) {
       navigate(`/game/${gameId}`, {
-        state: {clientUsername: username, currentPlayer: message.data},
+        state: {clientUsername: username, currentPlayer: message.data, playerNames: usernames},
       });
     } else if (message.type === WsMessageType.ERROR) {
       setGameStarted(true);

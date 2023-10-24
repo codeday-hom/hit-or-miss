@@ -1,6 +1,6 @@
 import {act, render, screen} from '@testing-library/react';
 import React from "react";
-import Game from "./Game";
+import GameContext from "./GameContext";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 import {WsMessageType} from "../websockets/WsMessageType";
 
@@ -35,11 +35,12 @@ function renderGame() {
       pathname: `/game/${gameId}`,
       state: {
         clientUsername: "Alice",
-        currentPlayer: "Bob"
+        currentPlayer: "Bob",
+        playerNames: ["Alice", "Bob", "Charlie"]
       }
     }]}>
       <Routes>
-        <Route path={"/game/:gameId"} element={<Game/>}/>
+        <Route path={"/game/:gameId"} element={<GameContext/>}/>
       </Routes>
     </MemoryRouter>
   )

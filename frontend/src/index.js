@@ -4,7 +4,7 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import "./index.css";
 import Landing from "./App";
 import Lobby from "./components/Lobby";
-import Game from "./components/Game";
+import GameContext from "./components/GameContext";
 import reportWebVitals from "./reportWebVitals";
 
 const router = createBrowserRouter([
@@ -18,7 +18,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/game/:gameId/",
-    element: <Game />,
+    element: <GameContext />,
   },
 ]);
 
