@@ -66,11 +66,13 @@ class GameWebSocket {
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
         val messageBody = wsMessage.bodyString()
-        LOGGER.info("Received a message: $messageBody")
 
-        val incomingData = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
-        val type = incomingData.type
-        val data = incomingData.data
+        val parsedMessage = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
+        val type = parsedMessage.type
+        val data = parsedMessage.data
+        if (type != HEARTBEAT.name) {
+            LOGGER.info("Received a message: $parsedMessage")
+        }
 
         val game = getGame(gameId)
         if (game == null) {
@@ -135,9 +137,7 @@ class GameWebSocket {
 
     private fun parseMessage(messageBody: String, ws: Websocket): GameWsMessage? {
         return try {
-            val incomingData = Jackson.asA(messageBody, GameWsMessage::class)
-            LOGGER.info("Parsed data: $incomingData")
-            incomingData
+            return Jackson.asA(messageBody, GameWsMessage::class)
         } catch (e: JsonProcessingException) {
             LOGGER.info("Rejected message '${messageBody}': ${e.message}")
             sendWsMessage(ws, ERROR, "Invalid message")
@@ -147,7 +147,9 @@ class GameWebSocket {
 
     private fun sendWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
         val message = mapOf("type" to type.name, "data" to data)
-        LOGGER.info("Sending a message: $message")
+        if (type != HEARTBEAT_ACK) {
+            LOGGER.info("Sending a message: $message")
+        }
         ws.send(WsMessage(mapper.writeValueAsString(message)))
     }
 
@@ -177,9 +179,7 @@ class GameWebSocket {
 
     private fun broadcastScoreboardMessage(game: Game) {
         val scoresMap = game.playerPoints()
-        val scores = scoresMap.map { mapEntry ->
-            mapOf("username" to mapEntry.key, "score" to mapEntry.value)
-        }.toList()
+        val scores = scoresMap.map { mapOf("username" to it.key, "score" to it.value) }
         broadcast(game, SHOW_SCOREBOARD, scores)
     }
 
