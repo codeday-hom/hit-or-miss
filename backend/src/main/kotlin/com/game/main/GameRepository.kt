@@ -1,6 +1,5 @@
-package com.game.repository
+package com.game.main
 
-import com.game.model.Game
 import java.util.concurrent.ConcurrentHashMap
 
 object GameRepository {

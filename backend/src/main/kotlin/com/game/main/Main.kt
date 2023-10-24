@@ -1,9 +1,6 @@
 package com.game.main
 
-import com.game.model.Game
-import com.game.repository.GameRepository
-import com.game.repository.GameRepository.getGame
-import com.game.services.GameService
+import com.game.main.GameRepository.getGame
 import org.http4k.core.Method.POST
 import org.http4k.core.Request
 import org.http4k.core.Response
@@ -40,7 +37,6 @@ fun gameServerHandler(assetsPath: String, apiHandler: RoutingHttpHandler): Routi
     )
 }
 
-
 fun apiHandler(websocket: GameWebSocket): RoutingHttpHandler = routes(
     "/new-game" bind POST to { _: Request -> createNewGame() },
     "/join-game/{gameId}" bind POST to { req: Request -> joinGameHandler(req, websocket) },
@@ -48,7 +44,7 @@ fun apiHandler(websocket: GameWebSocket): RoutingHttpHandler = routes(
 )
 
 fun createNewGame(): Response {
-    val gameId = GameService().createGame()
+    val gameId = IdGenerator.generateId()
     val game = Game(gameId)
     GameRepository.createGame(gameId, game)
     return Response(Status.SEE_OTHER)

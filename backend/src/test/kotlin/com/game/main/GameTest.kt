@@ -1,8 +1,5 @@
 package com.game.main
 
-import com.game.model.DiceResult
-import com.game.model.Game
-import com.game.model.TurnResult
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 

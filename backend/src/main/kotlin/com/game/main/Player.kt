@@ -1,4 +1,4 @@
-package com.game.model
+package com.game.main
 
 class Player(val name: String) {
     private var username = name

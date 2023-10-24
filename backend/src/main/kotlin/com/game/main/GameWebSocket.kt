@@ -3,10 +3,7 @@ package com.game.main
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.game.main.WsMessageType.*
-import com.game.model.DiceResult
-import com.game.model.Game
-import com.game.model.TurnResult
-import com.game.repository.GameRepository.getGame
+import com.game.main.GameRepository.getGame
 import org.http4k.core.Request
 import org.http4k.format.Jackson
 import org.http4k.lens.Path
