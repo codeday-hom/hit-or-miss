@@ -99,7 +99,7 @@ class GameWebSocket {
                 val diceResultString = data[dataField]
                     ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field '$dataField'")
                 val diceResult = DiceResult.valueOf(diceResultString.uppercase())
-                game.updateDiceResult(diceResult)
+                game.startTurn(diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
             }
 
@@ -115,9 +115,7 @@ class GameWebSocket {
                     ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'username'")
                 val hitOrMiss = data["hitOrMiss"]
                     ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'hitOrMiss'")
-                val player =
-                    game.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
-                game.turnResult(player, TurnResult.valueOf(hitOrMiss.uppercase()))
+                game.turnResult(username, TurnResult.valueOf(hitOrMiss.uppercase()))
                 broadcast(game, PLAYER_CHOSE_HIT_OR_MISS, game.playerPoints())
 
                 if (game.allPlayersChoseHitOrMiss()) {

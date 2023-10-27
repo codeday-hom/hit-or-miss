@@ -34,9 +34,9 @@ class GameWebSocketTest {
         port = server.port()
         val gameId = "testGameId"
         game = Game(gameId)
-        game.addUser("alice")
-        game.addUser("zuno")
-        game.addUser("grace")
+        game.addPlayer("alice")
+        game.addPlayer("zuno")
+        game.addPlayer("grace")
         GameRepository.createGame(gameId, game)
         client = wsClient(gameId)
     }
@@ -104,7 +104,7 @@ class GameWebSocketTest {
     fun `replies to player-hit-or-miss message with a updated score response`() {
         assertReceivedUserJoinedMessage()
         game.startForTest()
-        game.updateDiceResult(DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
 
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
 
@@ -116,7 +116,7 @@ class GameWebSocketTest {
     fun `when all players have chosen hit-or-miss a scoreboard message is broadcast`() {
         assertReceivedUserJoinedMessage()
         game.startForTest()
-        game.updateDiceResult(DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
 
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
@@ -133,7 +133,7 @@ class GameWebSocketTest {
     fun `when all players have chosen hit-or-miss a next turn message is broadcast`() {
         assertReceivedUserJoinedMessage()
         game.startForTest()
-        game.updateDiceResult(DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
 
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))

@@ -8,23 +8,23 @@ class GameTest {
     @Test
     fun `play a turn with a hit`() {
         val game = Game("testGameId")
-        val ian = game.addUser("ian")
-        val rob = game.addUser("rob")
-        val tom = game.addUser("tom")
+        val ian = game.addPlayer("ian")
+        val rob = game.addPlayer("rob")
+        val tom = game.addPlayer("tom")
         game.startForTest()
 
-        game.updateDiceResult(DiceResult.HIT)
-        game.turnResult(rob, TurnResult.HIT)
-        game.turnResult(tom, TurnResult.MISS)
+        game.startTurn(DiceResult.HIT)
+        game.turnResult("rob", TurnResult.HIT)
+        game.turnResult("tom", TurnResult.MISS)
 
         assertEquals(1, ian.getPlayerPoints())
         assertEquals(1, rob.getPlayerPoints())
         assertEquals(0, tom.getPlayerPoints())
 
         game.nextTurn()
-        game.updateDiceResult(DiceResult.HIT)
-        game.turnResult(ian, TurnResult.MISS)
-        game.turnResult(tom, TurnResult.HIT)
+        game.startTurn(DiceResult.HIT)
+        game.turnResult("ian", TurnResult.MISS)
+        game.turnResult("tom", TurnResult.HIT)
 
         assertEquals(1, ian.getPlayerPoints())
         assertEquals(2, rob.getPlayerPoints())
@@ -34,16 +34,16 @@ class GameTest {
     @Test
     fun `play a turn with a miss`() {
         val game = Game("testGameId")
-        val ian = game.addUser("ian")
-        val rob = game.addUser("rob")
-        val tom = game.addUser("tom")
-        val timmy = game.addUser("timmy")
+        val ian = game.addPlayer("ian")
+        val rob = game.addPlayer("rob")
+        val tom = game.addPlayer("tom")
+        val timmy = game.addPlayer("timmy")
         game.startForTest()
 
-        game.updateDiceResult(DiceResult.MISS)
-        game.turnResult(rob, TurnResult.MISS)
-        game.turnResult(tom, TurnResult.MISS)
-        game.turnResult(timmy, TurnResult.HIT)
+        game.startTurn(DiceResult.MISS)
+        game.turnResult("rob", TurnResult.MISS)
+        game.turnResult("tom", TurnResult.MISS)
+        game.turnResult("timmy", TurnResult.HIT)
 
         assertEquals(2, ian.getPlayerPoints())
         assertEquals(0, rob.getPlayerPoints())
@@ -51,10 +51,10 @@ class GameTest {
         assertEquals(3, timmy.getPlayerPoints())
 
         game.nextTurn()
-        game.updateDiceResult(DiceResult.MISS)
-        game.turnResult(ian, TurnResult.HIT)
-        game.turnResult(tom, TurnResult.MISS)
-        game.turnResult(timmy, TurnResult.HIT)
+        game.startTurn(DiceResult.MISS)
+        game.turnResult("ian", TurnResult.HIT)
+        game.turnResult("tom", TurnResult.MISS)
+        game.turnResult("timmy", TurnResult.HIT)
 
         assertEquals(5, ian.getPlayerPoints())
         assertEquals(1, rob.getPlayerPoints())

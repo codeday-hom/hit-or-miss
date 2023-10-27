@@ -69,7 +69,7 @@ fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val gameId = joinGameRequest.gameId
     val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
     val username = joinGameRequest.username
-    game.addUser(username)
+    game.addPlayer(username)
     websocket.broadcast(game, WsMessageType.USER_JOINED, game.playerListForSerialization())
     val isStarted = game.isStarted()
     val responseBody = JoinGameResponse(gameId, game.hostId, game.playerListForSerialization(), isStarted)

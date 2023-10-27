@@ -11,14 +11,13 @@ data class Game(val gameId: String) {
     private var started: Boolean = false
     private var currentTurn: Turn? = null
 
-    fun updateDiceResult(diceResult: DiceResult) {
-        currentTurn = Turn(currentPlayer(), diceResult, countPlayers())
-    }
-
     fun currentPlayer() = players.currentPlayer()
 
-    fun addUser(username: String): Player {
-        if (players.count() == 0) {
+    fun addPlayer(username: String): Player {
+        if (isStarted()) {
+            throw IllegalStateException("Game ${gameId} already started.")
+        }
+        if (countPlayers() == 0) {
             hostId = username
         }
         return players.addPlayer(username)
@@ -37,21 +36,24 @@ data class Game(val gameId: String) {
         return started
     }
 
+    fun countPlayers() = players.count()
+
+    fun playerListForSerialization() = players.playerListForSerialization()
+
     fun rollDice(): Int {
         return Random().nextInt(6) + 1
     }
 
-    fun countPlayers() = players.count()
-
-    fun playerListForSerialization() = players.playerListForSerialization()
+    fun startTurn(diceResult: DiceResult) {
+        currentTurn = Turn(currentPlayer(), diceResult, countPlayers())
+    }
 
     fun nextTurn() {
         players.nextPlayer()
     }
 
-    fun getPlayer(userName: String) = players.getPlayer(userName)
-
-    fun turnResult(player: Player, turnResult: TurnResult) {
+    fun turnResult(username: String, turnResult: TurnResult) {
+        val player = players.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
         Optional.ofNullable(currentTurn)
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .result(player, turnResult)
