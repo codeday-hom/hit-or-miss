@@ -98,8 +98,8 @@ data class Game(val gameId: String) {
             return playersWhoRolledTheDice.size == countPlayers()
         }
 
-        fun playerRolledTheDice(currentPlayer: Player) {
-            playersWhoRolledTheDice.add(currentPlayer.getUsername())
+        fun playerRolledTheDice(player: Player) {
+            playersWhoRolledTheDice.add(player.getUsername())
         }
     }
 
