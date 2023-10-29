@@ -107,7 +107,6 @@ data class Game(val gameId: String) {
         private val playersWhoChoseHitOrMiss = mutableSetOf<String>()
 
         fun allPlayersChoseHitOrMiss(): Boolean {
-            // The person who rolled the dice and selected a word is excluded of course.
             return playersWhoChoseHitOrMiss.size == countPlayers() - 1
         }
 
