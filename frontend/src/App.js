@@ -4,10 +4,10 @@ import './App.css';
 export default App;
 
 function App() {
-    return (
-        <div>
-            <StartGameButton/>
-        </div>
-    );
+  return (
+    <div>
+      <StartGameButton/>
+    </div>
+  );
 }
 

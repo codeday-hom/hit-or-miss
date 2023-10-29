@@ -3,19 +3,21 @@ import useGameWebSocket from "../websockets/useGameWebSocket";
 import "./Dice.css";
 import {WsMessageType} from "../websockets/WsMessageType";
 
-export default function Dice({
-  gameId,
-  currentPlayer,
-  clientUsername,
-  onDiceResult
-}) {
+export default function Dice(
+  {
+    gameId,
+    currentPlayer,
+    clientUsername,
+    onDiceResult
+  }
+) {
   const [diceTransform, setDiceTransform] = useState("");
   const [wildcardOption, setWildcardOption] = useState(false);
   const [diceResult, setDiceResult] = useState();
   const [isDiceRolled, setIsDiceRolled] = useState(false);
   const [hitOrMiss, setHitOrMiss] = useState("");
   const [displayHitOrMiss, setDisplayHitOrMiss] = useState(false);
-  const { sendMessage } = useGameWebSocket(gameId, (message) => {
+  const {sendMessage} = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageType.ROLL_DICE_RESULT) {
       setDiceResult(message.data);
     } else if (message.type === WsMessageType.ROLL_DICE_HIT_OR_MISS) {
@@ -24,10 +26,10 @@ export default function Dice({
   });
 
   const sendHit = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Hit", username: clientUsername} }));
+    sendMessage(JSON.stringify({type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Hit", username: clientUsername}}));
   };
   const sendMiss = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Miss", username: clientUsername} }));
+    sendMessage(JSON.stringify({type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Miss", username: clientUsername}}));
   };
   useEffect(() => {
     if (diceResult) {
@@ -94,7 +96,7 @@ export default function Dice({
   }, [hitOrMiss]);
 
   const handleRollDice = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE, data: {} }));
+    sendMessage(JSON.stringify({type: WsMessageType.ROLL_DICE, data: {}}));
     setIsDiceRolled(true);
   };
 
@@ -110,7 +112,7 @@ export default function Dice({
   return (
     <div>
       <div className="container">
-        <div className="dice" style={{ transform: diceTransform }}>
+        <div className="dice" style={{transform: diceTransform}}>
           <div className="side">
             <div className="hit-text">Hit</div>
           </div>
@@ -138,7 +140,7 @@ export default function Dice({
       </div>
 
       {currentPlayer !== clientUsername && (
-          <div>{currentPlayer} is rolling the dice...</div>
+        <div>{currentPlayer} is rolling the dice...</div>
       )}
 
       {displayHitOrMiss

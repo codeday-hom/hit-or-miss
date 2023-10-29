@@ -10,22 +10,22 @@ import reportWebVitals from "./reportWebVitals";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Landing />,
+    element: <Landing/>,
   },
   {
     path: "/lobby/:gameId",
-    element: <Lobby />,
+    element: <Lobby/>,
   },
   {
     path: "/game/:gameId/",
-    element: <GameContext />,
+    element: <GameContext/>,
   },
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <RouterProvider router={router}/>
   </React.StrictMode>
 );
 
