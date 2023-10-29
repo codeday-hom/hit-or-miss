@@ -19,6 +19,11 @@ class Players {
         return currentPlayer()
     }
 
+    fun skipPlayer(): Player {
+        currentPlayerIndex = (currentPlayerIndex + 2) % playerOrders.size
+        return currentPlayer()
+    }
+
     fun addPlayer(username: String): Player {
         val newPlayer = Player(username)
         players[username] = newPlayer
@@ -52,7 +57,7 @@ class Players {
         return players[username]
     }
 
-    fun playerPoints() = players.values.associateBy(
+    fun scores() = players.values.associateBy(
         { p -> p.getUsername() },
         { p -> p.getPlayerPoints() }
     )

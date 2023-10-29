@@ -1,7 +1,7 @@
 import HitOrMissButton from "./HitOrMissButton";
 import React from "react";
 
-export default function HitOrMissButtonPage({ gameId, currentSelectedCategory, diceResult, selectedWord, currentPlayer, clientUsername }) {
+export default function HitOrMissButtonPage({ gameId, currentSelectedCategory, diceResult, selectedWord, currentPlayer, clientUsername, sendWebSocketMessage }) {
     return (
         <div>
             <div>Category: {currentSelectedCategory}</div>
@@ -11,6 +11,7 @@ export default function HitOrMissButtonPage({ gameId, currentSelectedCategory, d
                 gameId={gameId}
                 currentPlayer={currentPlayer}
                 clientUsername={clientUsername}
+                sendWebSocketMessage={sendWebSocketMessage}
             />
         </div>
     )

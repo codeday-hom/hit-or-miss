@@ -24,10 +24,10 @@ export default function Dice({
   });
 
   const sendHit = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Hit"} }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Hit", username: clientUsername} }));
   };
   const sendMiss = () => {
-    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Miss"} }));
+    sendMessage(JSON.stringify({ type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Miss", username: clientUsername} }));
   };
   useEffect(() => {
     if (diceResult) {

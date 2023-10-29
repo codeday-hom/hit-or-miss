@@ -12,8 +12,9 @@ class GameTest {
         val rob = game.addPlayer("rob")
         val tom = game.addPlayer("tom")
         game.startForTest()
+        game.startRound()
 
-        game.startTurn(DiceResult.HIT)
+        game.startTurn("ian", DiceResult.HIT)
         game.turnResult("rob", TurnResult.HIT)
         game.turnResult("tom", TurnResult.MISS)
 
@@ -22,7 +23,7 @@ class GameTest {
         assertEquals(0, tom.getPlayerPoints())
 
         game.nextTurn()
-        game.startTurn(DiceResult.HIT)
+        game.startTurn("rob", DiceResult.HIT)
         game.turnResult("ian", TurnResult.MISS)
         game.turnResult("tom", TurnResult.HIT)
 
@@ -39,8 +40,9 @@ class GameTest {
         val tom = game.addPlayer("tom")
         val timmy = game.addPlayer("timmy")
         game.startForTest()
+        game.startRound()
 
-        game.startTurn(DiceResult.MISS)
+        game.startTurn("ian", DiceResult.MISS)
         game.turnResult("rob", TurnResult.MISS)
         game.turnResult("tom", TurnResult.MISS)
         game.turnResult("timmy", TurnResult.HIT)
@@ -51,7 +53,7 @@ class GameTest {
         assertEquals(3, timmy.getPlayerPoints())
 
         game.nextTurn()
-        game.startTurn(DiceResult.MISS)
+        game.startTurn("rob", DiceResult.MISS)
         game.turnResult("ian", TurnResult.HIT)
         game.turnResult("tom", TurnResult.MISS)
         game.turnResult("timmy", TurnResult.HIT)

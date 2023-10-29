@@ -78,16 +78,17 @@ class GameWebSocket {
         }
 
         when (type) {
+            HEARTBEAT.name -> {
+                isAlive[gameId] = true
+                broadcastHeartbeatAckMessage(game)
+            }
+
             CATEGORY_SELECTED.name -> {
                 val dataField = "category"
                 val category = data[dataField]
                     ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
+                game.startRound()
                 broadcastCategorySelected(game, category)
-            }
-
-            HEARTBEAT.name -> {
-                isAlive[gameId] = true
-                broadcastHeartbeatAckMessage(game)
             }
 
             ROLL_DICE.name -> {
@@ -95,11 +96,12 @@ class GameWebSocket {
             }
 
             ROLL_DICE_HIT_OR_MISS.name -> {
-                val dataField = "diceResult"
-                val diceResultString = data[dataField]
-                    ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field '$dataField'")
+                val username = data["username"]
+                    ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field 'username'")
+                val diceResultString = data["diceResult"]
+                    ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field 'diceResult'")
                 val diceResult = DiceResult.valueOf(diceResultString.uppercase())
-                game.startTurn(diceResult)
+                game.startTurn(username, diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
             }
 
@@ -116,12 +118,16 @@ class GameWebSocket {
                 val hitOrMiss = data["hitOrMiss"]
                     ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'hitOrMiss'")
                 game.turnResult(username, TurnResult.valueOf(hitOrMiss.uppercase()))
-                broadcast(game, PLAYER_CHOSE_HIT_OR_MISS, game.playerPoints())
+                broadcastScores(game)
 
                 if (game.allPlayersChoseHitOrMiss()) {
-                    broadcastScoreboardMessage(game)
-                    game.nextTurn()
-                    broadcastNextTurnMessage(game)
+                    if (game.allPlayersRolledTheDice()) {
+                        game.nextRound()
+                        broadcastNextRoundMessage(game)
+                    } else {
+                        game.nextTurn()
+                        broadcastNextTurnMessage(game)
+                    }
                 }
             }
         }
@@ -153,6 +159,10 @@ class GameWebSocket {
         broadcast(game, NEXT_TURN, game.currentPlayer().name)
     }
 
+    private fun broadcastNextRoundMessage(game: Game) {
+        broadcast(game, NEXT_ROUND, game.currentPlayer().name)
+    }
+
     private fun broadcastHeartbeatAckMessage(game: Game) {
         broadcast(game, HEARTBEAT_ACK, "")
     }
@@ -169,10 +179,9 @@ class GameWebSocket {
         broadcast(game, SELECTED_WORD, word)
     }
 
-    private fun broadcastScoreboardMessage(game: Game) {
-        val scoresMap = game.playerPoints()
-        val scores = scoresMap.map { mapOf("username" to it.key, "score" to it.value) }
-        broadcast(game, SHOW_SCOREBOARD, scores)
+    private fun broadcastScores(game: Game) {
+        val scores = game.scores().map { mapOf("username" to it.key, "score" to it.value) }
+        broadcast(game, SCORES, scores)
     }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {

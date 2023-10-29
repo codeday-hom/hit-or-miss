@@ -32,8 +32,11 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
   const {sendMessage} = useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageType.NEXT_TURN) {
       setCurrentPlayer(message.data);
-      setGamePhase(GamePhase.ROLL_DICE)
-    } else if (message.type === WsMessageType.SHOW_SCOREBOARD) {
+      setGamePhase(GamePhase.ROLL_DICE);
+    } else if (message.type === WsMessageType.NEXT_ROUND) {
+      setCurrentPlayer(message.data);
+      setGamePhase(GamePhase.SELECT_CATEGORY);
+    } else if (message.type === WsMessageType.SCORES) {
       setScores(message.data);
     }
   });
@@ -85,7 +88,8 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
     } else if (gamePhase === GamePhase.SELECT_HIT_OR_MISS) {
       return <HitOrMissButtonPage gameId={gameId} currentSelectedCategory={currentSelectedCategory}
                                   diceResult={diceResult} selectedWord={selectedWord}
-                                  currentPlayer={currentPlayer} clientUsername={clientUsername}/>
+                                  currentPlayer={currentPlayer} clientUsername={clientUsername}
+                                  sendWebSocketMessage={sendMessage}/>
     }
   }
 
