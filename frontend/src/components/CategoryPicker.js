@@ -1,8 +1,9 @@
 import React, {useState} from 'react';
 import {WsMessageType} from "../websockets/WsMessageType";
+import {CategoriesList} from "./CategoriesList";
 
 export default function CategoryPicker({sendWebSocketMessage}) {
-  const categories = ["Sports", "Music", "Science", "Art", "History"].sort(() => Math.random() - 0.5);
+  const categories = CategoriesList.sort(() => Math.random() - 0.5);
   let categoryIndex = 0;
 
   const [currentCategory, setCurrentCategory] = useState(null);
