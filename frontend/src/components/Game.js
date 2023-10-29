@@ -16,8 +16,6 @@ const GamePhase = {
   ROLL_DICE: "DICE_ROLLING",
   SELECT_WORD: "WORD_SELECTION",
   SELECT_HIT_OR_MISS: "SELECT_HIT_OR_MISS"
-
-  // Add more, as more is implemented
 };
 
 export default function Game({gameId, clientUsername, initialPlayer, playerNames}) {
