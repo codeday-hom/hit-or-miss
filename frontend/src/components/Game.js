@@ -100,7 +100,7 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
         {conditionalGameState()}
       </div>
       <div className="game-scoreboard">
-        <Scoreboard scores={scores}/>
+        <Scoreboard clientUsername={clientUsername} scores={scores}/>
       </div>
     </div>
   );
