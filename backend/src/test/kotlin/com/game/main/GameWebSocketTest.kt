@@ -109,11 +109,15 @@ class GameWebSocketTest {
 
         send(GameWsMessage(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS.name, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
 
-        assertFirstReplyEquals(mapOf("type" to WsMessageType.SCORES.name, "data" to listOf(
-            mapOf("username" to "alice", "score" to 1),
-            mapOf("username" to "zuno", "score" to 0),
-            mapOf("username" to "grace", "score" to 1)
-        )))
+        assertFirstReplyEquals(
+            mapOf(
+                "type" to WsMessageType.SCORES.name, "data" to listOf(
+                    mapOf("username" to "alice", "score" to 1),
+                    mapOf("username" to "zuno", "score" to 0),
+                    mapOf("username" to "grace", "score" to 1)
+                )
+            )
+        )
     }
 
     @Test

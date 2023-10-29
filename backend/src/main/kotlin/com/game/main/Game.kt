@@ -76,6 +76,7 @@ data class Game(val gameId: String) {
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .result(player, turnResult)
     }
+
     fun scores(): Map<String, Int> = players.scores()
 
     fun allPlayersChoseHitOrMiss(): Boolean {
