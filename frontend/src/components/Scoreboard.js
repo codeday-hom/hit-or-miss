@@ -1,36 +1,24 @@
-import { useState, useEffect } from "react";
 import "./Scoreboard.css";
 
-export default function Scoreboard({ scoreboardData }) {
-  const [sortedPlayers, setSortedPlayers] = useState([]);
-
-  useEffect(() => {
-    if (scoreboardData) {
-      const sorted = [...scoreboardData].sort(
-        (a, b) => b.score - a.score
-      );
-      setSortedPlayers(sorted);
-    }
-  }, [scoreboardData]);
+export default function Scoreboard({clientUsername, scores}) {
+  const sortedScores = [...scores].sort((a, b) => b.score - a.score);
 
   return (
     <div className="scoreboard">
       <table>
         <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Player</th>
-            <th>Score</th>
-          </tr>
+        <tr>
+          <th>Player</th>
+          <th>Score</th>
+        </tr>
         </thead>
         <tbody>
-          {sortedPlayers.map((player, index) => (
-            <tr key={player.username}>
-              <td>{index + 1}</td>
-              <td>{player.username}</td>
-              <td>{player.score}</td>
-            </tr>
-          ))}
+        {sortedScores.map(player => (
+          <tr key={player.username}>
+            <td>{player.username + (player.username === clientUsername ? " (you)" : "")}</td>
+            <td>{player.score}</td>
+          </tr>
+        ))}
         </tbody>
       </table>
     </div>

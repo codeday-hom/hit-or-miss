@@ -1,7 +1,5 @@
 package com.game.main
 
-import com.game.model.Player
-import com.game.model.Players
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.util.*

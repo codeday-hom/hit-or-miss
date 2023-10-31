@@ -26,7 +26,7 @@ export default function Lobby() {
       });
     } else if (message.type === WsMessageType.GAME_START) {
       navigate(`/game/${gameId}`, {
-        state: {clientUsername: username, currentPlayer: message.data},
+        state: {clientUsername: username, currentPlayer: message.data, playerNames: usernames},
       });
     } else if (message.type === WsMessageType.ERROR) {
       setGameStarted(true);
@@ -36,7 +36,7 @@ export default function Lobby() {
   const checkIfHost = () => {
     if (Cookies.get("game_host") !== undefined) {
       const hostGameId = Cookies.get("game_host");
-      setIsHost(location.pathname === "/game/" + hostGameId + "/lobby");
+      setIsHost(location.pathname === "/lobby/" + hostGameId);
     }
   };
 

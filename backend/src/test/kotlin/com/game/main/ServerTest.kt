@@ -1,8 +1,5 @@
 package com.game.main
 
-import com.game.model.Game
-import com.game.model.Player
-import com.game.repository.GameRepository
 import io.mockk.clearMocks
 import io.mockk.mockk
 import org.http4k.core.Method
@@ -32,7 +29,7 @@ class ServerTest {
     @Test
     fun `serves files`() {
         assertEquals(Status.OK, get("/").status)
-        assertEquals(Status.OK, get("/game/123/lobby").status)
+        assertEquals(Status.OK, get("/lobby/123").status)
         assertEquals(Status.OK, get("/anything").status)
     }
 

@@ -1,14 +1,6 @@
-package com.game.model
+package com.game.main
 
 import java.util.*
-
-enum class DiceResult {
-    HIT, MISS
-}
-
-enum class TurnResult {
-    HIT, MISS
-}
 
 data class Game(val gameId: String) {
 
@@ -17,16 +9,16 @@ data class Game(val gameId: String) {
     private val players: Players = Players()
 
     private var started: Boolean = false
+    private var currentRound: Round? = null
     private var currentTurn: Turn? = null
-
-    fun updateDiceResult(diceResult: DiceResult) {
-        currentTurn = Turn(currentPlayer(), diceResult, countPlayers())
-    }
 
     fun currentPlayer() = players.currentPlayer()
 
-    fun addUser(username: String): Player {
-        if (players.count() == 0) {
+    fun addPlayer(username: String): Player {
+        if (isStarted()) {
+            throw IllegalStateException("Game $gameId already started.")
+        }
+        if (countPlayers() == 0) {
             hostId = username
         }
         return players.addPlayer(username)
@@ -45,39 +37,77 @@ data class Game(val gameId: String) {
         return started
     }
 
+    fun countPlayers() = players.count()
+
+    fun playerListForSerialization() = players.playerListForSerialization()
+
     fun rollDice(): Int {
         return Random().nextInt(6) + 1
     }
 
-    fun countPlayers() = players.count()
+    fun startRound() {
+        currentRound = Round()
+    }
 
-    fun playerListForSerialization() = players.playerListForSerialization()
+    fun startTurn(username: String, diceResult: DiceResult) {
+        if (username != currentPlayer().getUsername()) {
+            throw IllegalArgumentException("The current player is '${currentPlayer().getUsername()}' so can't start turn for player '$username'.")
+        } else if (players.getPlayer(username) == null) {
+            throw IllegalArgumentException("No such player '$username'.")
+        }
+
+        currentTurn = Turn(currentPlayer(), diceResult)
+        Optional.ofNullable(currentRound)
+            .orElseThrow { IllegalStateException("Game not started: $gameId") }
+            .playerRolledTheDice(currentPlayer())
+    }
 
     fun nextTurn() {
         players.nextPlayer()
     }
 
-    fun getPlayer(userName: String) = players.getPlayer(userName)
+    fun nextRound() {
+        players.skipPlayer()
+    }
 
-    fun turnResult(player: Player, turnResult: TurnResult) {
+    fun turnResult(username: String, turnResult: TurnResult) {
+        val player = players.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
         Optional.ofNullable(currentTurn)
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .result(player, turnResult)
     }
 
-    fun playerPoints(): Map<String, Int> = players.playerPoints()
+    fun scores(): Map<String, Int> = players.scores()
+
     fun allPlayersChoseHitOrMiss(): Boolean {
         return Optional.ofNullable(currentTurn)
-                .orElseThrow { IllegalStateException("Game not started: $gameId") }
-                .allPlayersChoseHitOrMiss()
+            .orElseThrow { IllegalStateException("Game not started: $gameId") }
+            .allPlayersChoseHitOrMiss()
     }
 
-    class Turn(private val selector: Player, private val diceResult: DiceResult, private val numberOfPlayers: Int) {
+    fun allPlayersRolledTheDice(): Boolean {
+        return Optional.ofNullable(currentRound)
+            .orElseThrow { IllegalStateException("Game not started: $gameId") }
+            .allPlayersRolledTheDice()
+    }
 
+    inner class Round {
+        private var playersWhoRolledTheDice = mutableSetOf<String>()
+
+        fun allPlayersRolledTheDice(): Boolean {
+            return playersWhoRolledTheDice.size == countPlayers()
+        }
+
+        fun playerRolledTheDice(player: Player) {
+            playersWhoRolledTheDice.add(player.getUsername())
+        }
+    }
+
+    inner class Turn(private val selector: Player, private val diceResult: DiceResult) {
         private val playersWhoChoseHitOrMiss = mutableSetOf<String>()
 
         fun allPlayersChoseHitOrMiss(): Boolean {
-            return playersWhoChoseHitOrMiss.size == numberOfPlayers - 1
+            return playersWhoChoseHitOrMiss.size == countPlayers() - 1
         }
 
         fun result(player: Player, result: TurnResult) {

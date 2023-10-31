@@ -1,4 +1,4 @@
-package com.game.model
+package com.game.main
 
 import java.util.*
 
@@ -16,6 +16,11 @@ class Players {
 
     fun nextPlayer(): Player {
         currentPlayerIndex = (currentPlayerIndex + 1) % playerOrders.size
+        return currentPlayer()
+    }
+
+    fun skipPlayer(): Player {
+        currentPlayerIndex = (currentPlayerIndex + 2) % playerOrders.size
         return currentPlayer()
     }
 
@@ -52,7 +57,7 @@ class Players {
         return players[username]
     }
 
-    fun playerPoints() = players.values.associateBy(
+    fun scores() = players.values.associateBy(
         { p -> p.getUsername() },
         { p -> p.getPlayerPoints() }
     )
