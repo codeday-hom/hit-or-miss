@@ -57,6 +57,7 @@ class Players {
         return players[username]
     }
 
+
     fun scores() = players.values.associateBy(
         { p -> p.getUsername() },
         { p -> p.getPlayerPoints() }

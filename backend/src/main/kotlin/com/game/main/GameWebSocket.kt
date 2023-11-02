@@ -129,6 +129,9 @@ class GameWebSocket {
                         broadcastNextTurnMessage(game)
                     }
                 }
+                if(game.checkGameOver()){
+                    broadcastGameOverMessage(game)
+                }
             }
         }
     }
@@ -179,10 +182,15 @@ class GameWebSocket {
         broadcast(game, SELECTED_WORD, word)
     }
 
+    private fun broadcastGameOverMessage(game: Game){
+        broadcast(game, GAME_OVER,game.findHighestScoringPlayer())
+    }
+
     private fun broadcastScores(game: Game) {
         val scores = game.scores().map { mapOf("username" to it.key, "score" to it.value) }
         broadcast(game, SCORES, scores)
     }
+
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
         val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")

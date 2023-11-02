@@ -9,8 +9,10 @@ data class Game(val gameId: String) {
     private val players: Players = Players()
 
     private var started: Boolean = false
+    private var gameOver: Boolean = false
     private var currentRound: Round? = null
     private var currentTurn: Turn? = null
+    private var numTurns: Int = 0
 
     fun currentPlayer() = players.currentPlayer()
 
@@ -67,7 +69,30 @@ data class Game(val gameId: String) {
     }
 
     fun nextRound() {
+        numTurns++
         players.skipPlayer()
+    }
+
+    fun checkGameOver(): Boolean{
+        if(numTurns > countPlayers()) {
+            gameOver = true
+        }
+        return gameOver
+    }
+
+    fun findHighestScoringPlayer(): Player? {
+        var highestScoringPlayer: Player? = null
+        var highestScore = 0
+
+        for ((username, score) in players.scores()) {
+            val player = players.getPlayer(username)
+            if (player != null && score > highestScore) {
+                highestScore = score
+                highestScoringPlayer = player
+            }
+        }
+
+        return highestScoringPlayer
     }
 
     fun turnResult(username: String, turnResult: TurnResult) {
@@ -84,6 +109,7 @@ data class Game(val gameId: String) {
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .allPlayersChoseHitOrMiss()
     }
+
 
     fun allPlayersRolledTheDice(): Boolean {
         return Optional.ofNullable(currentRound)

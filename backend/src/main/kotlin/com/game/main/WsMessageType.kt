@@ -15,5 +15,6 @@ enum class WsMessageType {
     SELECTED_WORD,
     PLAYER_CHOSE_HIT_OR_MISS, // Player chose Hit or Miss after they know the selected word
     SCORES,
+    GAME_OVER,
 
 }
