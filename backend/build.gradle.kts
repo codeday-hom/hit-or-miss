@@ -1,7 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     application
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 repositories {
@@ -52,4 +55,21 @@ tasks.named<JavaExec>("run") {
     inputs.files(frontendBuild)
     val commandLineArguments = providers.provider { mutableListOf("-Dreact.build.dir=${(frontendBuild as FileCollection).singleFile.absolutePath}") }
     jvmArgumentProviders += CommandLineArgumentProvider { commandLineArguments.get() }
+}
+
+val shadowJar by tasks.existing(ShadowJar::class) {
+    archiveBaseName.set("hit-or-miss")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    manifest {
+        attributes.put("Main-Class", "com.game.main.MainKt")
+    }
+}
+
+configurations.create("shadowJar") {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    outgoing.artifact(shadowJar.flatMap { it.archiveFile }) {
+        builtBy(shadowJar)
+    }
 }
