@@ -18,6 +18,11 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val frontendBuild by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
 dependencies {
     implementation(platform("org.http4k:http4k-bom:5.3.0.0"))
     implementation("org.http4k:http4k-core")
@@ -35,12 +40,16 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("io.mockk:mockk:1.13.5")
+
+    frontendBuild(project(path = ":frontend", configuration = "reactBuild"))
 }
 
 application {
     mainClass.set("com.game.main.MainKt")
 }
 
-tasks.named("run") {
-    dependsOn(":frontend:yarnBuild")
+tasks.named<JavaExec>("run") {
+    inputs.files(frontendBuild)
+    val commandLineArguments = providers.provider { mutableListOf("-Dreact.build.dir=${(frontendBuild as FileCollection).singleFile.absolutePath}") }
+    jvmArgumentProviders += CommandLineArgumentProvider { commandLineArguments.get() }
 }

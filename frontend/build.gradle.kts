@@ -41,3 +41,11 @@ tasks.register<YarnTask>("yarnTest") {
     dependsOn(yarnInstall)
     args.set(listOf("test", "--detectOpenHandles"))
 }
+
+configurations.create("reactBuild") {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    outgoing.artifacts(providers.provider { listOf(file(reactOutputDir)) }) {
+        builtBy(yarnBuild)
+    }
+}
