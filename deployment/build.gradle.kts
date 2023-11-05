@@ -1,10 +1,11 @@
 import com.hom.DockerBuildAndSaveTask
 import com.hom.DockerTask
+import com.hom.FlyTask
 
 plugins {
     base
     id("com.palantir.git-version") version "3.0.0"
-    id("hom.docker")
+    id("hom.deploy")
 }
 
 val frontendBuild by configurations.creating {
@@ -45,9 +46,32 @@ tasks {
         outputTar.set(layout.buildDirectory.file("$name/${dockerImageName.replace(":", "--")}.tar"))
     }
 
+    val builtImageName = dockerBuildAndSave.flatMap { it.imageName }
+    val flyImageName = builtImageName.map { "registry.fly.io/$it" }
+
     val dockerRun by registering(DockerTask::class) {
         dependsOn(dockerBuildAndSave)
         args.set(listOf("run", "-p", "8080:8080", "--name", "hit-or-miss"))
-        args.add(dockerBuildAndSave.flatMap { it.imageName })
+        args.add(builtImageName)
+    }
+
+    val dockerTag by registering(DockerTask::class) {
+        dependsOn(dockerBuildAndSave)
+        args.set(listOf("tag"))
+        args.add(builtImageName)
+        args.add(flyImageName)
+    }
+
+    val dockerPush by registering(DockerTask::class) {
+        dependsOn(dockerTag)
+        args.set(listOf("push"))
+        args.add(flyImageName)
+    }
+
+    val flyDeploy by registering(FlyTask::class) {
+        dependsOn(dockerPush)
+        args.set(listOf("deploy", "--app", "hit-or-miss", "--image"))
+        args.add(flyImageName)
+        args.addAll(listOf("--local-only", "--now", "--yes"))
     }
 }
