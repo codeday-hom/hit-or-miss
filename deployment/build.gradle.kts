@@ -34,9 +34,15 @@ tasks {
     }
 
     val gitVersion: groovy.lang.Closure<String> by extra
+    val dockerImageName = "hit-or-miss:${gitVersion().replace(".", "-")}"
     val dockerBuild by registering(DockerTask::class) {
         workingDir.set(dockerDir.map { it.destinationDir })
-        args.set(listOf("build", "-t", "hit-or-miss:${gitVersion().replace(".", "-")}", "."))
+        args.set(listOf("build", "-t", dockerImageName, "."))
+    }
+
+    val dockerRun by registering(DockerTask::class) {
+        dependsOn(dockerBuild)
+        args.set(listOf("run", "-p", "8080:8080", dockerImageName))
     }
 }
 
@@ -46,14 +52,17 @@ abstract class DockerTask @Inject constructor(private val execOps: ExecOperation
     @get:Input
     abstract val args: ListProperty<String>
 
-    @get:Input
+    @get:[Optional Input]
     abstract val workingDir: Property<File>
 
     @TaskAction
     fun runDockerCommand() {
         val dockerCommandArgs = listOf("docker") + args.get()
+        val dockerWorkingDir = workingDir
         execOps.exec {
-            workingDir(this@DockerTask.workingDir.get())
+            if (dockerWorkingDir.isPresent) {
+                workingDir(dockerWorkingDir.get())
+            }
             commandLine(dockerCommandArgs)
         }
     }
