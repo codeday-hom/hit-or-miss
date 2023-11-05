@@ -7,7 +7,7 @@ function App() {
   return (
     <div>
       <StartGameButton/>
+      <p>Version {process.env.REACT_APP_GIT_VERSION}</p>
     </div>
   );
 }
-

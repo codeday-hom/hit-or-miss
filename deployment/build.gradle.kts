@@ -23,6 +23,25 @@ dependencies {
     backendShadowJar(project(path = ":backend", configuration = "shadowJar"))
 }
 
+val gitVersion: groovy.lang.Closure<String> by extra
+val writeGitVersion by tasks.registering {
+    val outputFile = layout.buildDirectory.file("git-version.txt")
+    outputs.file(outputFile)
+    extra["outputFile"] = outputFile
+    doFirst {
+        outputFile.get().asFile.writeText(gitVersion())
+    }
+}
+
+configurations.create("gitVersion") {
+    isCanBeConsumed = true
+    isCanBeResolved = false
+    @Suppress("UNCHECKED_CAST")
+    outgoing.artifact(writeGitVersion.flatMap { (it.extra["outputFile"] as Provider<RegularFile>) }) {
+        builtBy(writeGitVersion)
+    }
+}
+
 tasks {
     val dockerDirBuild by registering(Copy::class) {
         from("src/docker")
@@ -38,7 +57,6 @@ tasks {
         }
     }
 
-    val gitVersion: groovy.lang.Closure<String> by extra
     val dockerBuildAndSave by registering(DockerBuildAndSaveTask::class) {
         val dockerImageName = "hit-or-miss:${gitVersion().replace(".", "-")}"
         buildDir.set(dockerDirBuild.map { it.destinationDir })

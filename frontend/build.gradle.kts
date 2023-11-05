@@ -9,6 +9,15 @@ node {
     version.set("20.4.0")
 }
 
+val gitVersion by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = true
+}
+
+dependencies {
+    gitVersion(project(path = ":deployment", configuration = "gitVersion"))
+}
+
 val reactOutputDir = "build"
 val createBuildDir by tasks.registering {
     doFirst {
@@ -33,7 +42,9 @@ val yarnBuild by tasks.registering(YarnTask::class) {
     inputs.files(fileTree("src"))
     inputs.files("public")
     inputs.file("package.json")
+    inputs.files(gitVersion)
     outputs.dir(reactOutputDir)
+    environment.put("REACT_APP_GIT_VERSION", providers.provider { (gitVersion as FileCollection).singleFile.readText() })
 }
 
 tasks.register<YarnTask>("yarnTest") {
