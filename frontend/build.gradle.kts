@@ -18,28 +18,28 @@ val createBuildDir by tasks.registering {
 }
 
 val yarnInstall by tasks.registering(YarnTask::class) {
+    args.set(listOf("install"))
     dependsOn("npmSetup")
     inputs.file("package.json")
     outputs.dir("node_modules")
     outputs.file("yarn.lock")
-    args.set(listOf("install"))
+    outputs.upToDateWhen { false }
 }
 
 val yarnBuild by tasks.registering(YarnTask::class) {
+    args.set(listOf("build"))
     dependsOn(yarnInstall)
-    outputs.upToDateWhen { false }
     inputs.files(fileTree("node_modules"))
     inputs.files(fileTree("src"))
     inputs.files("public")
     inputs.file("package.json")
     outputs.dir(reactOutputDir)
-    args.set(listOf("build"))
 }
 
 tasks.register<YarnTask>("yarnTest") {
-    inputs.dir(reactOutputDir)
-    dependsOn(yarnInstall)
     args.set(listOf("test", "--detectOpenHandles"))
+    dependsOn(yarnInstall)
+    inputs.dir(reactOutputDir)
 }
 
 configurations.create("reactBuild") {
