@@ -1,7 +1,10 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 plugins {
     application
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 repositories {
@@ -16,6 +19,11 @@ java {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+val frontendBuild by configurations.creating {
+    isCanBeConsumed = false
+    isCanBeResolved = true
 }
 
 dependencies {
@@ -35,12 +43,33 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("org.junit.jupiter:junit-jupiter-engine")
     testImplementation("io.mockk:mockk:1.13.5")
+
+    frontendBuild(project(path = ":frontend", configuration = "reactBuild"))
 }
 
 application {
     mainClass.set("com.game.main.MainKt")
 }
 
-tasks.named("run") {
-    dependsOn(":frontend:yarnBuild")
+tasks.named<JavaExec>("run") {
+    inputs.files(frontendBuild)
+    val commandLineArguments = providers.provider { mutableListOf("-Dreact.build.dir=${(frontendBuild as FileCollection).singleFile.absolutePath}") }
+    jvmArgumentProviders += CommandLineArgumentProvider { commandLineArguments.get() }
+}
+
+val shadowJar by tasks.existing(ShadowJar::class) {
+    archiveBaseName.set("hit-or-miss")
+    archiveClassifier.set("")
+    archiveVersion.set("")
+    manifest {
+        attributes.put("Main-Class", "com.game.main.MainKt")
+    }
+}
+
+configurations.create("shadowJar") {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    outgoing.artifact(shadowJar.flatMap { it.archiveFile }) {
+        builtBy(shadowJar)
+    }
 }

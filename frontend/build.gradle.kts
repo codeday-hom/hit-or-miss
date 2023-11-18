@@ -9,6 +9,15 @@ node {
     version.set("20.4.0")
 }
 
+val gitVersion by configurations.creating {
+    isCanBeResolved = true
+    isCanBeConsumed = true
+}
+
+dependencies {
+    gitVersion(project(path = ":deployment", configuration = "gitVersion"))
+}
+
 val reactOutputDir = "build"
 val createBuildDir by tasks.registering {
     doFirst {
@@ -18,26 +27,36 @@ val createBuildDir by tasks.registering {
 }
 
 val yarnInstall by tasks.registering(YarnTask::class) {
+    args.set(listOf("install"))
     dependsOn("npmSetup")
     inputs.file("package.json")
     outputs.dir("node_modules")
     outputs.file("yarn.lock")
-    args.set(listOf("install"))
+    outputs.upToDateWhen { false }
 }
 
 val yarnBuild by tasks.registering(YarnTask::class) {
+    args.set(listOf("build"))
     dependsOn(yarnInstall)
-    outputs.upToDateWhen { false }
     inputs.files(fileTree("node_modules"))
     inputs.files(fileTree("src"))
     inputs.files("public")
     inputs.file("package.json")
+    inputs.files(gitVersion)
     outputs.dir(reactOutputDir)
-    args.set(listOf("build"))
+    environment.put("REACT_APP_GIT_VERSION", providers.provider { (gitVersion as FileCollection).singleFile.readText() })
 }
 
 tasks.register<YarnTask>("yarnTest") {
-    inputs.dir(reactOutputDir)
-    dependsOn(yarnInstall)
     args.set(listOf("test", "--detectOpenHandles"))
+    dependsOn(yarnInstall)
+    inputs.dir(reactOutputDir)
+}
+
+configurations.create("reactBuild") {
+    isCanBeResolved = false
+    isCanBeConsumed = true
+    outgoing.artifacts(providers.provider { listOf(file(reactOutputDir)) }) {
+        builtBy(yarnBuild)
+    }
 }
