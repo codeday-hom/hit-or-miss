@@ -90,6 +90,6 @@ tasks {
         dependsOn(dockerPush)
         args.set(listOf("deploy", "--app", "hit-or-miss", "--image"))
         args.add(flyImageName)
-        args.addAll(listOf("--local-only", "--now", "--yes"))
+        args.addAll(listOf("--local-only", "--now", "--yes", "--ha=false"))
     }
 }
