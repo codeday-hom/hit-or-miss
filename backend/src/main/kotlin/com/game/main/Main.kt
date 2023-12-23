@@ -58,7 +58,7 @@ fun createNewGame(): Response {
     GameRepository.createGame(gameId, game)
     return Response(Status.SEE_OTHER)
         .header("Location", "/lobby/$gameId")
-        .cookie(Cookie("game_host", gameId, path = "/"))
+        .cookie(Cookie("${gameId}_host", "1", path = "/"))
 }
 
 fun startGameHandler(req: Request, websocket: GameWebSocket): Response {
@@ -83,4 +83,5 @@ fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val isStarted = game.isStarted()
     val responseBody = JoinGameResponse(gameId, game.hostId, game.playerListForSerialization(), isStarted)
     return Response(OK).body(Jackson.asInputStream(responseBody))
+        .cookie(Cookie(gameId, username, path = "/"))
 }

@@ -105,7 +105,7 @@ test('renders scoreboard with all player names', async () => {
   renderGame()
 
   expectScoreboardRows([
-    {player: "Alice", score: "0"},
+    {player: "Alice (you)", score: "0"},
     {player: "Bob", score: "0"},
     {player: "Charlie", score: "0"},
   ])
@@ -206,7 +206,7 @@ test('scoreboard updates after hit or miss selection', async () => {
   ])
 
   expectScoreboardRows([
-    {player: "Alice", score: "1"},
+    {player: "Alice (you)", score: "1"},
     {player: "Bob", score: "1"},
     {player: "Charlie", score: "0"}
   ])
