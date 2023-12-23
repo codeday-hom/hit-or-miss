@@ -1,5 +1,5 @@
-import {useState} from "react";
-import {useLocation, useNavigate, useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import {useNavigate, useParams} from "react-router-dom";
 import Cookies from "js-cookie";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import {WsMessageType} from "../websockets/WsMessageType";
@@ -7,36 +7,41 @@ import {WsMessageType} from "../websockets/WsMessageType";
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
   const {gameId} = useParams();
-  const location = useLocation()
-  const [usernames, setUsernames] = useState([]);
-  const [username, setUsername] = useState("");
-  const [name, setName] = useState("");
+  const [players, setPlayers] = useState([]);
+  const [savedName, setSavedName] = useState("");
+  const [typedName, setTypedName] = useState("");
   const [invalidNameWarning, setInvalidNameWarning] = useState("");
-  const [validName, setValidName] = useState(false);
-  const navigate = useNavigate();
   const [gameStarted, setGameStarted] = useState(false);
+  const navigate = useNavigate();
 
   useGameWebSocket(gameId, (message) => {
     if (message.type === WsMessageType.USER_JOINED) {
-      setUsernames((prevUsernames) => {
-        const newUsernames = Object.values(message.data).filter(
-          (name) => !prevUsernames.includes(name)
+      setPlayers((previousPlayers) => {
+        const newPlayers = Object.values(message.data).filter(
+          (name) => !previousPlayers.includes(name)
         );
-        return [...prevUsernames, ...newUsernames];
+        return [...previousPlayers, ...newPlayers];
       });
     } else if (message.type === WsMessageType.GAME_START) {
       navigate(`/game/${gameId}`, {
-        state: {clientUsername: username, currentPlayer: message.data, playerNames: usernames},
+        state: {clientUsername: savedName, currentPlayer: message.data, playerNames: players},
       });
     } else if (message.type === WsMessageType.ERROR) {
       setGameStarted(true);
     }
   });
 
+  useEffect(() => {
+    let previouslySavedName = Cookies.get(gameId);
+    if (previouslySavedName !== undefined) {
+      setSavedName(previouslySavedName)
+      checkIfHost()
+    }
+  }, []);
+
   const checkIfHost = () => {
-    if (Cookies.get("game_host") !== undefined) {
-      const hostGameId = Cookies.get("game_host");
-      setIsHost(location.pathname === "/lobby/" + hostGameId);
+    if (Cookies.get(gameId + "_host") !== undefined) {
+      setIsHost(true);
     }
   };
 
@@ -51,24 +56,25 @@ export default function Lobby() {
   };
 
   const handleNameChange = (e) => {
-    setName(e.target.value);
+    setTypedName(e.target.value);
   };
 
   const handleNameSave = async () => {
-    const formattedUsername = name.trim();
+    const formattedUsername = typedName.trim();
     if (formattedUsername === "") {
       setInvalidNameWarning("Please enter a valid name.");
       return;
     }
 
-    if (usernames.includes(formattedUsername)) {
+    if (players.includes(formattedUsername)) {
       setInvalidNameWarning("This username is already taken");
       return;
     }
-    setName("");
-    setValidName(true);
-    await sendUserNameToBackend(formattedUsername);
-    setUsername(formattedUsername);
+
+    await sendUserNameToBackend(formattedUsername).then(() => {
+      setTypedName("");
+      setSavedName(formattedUsername);
+    });
   };
 
   const sendUserNameToBackend = async (username) => {
@@ -95,11 +101,11 @@ export default function Lobby() {
   return (
     <div>
       <h1>Welcome to the Game Lobby!</h1>
-      {!validName && (
+      {!savedName && (
         <div>
           <input
             type="text"
-            value={name}
+            value={typedName}
             onChange={handleNameChange}
             placeholder="Choose your name"
           />
@@ -107,15 +113,15 @@ export default function Lobby() {
           {invalidNameWarning && <div>{invalidNameWarning}</div>}
         </div>
       )}
-      {isHost && (
-        <button onClick={handleStartGame} disabled={usernames.length < 2}>
+      {savedName && isHost && (
+        <button onClick={handleStartGame} disabled={players.length < 2}>
           Start Game
         </button>
       )}
-      <h2>Your name: {username}</h2>
+      {savedName && <h2>Your name: {savedName}</h2>}
       <h2>Players in the lobby:</h2>
       <ul aria-label="other-players">
-        {usernames.map((name, index) => (
+        {players.map((name, index) => (
           <li key={index}>{name}  </li>
         ))}
       </ul>

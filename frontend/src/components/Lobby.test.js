@@ -1,3 +1,5 @@
+// noinspection JSCheckFunctionSignatures
+
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react';
 import React from "react";
 import Lobby from "./Lobby";
@@ -34,16 +36,14 @@ function gameStarted() {
 }
 
 // Mock HTTP responses
-let isHost = null
+let isHost = true
 let gameId = "abcdef"
 let requests = []
 
 function stubFetch() {
+  // noinspection JSValidateTypes
   global.fetch = jest.fn((url, options) => {
     requests.push({url, options})
-    if (isHost) {
-      Cookies.set("game_host", gameId)
-    }
     return Promise.resolve({
       json: () => Promise.resolve({})
     })
@@ -52,7 +52,8 @@ function stubFetch() {
 
 // Clear the cookie that is used by the Lobby component. There is only one.
 function clearCookies() {
-  Cookies.remove("game_host")
+  Cookies.remove(gameId)
+  Cookies.remove(gameId + "_host")
 }
 
 // Before each test:
@@ -67,6 +68,9 @@ beforeEach(() => {
 
 // The component is rendered within a router, because this is important to the component's behaviour.
 function renderLobby() {
+  if (isHost) {
+    Cookies.set(gameId + "_host", "1")
+  }
   render(
     <MemoryRouter initialEntries={[{pathname: `/lobby/${gameId}`}]}>
       <Routes>
@@ -165,6 +169,24 @@ test('start game button is shown', async () => {
   expect(startGameButton).toBeInTheDocument()
 });
 
+test('start game button is disabled if no other players have joined', async () => {
+  renderLobby()
+
+  await enterName("Zuno")
+
+  const startGameButton = await screen.findByText(/Start Game/i)
+  expect(startGameButton).toBeDisabled()
+});
+
+test('start game button is not shown if host has not entered their name', async () => {
+  renderLobby()
+
+  otherPlayersJoin(["Grace", "Ian"])
+
+  const startGameButton = screen.queryByText(/Start Game/i)
+  expect(startGameButton).toBeNull()
+});
+
 test('start game button is not shown if not the host', async () => {
   isHost = false
   renderLobby()
@@ -195,3 +217,21 @@ test('client is redirected when the game starts', async () => {
 
   expect(screen.getByText(/The client was redirected to the game screen/i)).toBeInTheDocument()
 });
+
+test('client picks up name from cookie', async () => {
+  Cookies.set(gameId, "Rob")
+  renderLobby()
+
+  expect(screen.getByText(/Your name: Rob/i)).toBeInTheDocument()
+});
+
+test('client picks up host status from cookie when name is set', async () => {
+  Cookies.set(gameId, "Rob")
+  renderLobby()
+
+  otherPlayersJoin(["Zuno", "Grace", "Ian"])
+
+  const startGameButton = await screen.findByText(/Start Game/i)
+  expect(startGameButton).toBeInTheDocument()
+});
+
