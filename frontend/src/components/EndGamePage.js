@@ -1,19 +1,11 @@
-import Scoreboard from "./Scoreboard";
-import React, {useState} from "react";
+import React from "react";
 
-export default function EndGamePage({currentPlayer}) {
+export default function EndGamePage({winningPlayer}) {
 
-    return (
-    <body>
-    <title>Game Over</title>
-    <h1>Game Over</h1>
-    <p>Congratulations, you've reached the end of the game!</p>
-    <div className="game-scoreboard">
-        <p> {currentPlayer} has won!</p>
-        <Scoreboard clientUsername={clientUsername} scores={scores}/>
+  return (
+    <div>
+      <h2>Game Over!</h2>
+      <p>🎉 Congratulations to the winner: ✨{winningPlayer}!✨ 🎉</p>
     </div>
-    <p>Thank you for playing.</p>
-    </body>
-)
+  )
 }
-

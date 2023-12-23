@@ -38,9 +38,9 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
       setGamePhase(GamePhase.SELECT_CATEGORY);
     } else if (message.type === WsMessageType.SCORES) {
       setScores(message.data);
-    } else if (message.type === WsMessageType.GAME_OVER){
-        setCurrentPlayer(message.data)
-        setGamePhase((GamePhase.GAME_OVER))
+    } else if (message.type === WsMessageType.GAME_OVER) {
+      setScores(message.data);
+      setGamePhase(GamePhase.GAME_OVER)
     }
   });
 
@@ -93,8 +93,9 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
                                   diceResult={diceResult} selectedWord={selectedWord}
                                   currentPlayer={currentPlayer} clientUsername={clientUsername}
                                   sendWebSocketMessage={sendMessage}/>
-    }else if(gamePhase == GamePhase.GAME_OVER){
-        return <EndGamePage currentPlayer={currentPlayer}/>
+    } else if (gamePhase === GamePhase.GAME_OVER) {
+      let winningPlayer = scores.reduce((prev, current) => (prev && prev.score > current.score) ? prev : current)
+      return <EndGamePage winningPlayer={winningPlayer.username}/>
     }
   }
 

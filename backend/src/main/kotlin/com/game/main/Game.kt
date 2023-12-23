@@ -7,12 +7,12 @@ data class Game(val gameId: String) {
     lateinit var hostId: String
 
     private val players: Players = Players()
+    private val playersWhoHavePickedACategory: MutableSet<String> = mutableSetOf()
 
     private var started: Boolean = false
     private var gameOver: Boolean = false
     private var currentRound: Round? = null
     private var currentTurn: Turn? = null
-    private var numTurns: Int = 0
 
     fun currentPlayer() = players.currentPlayer()
 
@@ -35,9 +35,9 @@ data class Game(val gameId: String) {
         start { it.useUnshuffledOrder() }
     }
 
-    fun isStarted(): Boolean {
-        return started
-    }
+    fun isStarted() = started
+
+    fun isOver() = gameOver
 
     fun countPlayers() = players.count()
 
@@ -64,35 +64,23 @@ data class Game(val gameId: String) {
             .playerRolledTheDice(currentPlayer())
     }
 
+    /**
+     * To be used when it is the next player's turn to roll the dice for the currently chosen category.
+     */
     fun nextTurn() {
         players.nextPlayer()
     }
 
+    /**
+     * To be used when it is the next player's turn to pick a new category.
+     */
     fun nextRound() {
-        numTurns++
-        players.skipPlayer()
-    }
-
-    fun checkGameOver(): Boolean{
-        if(numTurns > countPlayers()) {
+        playersWhoHavePickedACategory.add(currentPlayer().name)
+        if (playersWhoHavePickedACategory.size < countPlayers()) {
+            players.skipPlayer()
+        } else {
             gameOver = true
         }
-        return gameOver
-    }
-
-    fun findHighestScoringPlayer(): Player? {
-        var highestScoringPlayer: Player? = null
-        var highestScore = 0
-
-        for ((username, score) in players.scores()) {
-            val player = players.getPlayer(username)
-            if (player != null && score > highestScore) {
-                highestScore = score
-                highestScoringPlayer = player
-            }
-        }
-
-        return highestScoringPlayer
     }
 
     fun turnResult(username: String, turnResult: TurnResult) {
@@ -109,7 +97,6 @@ data class Game(val gameId: String) {
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .allPlayersChoseHitOrMiss()
     }
-
 
     fun allPlayersRolledTheDice(): Boolean {
         return Optional.ofNullable(currentRound)
