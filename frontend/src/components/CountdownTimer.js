@@ -4,7 +4,7 @@ import 'react-circular-progressbar/dist/styles.css';
 
 function CountdownTimer({onTimeout}) {
   // Seconds for main countdown.
-  const countdownDuration = window['useTestTimeouts'] ? 0.1 : 3
+  const countdownDuration = window['useTestTimeouts'] ? 0.1 : 30
 
   // Seconds between "Ready", "Set" and "Go".
   const phaseInterval = window['useTestTimeouts'] ? 0.1 : 2
