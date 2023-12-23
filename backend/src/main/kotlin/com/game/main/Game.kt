@@ -7,8 +7,10 @@ data class Game(val gameId: String) {
     lateinit var hostId: String
 
     private val players: Players = Players()
+    private val playersWhoHavePickedACategory: MutableSet<String> = mutableSetOf()
 
     private var started: Boolean = false
+    private var gameOver: Boolean = false
     private var currentRound: Round? = null
     private var currentTurn: Turn? = null
 
@@ -33,9 +35,9 @@ data class Game(val gameId: String) {
         start { it.useUnshuffledOrder() }
     }
 
-    fun isStarted(): Boolean {
-        return started
-    }
+    fun isStarted() = started
+
+    fun isOver() = gameOver
 
     fun countPlayers() = players.count()
 
@@ -62,12 +64,23 @@ data class Game(val gameId: String) {
             .playerRolledTheDice(currentPlayer())
     }
 
+    /**
+     * To be used when it is the next player's turn to roll the dice for the currently chosen category.
+     */
     fun nextTurn() {
         players.nextPlayer()
     }
 
+    /**
+     * To be used when it is the next player's turn to pick a new category.
+     */
     fun nextRound() {
-        players.skipPlayer()
+        playersWhoHavePickedACategory.add(currentPlayer().name)
+        if (playersWhoHavePickedACategory.size < countPlayers()) {
+            players.skipPlayer()
+        } else {
+            gameOver = true
+        }
     }
 
     fun turnResult(username: String, turnResult: TurnResult) {

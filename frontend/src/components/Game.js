@@ -9,13 +9,15 @@ import SelectWordPage from "./SelectWordPage";
 import HitOrMissButtonPage from "./HitOrMissButtonPage";
 import Scoreboard from "./Scoreboard";
 import "./Game.css";
+import EndGamePage from "./EndGamePage";
 
 const GamePhase = {
   SELECT_CATEGORY: "CATEGORY_SELECTION",
   WAIT_FOR_COUNTDOWN: "COUNTDOWN",
   ROLL_DICE: "DICE_ROLLING",
   SELECT_WORD: "WORD_SELECTION",
-  SELECT_HIT_OR_MISS: "SELECT_HIT_OR_MISS"
+  SELECT_HIT_OR_MISS: "SELECT_HIT_OR_MISS",
+  GAME_OVER: "GAME_OVER"
 };
 
 export default function Game({gameId, clientUsername, initialPlayer, playerNames}) {
@@ -36,6 +38,9 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
       setGamePhase(GamePhase.SELECT_CATEGORY);
     } else if (message.type === WsMessageType.SCORES) {
       setScores(message.data);
+    } else if (message.type === WsMessageType.GAME_OVER) {
+      setScores(message.data);
+      setGamePhase(GamePhase.GAME_OVER)
     }
   });
 
@@ -88,6 +93,23 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
                                   diceResult={diceResult} selectedWord={selectedWord}
                                   currentPlayer={currentPlayer} clientUsername={clientUsername}
                                   sendWebSocketMessage={sendMessage}/>
+    } else if (gamePhase === GamePhase.GAME_OVER) {
+      let winningPlayers = scores
+        .reduce((accumulator, current) => {
+            if (accumulator.length === 0) {
+              return [current]
+            } else if (current.score > accumulator[0].score) {
+              return [current]
+            } else if (current.score === accumulator[0].score) {
+              return accumulator.concat([current])
+            } else {
+              return accumulator
+            }
+          },
+          []
+        )
+        .map(p => p.username)
+      return <EndGamePage winningPlayers={winningPlayers}/>
     }
   }
 

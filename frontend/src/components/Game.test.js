@@ -1,3 +1,5 @@
+// noinspection JSCheckFunctionSignatures
+
 import {act, fireEvent, prettyDOM, render, screen} from '@testing-library/react';
 import React from "react";
 import GameContext from "./GameContext";
@@ -14,16 +16,17 @@ global.console.error = (message) => {
 
 // Mock web socket connection
 let webSocketGameId = null;
-let webSocketOnMessageFunction = null;
+let webSocketOnMessageFunctions = [];
 let sentMessages = []
 jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
   webSocketGameId = gameId;
-  webSocketOnMessageFunction = onMessageFunction;
+  webSocketOnMessageFunctions.push(onMessageFunction)
+  // noinspection JSUnusedGlobalSymbols
   return {sendMessage: (m) => sentMessages.push(m)}
 })
 
 function receiveWebSocketMessage(message) {
-  act(() => webSocketOnMessageFunction(message))
+  act(() => webSocketOnMessageFunctions.forEach(it => it(message)))
 }
 
 let gameId = "abcdef"
@@ -72,6 +75,10 @@ async function selectHit() {
 
 function allPlayersSelectedHitOrMiss(scores) {
   receiveWebSocketMessage({type: WsMessageType.SCORES, data: scores})
+}
+
+function gameOver(scores) {
+  receiveWebSocketMessage({type: WsMessageType.GAME_OVER, data: scores})
 }
 
 function expectScoreboardRows(expectedRows) {
@@ -211,3 +218,58 @@ test('scoreboard updates after hit or miss selection', async () => {
     {player: "Charlie", score: "0"}
   ])
 });
+
+test('winner is shown once game is over', async () => {
+  window['useTestTimeouts'] = true
+  renderGame()
+
+  gameOver([
+    {username: "Alice", score: 2},
+    {username: "Bob", score: 1},
+    {username: "Charlie", score: 0}
+  ])
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "2"},
+    {player: "Bob", score: "1"},
+    {player: "Charlie", score: "0"}
+  ])
+  expect(screen.getByText(/🎉 Congratulations to the winner: ✨Alice!✨ 🎉/i)).toBeInTheDocument()
+});
+
+test('joint winners (2 of them) are shown once game is over', async () => {
+  window['useTestTimeouts'] = true
+  renderGame()
+
+  gameOver([
+    {username: "Alice", score: 2},
+    {username: "Bob", score: 1},
+    {username: "Charlie", score: 2}
+  ])
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "2"},
+    {player: "Bob", score: "1"},
+    {player: "Charlie", score: "2"}
+  ])
+  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨ and ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+});
+
+test('joint winners (3 of them) are shown once game is over', async () => {
+  window['useTestTimeouts'] = true
+  renderGame()
+
+  gameOver([
+    {username: "Alice", score: 2},
+    {username: "Bob", score: 2},
+    {username: "Charlie", score: 2}
+  ])
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "2"},
+    {player: "Bob", score: "2"},
+    {player: "Charlie", score: "2"}
+  ])
+  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨, ✨Bob!✨, ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+});
+
