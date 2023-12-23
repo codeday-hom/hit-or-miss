@@ -6,7 +6,7 @@ export default function GameContext() {
   const location = useLocation();
   const clientUsername = location.state.clientUsername;
   const initialPlayer = location.state.currentPlayer;
-  const playerNames = location.state.playerNames
+  const playerNames = location.state.playerNames;
 
   return <Game gameId={gameId} clientUsername={clientUsername} initialPlayer={initialPlayer} playerNames={playerNames}/>
 }
