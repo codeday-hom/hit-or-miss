@@ -31,6 +31,7 @@ val writeGitVersion by tasks.registering {
     doFirst {
         outputFile.get().asFile.writeText(gitVersion())
     }
+    doNotTrackState("The new git commit should be written every time the image is built")
 }
 
 configurations.create("gitVersion") {
