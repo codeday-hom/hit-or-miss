@@ -236,3 +236,40 @@ test('winner is shown once game is over', async () => {
   ])
   expect(screen.getByText(/🎉 Congratulations to the winner: ✨Alice!✨ 🎉/i)).toBeInTheDocument()
 });
+
+test('joint winners (2 of them) are shown once game is over', async () => {
+  window['useTestTimeouts'] = true
+  renderGame()
+
+  gameOver([
+    {username: "Alice", score: 2},
+    {username: "Bob", score: 1},
+    {username: "Charlie", score: 2}
+  ])
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "2"},
+    {player: "Bob", score: "1"},
+    {player: "Charlie", score: "2"}
+  ])
+  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨ and ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+});
+
+test('joint winners (3 of them) are shown once game is over', async () => {
+  window['useTestTimeouts'] = true
+  renderGame()
+
+  gameOver([
+    {username: "Alice", score: 2},
+    {username: "Bob", score: 2},
+    {username: "Charlie", score: 2}
+  ])
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "2"},
+    {player: "Bob", score: "2"},
+    {player: "Charlie", score: "2"}
+  ])
+  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨, ✨Bob!✨, ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+});
+

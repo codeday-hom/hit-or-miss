@@ -94,8 +94,22 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
                                   currentPlayer={currentPlayer} clientUsername={clientUsername}
                                   sendWebSocketMessage={sendMessage}/>
     } else if (gamePhase === GamePhase.GAME_OVER) {
-      let winningPlayer = scores.reduce((prev, current) => (prev && prev.score > current.score) ? prev : current)
-      return <EndGamePage winningPlayer={winningPlayer.username}/>
+      let winningPlayers = scores
+        .reduce((accumulator, current) => {
+            if (accumulator.length === 0) {
+              return [current]
+            } else if (current.score > accumulator[0].score) {
+              return [current]
+            } else if (current.score === accumulator[0].score) {
+              return accumulator.concat([current])
+            } else {
+              return accumulator
+            }
+          },
+          []
+        )
+        .map(p => p.username)
+      return <EndGamePage winningPlayers={winningPlayers}/>
     }
   }
 
