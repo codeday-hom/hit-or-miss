@@ -17,14 +17,14 @@ global.console.error = (message) => {
 
 // Mock web socket connection
 let webSocketGameId = null;
-let webSocketOnMessageFunction = null;
+let webSocketOnMessageFunctions = [];
 jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
   webSocketGameId = gameId;
-  webSocketOnMessageFunction = onMessageFunction;
+  webSocketOnMessageFunctions.push(onMessageFunction)
 })
 
 function receiveWebSocketMessage(message) {
-  act(() => webSocketOnMessageFunction(message))
+  act(() => webSocketOnMessageFunctions.forEach(it => it(message)))
 }
 
 function otherPlayersJoin(otherPlayerNames) {
