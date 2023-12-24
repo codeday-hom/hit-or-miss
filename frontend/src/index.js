@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import "./index.css";
-import Landing from "./App";
+import Landing from "./Landing";
 import Lobby from "./components/Lobby";
 import GameContext from "./components/GameContext";
 import reportWebVitals from "./reportWebVitals";

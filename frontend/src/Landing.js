@@ -1,9 +1,7 @@
 import StartGameButton from './components/StartGameButton'
-import './App.css';
+import './Landing.css';
 
-export default App;
-
-function App() {
+export default function Landing() {
   let version = process.env.REACT_APP_GIT_VERSION
   let versionLinkPart = version.replace("-snapshot", "")
   return (
