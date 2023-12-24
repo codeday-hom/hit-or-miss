@@ -24,12 +24,13 @@ dependencies {
 }
 
 val gitVersion: groovy.lang.Closure<String> by extra
+fun gitVersionString() = gitVersion().replace(".dirty", "-snapshot")
 val writeGitVersion by tasks.registering {
     val outputFile = layout.buildDirectory.file("git-version.txt")
     outputs.file(outputFile)
     extra["outputFile"] = outputFile
     doFirst {
-        outputFile.get().asFile.writeText(gitVersion())
+        outputFile.get().asFile.writeText(gitVersionString())
     }
     doNotTrackState("The new git commit should be written every time the image is built")
 }
@@ -59,7 +60,7 @@ tasks {
     }
 
     val dockerBuildAndSave by registering(DockerBuildAndSaveTask::class) {
-        val dockerImageName = "hit-or-miss:${gitVersion().replace(".", "-")}"
+        val dockerImageName = "hit-or-miss:${gitVersionString()}"
         buildDir.set(dockerDirBuild.map { it.destinationDir })
         imageName.set(dockerImageName)
         outputTar.set(layout.buildDirectory.file("$name/${dockerImageName.replace(":", "--")}.tar"))
