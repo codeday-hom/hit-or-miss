@@ -6,6 +6,7 @@ import Landing from "./Landing";
 import Lobby from "./components/Lobby";
 import GameContext from "./components/GameContext";
 import reportWebVitals from "./reportWebVitals";
+import Kit from "./components/kit/Kit";
 
 const router = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     path: "/game/:gameId/",
     element: <GameContext/>,
   },
+  {
+    path: "/kit",
+    element: <Kit/>,
+  }
 ]);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
