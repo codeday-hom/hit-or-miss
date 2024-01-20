@@ -101,6 +101,7 @@ export default function Lobby() {
   return (
     <div>
       <h1>Welcome to the Game Lobby!</h1>
+      <p>Your friends can join this game by visiting <a href={window.location.href}>this link</a></p>
       {!savedName && (
         <div>
           <input
