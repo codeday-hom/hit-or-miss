@@ -121,7 +121,7 @@ test('sends your name to the server after entering it', async () => {
 
   await enterName("Zuno")
 
-  const request = requests.filter(it => it.url === `/api/join-game/${gameId}`).at(0)
+  const request = requests.filter(it => it.url === `/api/game/${gameId}/join`).at(0)
   const requestBody = JSON.parse(request.options.body)
   expect(requestBody.gameId).toEqual(gameId)
   expect(requestBody.username).toEqual("Zuno")
@@ -207,7 +207,7 @@ test('clicking the start game button causes a request to the server', async () =
   const startGameButton = await screen.findByText(/Start Game/i)
   fireEvent.click(startGameButton)
 
-  expect(requests.map(it => it.url)).toContain(`/api/start-game/${gameId}`)
+  expect(requests.map(it => it.url)).toContain(`/api/game/${gameId}/start`)
 });
 
 test('client is redirected when the game starts', async () => {

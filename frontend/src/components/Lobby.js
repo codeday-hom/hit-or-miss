@@ -46,7 +46,7 @@ export default function Lobby() {
   };
 
   const handleStartGame = () => {
-    const url = `/api/start-game/${gameId}`;
+    const url = `/api/game/${gameId}/start`;
 
     fetch(url, {
       method: "POST",
@@ -78,7 +78,7 @@ export default function Lobby() {
   };
 
   const sendUserNameToBackend = async (username) => {
-    const url = `/api/join-game/${gameId}`;
+    const url = `/api/game/${gameId}/join`;
 
     fetch(url, {
       method: "POST",
