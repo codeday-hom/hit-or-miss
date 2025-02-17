@@ -64,7 +64,7 @@ class GameWebSocket {
         val parsedMessage = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
         val type = parsedMessage.type
         val data = parsedMessage.data
-        if (type != HEARTBEAT.name) {
+        if (type != HEARTBEAT) {
             LOGGER.info("Received a message: $parsedMessage")
         }
 
@@ -75,11 +75,11 @@ class GameWebSocket {
         }
 
         when (type) {
-            HEARTBEAT.name -> {
+            HEARTBEAT -> {
                 broadcastHeartbeatAckMessage(game)
             }
 
-            CATEGORY_SELECTED.name -> {
+            CATEGORY_SELECTED -> {
                 val dataField = "category"
                 val category = data[dataField]
                     ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
@@ -87,11 +87,11 @@ class GameWebSocket {
                 broadcastCategorySelected(game, category)
             }
 
-            ROLL_DICE.name -> {
+            ROLL_DICE -> {
                 broadcastRollDiceResultMessage(game)
             }
 
-            ROLL_DICE_HIT_OR_MISS.name -> {
+            ROLL_DICE_HIT_OR_MISS -> {
                 val username = data["username"]
                     ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field 'username'")
                 val diceResultString = data["diceResult"]
@@ -101,14 +101,14 @@ class GameWebSocket {
                 broadcastHitOrMissMessage(game, diceResult)
             }
 
-            SELECTED_WORD.name -> {
+            SELECTED_WORD -> {
                 val dataField = "selectedWord"
                 val selectedWord = data[dataField]
                     ?: throw IllegalArgumentException("Message of type $SELECTED_WORD requires data field '$dataField'")
                 broadcastSelectedWordMessage(game, selectedWord)
             }
 
-            PLAYER_CHOSE_HIT_OR_MISS.name -> {
+            PLAYER_CHOSE_HIT_OR_MISS -> {
                 val username = data["username"]
                     ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'username'")
                 val hitOrMiss = data["hitOrMiss"]
@@ -131,12 +131,16 @@ class GameWebSocket {
                     }
                 }
             }
+
+            else -> {
+                throw IllegalArgumentException("Unhandled message type $type")
+            }
         }
     }
 
-    private fun parseMessage(messageBody: String, ws: Websocket): GameWsMessage? {
+    private fun parseMessage(messageBody: String, ws: Websocket): WsMessageFromClient? {
         return try {
-            return Jackson.asA(messageBody, GameWsMessage::class)
+            return Jackson.asA(messageBody, WsMessageFromClient::class)
         } catch (e: JsonProcessingException) {
             LOGGER.info("Rejected message '${messageBody}': ${e.message}")
             sendWsMessage(ws, ERROR, "Invalid message")
