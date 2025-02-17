@@ -63,16 +63,6 @@ fun createNewGame(): Response {
         .cookie(Cookie("${gameId}_host", "1", path = "/"))
 }
 
-fun startGameHandler(req: Request, websocket: GameWebSocket): Response {
-    val gameId = Path.of("gameId")(req)
-    val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
-    game.start()
-    val currentPlayer = game.currentPlayer().name
-    websocket.broadcast(game, WsMessageType.GAME_START, currentPlayer)
-    val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
-    return Response(OK).body(responseBody)
-}
-
 fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val requestBodyString = req.bodyString()
     LOGGER.info("Request body: $requestBodyString")
@@ -86,4 +76,14 @@ fun joinGameHandler(req: Request, websocket: GameWebSocket): Response {
     val responseBody = JoinGameResponse(gameId, game.hostId, game.playerListForSerialization(), isStarted)
     return Response(OK).body(Jackson.asInputStream(responseBody))
         .cookie(Cookie(gameId, username, path = "/"))
+}
+
+fun startGameHandler(req: Request, websocket: GameWebSocket): Response {
+    val gameId = Path.of("gameId")(req)
+    val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
+    game.start()
+    val currentPlayer = game.currentPlayer().name
+    websocket.broadcast(game, WsMessageType.GAME_START, currentPlayer)
+    val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
+    return Response(OK).body(responseBody)
 }
