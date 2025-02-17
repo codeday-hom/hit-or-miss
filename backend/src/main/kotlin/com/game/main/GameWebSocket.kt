@@ -20,28 +20,26 @@ class GameWebSocket {
     private val isAlive = Collections.synchronizedMap(HashMap<String, Boolean>())
     private val mapper = ObjectMapper()
 
-    fun handler(): (Request) -> WsResponse {
-        return { req: Request ->
-            LOGGER.info("Websocket request path: ${req.uri.path}")
-            val gameId = Path.of("gameId")(req)
-            val game = getGame(gameId)
-            if (game == null) {
-                WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Game not found") }
-            } else {
-                WsResponse { ws: Websocket ->
-                    onOpen(ws, game)
-                    ws.onMessage {
-                        try {
-                            onMessage(ws, it, game.gameId)
-                        } catch (e: Exception) {
-                            LOGGER.info("Uncaught exception while processing message: ${e.message}")
-                        }
-                    }
-                    ws.onClose {
-                        LOGGER.info("${game.gameId} is closing")
-                        wsConnections[game.gameId]?.remove(ws)
-                    }
+    fun handler(): (Request) -> WsResponse = this::handle
+
+    fun handle(req: Request): WsResponse {
+        LOGGER.info("Websocket request path: ${req.uri.path}")
+        val gameId = Path.of("gameId")(req)
+        val game = getGame(gameId)
+            ?: return WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Game not found") }
+
+        return WsResponse { ws: Websocket ->
+            onOpen(ws, game)
+            ws.onMessage {
+                try {
+                    onMessage(ws, it, game.gameId)
+                } catch (e: Exception) {
+                    LOGGER.info("Uncaught exception while processing message: ${e.message}")
                 }
+            }
+            ws.onClose {
+                LOGGER.info("${game.gameId} is closing")
+                wsConnections[game.gameId]?.remove(ws)
             }
         }
     }
