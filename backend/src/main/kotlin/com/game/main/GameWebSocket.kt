@@ -17,7 +17,6 @@ private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleNam
 
 class GameWebSocket {
     private val wsConnections = Collections.synchronizedMap(HashMap<String, MutableList<Websocket>>())
-    private val isAlive = Collections.synchronizedMap(HashMap<String, Boolean>())
     private val mapper = ObjectMapper()
 
     fun handler(): (Request) -> WsResponse = this::handle
@@ -77,7 +76,6 @@ class GameWebSocket {
 
         when (type) {
             HEARTBEAT.name -> {
-                isAlive[gameId] = true
                 broadcastHeartbeatAckMessage(game)
             }
 
