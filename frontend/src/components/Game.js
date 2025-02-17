@@ -45,7 +45,7 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
   });
 
 
-  useWebsocketHeartbeat(sendMessage);
+  useWebsocketHeartbeat(gameId, clientUsername, sendMessage);
 
   /**
    * At the start of the game, there is a player whose turn is first.

@@ -83,7 +83,7 @@ class GameWebSocketTest {
         // Then make the game disappear
         GameRepository.reset()
 
-        send(WsMessageFromClient(WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science")))
+        send(WsMessageFromClient(game.gameId, "alice", WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science")))
 
         assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Game not found"))
     }
@@ -94,7 +94,7 @@ class GameWebSocketTest {
         assertReceivedUserJoinedMessage()
         game.start()
 
-        send(WsMessageFromClient(WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science")))
+        send(WsMessageFromClient(game.gameId, "alice", WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science")))
 
         assertFirstReplyEquals(mapOf("type" to WsMessageType.CATEGORY_SELECTED, "data" to "Science"))
     }
@@ -107,7 +107,7 @@ class GameWebSocketTest {
         game.startRound()
         game.startTurn("alice", DiceResult.HIT)
 
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
+        send(WsMessageFromClient(game.gameId, "grace", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
 
         assertFirstReplyEquals(
             mapOf(
@@ -128,8 +128,8 @@ class GameWebSocketTest {
         game.startRound()
         game.startTurn("alice", DiceResult.HIT)
 
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
+        send(WsMessageFromClient(game.gameId, "grace", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
+        send(WsMessageFromClient(game.gameId, "zuno", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
 
         assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "zuno"))
 
@@ -145,20 +145,20 @@ class GameWebSocketTest {
         // Alice's turn
         game.startRound()
         game.startTurn("alice", DiceResult.HIT)
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
+        send(WsMessageFromClient(game.gameId, "grace", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
+        send(WsMessageFromClient(game.gameId, "zuno", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
         assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "zuno"))
 
         // Zuno's turn
         game.startTurn("zuno", DiceResult.MISS)
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "alice")))
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
+        send(WsMessageFromClient(game.gameId, "alice", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "alice")))
+        send(WsMessageFromClient(game.gameId, "grace", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "grace")))
         assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "grace"))
 
         // Grace's turn
         game.startTurn("grace", DiceResult.HIT)
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "alice")))
-        send(WsMessageFromClient(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
+        send(WsMessageFromClient(game.gameId, "alice", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "alice")))
+        send(WsMessageFromClient(game.gameId, "zuno", WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT", "username" to "zuno")))
         assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_ROUND.name, "data" to "zuno"))
 
         assertEquals("zuno", game.currentPlayer().name)

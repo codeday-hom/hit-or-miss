@@ -13,7 +13,7 @@ export default function SelectCategoryPage({gameId, currentPlayer, clientUsernam
   return (
     <div>
       {currentPlayer === clientUsername
-        ? <CategoryPicker gameId={gameId} sendWebSocketMessage={sendMessage}/>
+        ? <CategoryPicker gameId={gameId} clientUsername={clientUsername} sendWebSocketMessage={sendMessage}/>
         : <p>{currentPlayer} is choosing a category</p>}
     </div>
   )

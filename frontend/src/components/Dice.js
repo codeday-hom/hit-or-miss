@@ -26,10 +26,20 @@ export default function Dice(
   });
 
   const sendHit = () => {
-    sendMessage(JSON.stringify({type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Hit", username: clientUsername}}));
+    sendMessage(JSON.stringify({
+      gameId,
+      player: clientUsername,
+      type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
+      data: {diceResult: "Hit", username: clientUsername},
+    }));
   };
   const sendMiss = () => {
-    sendMessage(JSON.stringify({type: WsMessageType.ROLL_DICE_HIT_OR_MISS, data: {diceResult: "Miss", username: clientUsername}}));
+    sendMessage(JSON.stringify({
+      gameId,
+      player: clientUsername,
+      type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
+      data: {diceResult: "Miss", username: clientUsername}
+    }));
   };
   useEffect(() => {
     if (diceResult) {
@@ -94,7 +104,12 @@ export default function Dice(
   }, [hitOrMiss]);
 
   const handleRollDice = () => {
-    sendMessage(JSON.stringify({type: WsMessageType.ROLL_DICE, data: {}}));
+    sendMessage(JSON.stringify({
+      gameId,
+      player: clientUsername,
+      type: WsMessageType.ROLL_DICE,
+      data: {}
+    }));
     setIsDiceRolled(true);
   };
 

@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 import {WsMessageType} from "../websockets/WsMessageType";
 import {CategoriesList} from "./CategoriesList";
 
-export default function CategoryPicker({sendWebSocketMessage}) {
+export default function CategoryPicker({gameId, clientUsername, sendWebSocketMessage}) {
   const categories = CategoriesList.sort(() => Math.random() - 0.5);
   let categoryIndex = 0;
 
@@ -11,7 +11,12 @@ export default function CategoryPicker({sendWebSocketMessage}) {
 
   const selectCategory = () => {
     setSelectedCategory(currentCategory)
-    sendWebSocketMessage(JSON.stringify({type: WsMessageType.CATEGORY_SELECTED, data: {category: currentCategory}}));
+    sendWebSocketMessage(JSON.stringify({
+      gameId,
+      player: clientUsername,
+      type: WsMessageType.CATEGORY_SELECTED,
+      data: {category: currentCategory}
+    }));
   };
 
   const fetchNextCategory = () => {
