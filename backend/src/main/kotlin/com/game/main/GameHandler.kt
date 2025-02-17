@@ -14,9 +14,6 @@ import org.http4k.lens.Path
 import org.http4k.routing.RoutingHttpHandler
 import org.http4k.routing.bind
 import org.http4k.routing.routes
-import org.slf4j.LoggerFactory
-
-private val LOGGER = LoggerFactory.getLogger(GameHandler::class.java.simpleName)
 
 class GameHandler {
 
@@ -36,9 +33,7 @@ class GameHandler {
     }
 
     private fun joinGame(req: Request, websocket: GameWebSocket): Response {
-        val requestBodyString = req.bodyString()
-        LOGGER.info("Request body: $requestBodyString")
-        val joinGameRequest = Jackson.asA(requestBodyString, JoinGameRequest::class)
+        val joinGameRequest = Jackson.asA(req.bodyString(), JoinGameRequest::class)
         val gameId = joinGameRequest.gameId
         val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
         val username = joinGameRequest.username
