@@ -33,8 +33,10 @@ fun main() {
     LOGGER.info("Serving frontend assets from $frontendBuild")
 
     val websocket = GameWebSocket()
-    val ws = websockets("/ws/game/{gameId}" bind websocket.handler())
-    val server = PolyHandler(gameServerHandler(frontendBuild, apiHandler(websocket)), ws).asServer(Jetty(8080)).start()
+    val server = PolyHandler(
+        gameServerHandler(frontendBuild, apiHandler(websocket)),
+        websockets("/ws/game/{gameId}" bind websocket.handler())
+    ).asServer(Jetty(8080)).start()
     val localAddress = "http://localhost:" + server.port()
     LOGGER.info("Server started on $localAddress")
 }
