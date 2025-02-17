@@ -1,7 +1,7 @@
 import {useLocation, useParams} from "react-router-dom";
 import Game from "./Game";
 
-export default function GameContext() {
+export default function ContextualGame() {
   const {gameId} = useParams();
   const location = useLocation();
   const clientUsername = location.state.clientUsername;

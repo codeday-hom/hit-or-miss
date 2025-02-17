@@ -4,7 +4,7 @@ import {createBrowserRouter, RouterProvider} from "react-router-dom";
 import "./index.css";
 import Landing from "./Landing";
 import Lobby from "./components/Lobby";
-import GameContext from "./components/GameContext";
+import ContextualGame from "./components/ContextualGame";
 import reportWebVitals from "./reportWebVitals";
 import Kit from "./components/kit/Kit";
 
@@ -19,7 +19,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/game/:gameId/",
-    element: <GameContext/>,
+    element: <ContextualGame/>,
   },
   {
     path: "/kit",

@@ -2,7 +2,7 @@
 
 import {act, fireEvent, prettyDOM, render, screen} from '@testing-library/react';
 import React from "react";
-import GameContext from "./GameContext";
+import ContextualGame from "./ContextualGame";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 import {WsMessageType} from "../websockets/WsMessageType";
 
@@ -43,7 +43,7 @@ function renderGame() {
       }
     }]}>
       <Routes>
-        <Route path={"/game/:gameId"} element={<GameContext/>}/>
+        <Route path={"/game/:gameId"} element={<ContextualGame/>}/>
       </Routes>
     </MemoryRouter>
   )
