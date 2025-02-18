@@ -60,11 +60,9 @@ class GameWebSocket {
 
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
         val messageBody = wsMessage.bodyString()
-
         val parsedMessage = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
-        val player = parsedMessage.player
-        val type = parsedMessage.type
-        if (type != HEARTBEAT) {
+
+        if (parsedMessage.type != HEARTBEAT) {
             LOGGER.info("Received a message: $parsedMessage")
         }
 
@@ -74,7 +72,7 @@ class GameWebSocket {
             return
         }
 
-        when (type) {
+        when (parsedMessage.type) {
             HEARTBEAT -> {
                 broadcastHeartbeatAckMessage(game)
             }
@@ -91,7 +89,7 @@ class GameWebSocket {
 
             ROLL_DICE_HIT_OR_MISS -> {
                 val diceResult = DiceResult.valueOf(parsedMessage.getRequiredData("diceResult").uppercase())
-                game.startTurn(player, diceResult)
+                game.startTurn(parsedMessage.player, diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
             }
 
@@ -102,7 +100,7 @@ class GameWebSocket {
 
             PLAYER_CHOSE_HIT_OR_MISS -> {
                 val hitOrMiss = parsedMessage.getRequiredData("hitOrMiss")
-                game.turnResult(player, TurnResult.valueOf(hitOrMiss.uppercase()))
+                game.turnResult(parsedMessage.player, TurnResult.valueOf(hitOrMiss.uppercase()))
                 broadcastScores(game)
 
                 if (game.allPlayersChoseHitOrMiss()) {
@@ -122,7 +120,7 @@ class GameWebSocket {
             }
 
             else -> {
-                throw IllegalArgumentException("Received unexpected message type '$type'")
+                throw IllegalArgumentException("Received unexpected message type '${parsedMessage.type}'")
             }
         }
     }
