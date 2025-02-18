@@ -62,8 +62,8 @@ class GameWebSocket {
         val messageBody = wsMessage.bodyString()
 
         val parsedMessage = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
+        val player = parsedMessage.player
         val type = parsedMessage.type
-        val data = parsedMessage.data
         if (type != HEARTBEAT) {
             LOGGER.info("Received a message: $parsedMessage")
         }
@@ -80,9 +80,7 @@ class GameWebSocket {
             }
 
             CATEGORY_SELECTED -> {
-                val dataField = "category"
-                val category = data[dataField]
-                    ?: throw IllegalArgumentException("Message of type $CATEGORY_SELECTED requires data field '$dataField'")
+                val category = parsedMessage.getRequiredData("category")
                 game.startRound()
                 broadcastCategorySelected(game, category)
             }
@@ -92,28 +90,19 @@ class GameWebSocket {
             }
 
             ROLL_DICE_HIT_OR_MISS -> {
-                val username = data["username"]
-                    ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field 'username'")
-                val diceResultString = data["diceResult"]
-                    ?: throw IllegalArgumentException("Message of type $ROLL_DICE_HIT_OR_MISS requires data field 'diceResult'")
-                val diceResult = DiceResult.valueOf(diceResultString.uppercase())
-                game.startTurn(username, diceResult)
+                val diceResult = DiceResult.valueOf(parsedMessage.getRequiredData("diceResult").uppercase())
+                game.startTurn(player, diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
             }
 
             SELECTED_WORD -> {
-                val dataField = "selectedWord"
-                val selectedWord = data[dataField]
-                    ?: throw IllegalArgumentException("Message of type $SELECTED_WORD requires data field '$dataField'")
+                val selectedWord = parsedMessage.getRequiredData("selectedWord")
                 broadcastSelectedWordMessage(game, selectedWord)
             }
 
             PLAYER_CHOSE_HIT_OR_MISS -> {
-                val username = data["username"]
-                    ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'username'")
-                val hitOrMiss = data["hitOrMiss"]
-                    ?: throw IllegalArgumentException("Message of type $PLAYER_CHOSE_HIT_OR_MISS requires data field 'hitOrMiss'")
-                game.turnResult(username, TurnResult.valueOf(hitOrMiss.uppercase()))
+                val hitOrMiss = parsedMessage.getRequiredData("hitOrMiss")
+                game.turnResult(player, TurnResult.valueOf(hitOrMiss.uppercase()))
                 broadcastScores(game)
 
                 if (game.allPlayersChoseHitOrMiss()) {
@@ -133,7 +122,7 @@ class GameWebSocket {
             }
 
             else -> {
-                throw IllegalArgumentException("Unhandled message type $type")
+                throw IllegalArgumentException("Received unexpected message type '$type'")
             }
         }
     }

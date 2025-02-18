@@ -30,7 +30,7 @@ export default function Dice(
       gameId,
       player: clientUsername,
       type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
-      data: {diceResult: "Hit", username: clientUsername},
+      data: {diceResult: "Hit"},
     }));
   };
   const sendMiss = () => {
@@ -38,7 +38,7 @@ export default function Dice(
       gameId,
       player: clientUsername,
       type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
-      data: {diceResult: "Miss", username: clientUsername}
+      data: {diceResult: "Miss"}
     }));
   };
   useEffect(() => {

@@ -10,7 +10,7 @@ export default function HitOrMissButton({gameId, clientUsername, currentPlayer, 
       gameId,
       player: clientUsername,
       type: WsMessageType.PLAYER_CHOSE_HIT_OR_MISS,
-      data: {username: clientUsername, hitOrMiss: status}
+      data: {hitOrMiss: status}
     }));
   }
 
