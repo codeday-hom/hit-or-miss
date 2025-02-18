@@ -138,9 +138,9 @@ class GameWebSocket {
         }
     }
 
-    private fun parseMessage(messageBody: String, ws: Websocket): WsMessageFromClient? {
+    private fun parseMessage(messageBody: String, ws: Websocket): ReceivedWsMessage? {
         return try {
-            return Jackson.asA(messageBody, WsMessageFromClient::class)
+            return Jackson.asA(messageBody, ReceivedWsMessage::class)
         } catch (e: JsonProcessingException) {
             LOGGER.info("Rejected message '${messageBody}': ${e.message}")
             sendWsMessage(ws, ERROR, "Invalid message")
