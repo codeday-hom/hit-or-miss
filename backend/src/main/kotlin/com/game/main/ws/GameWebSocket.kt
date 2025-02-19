@@ -1,9 +1,12 @@
-package com.game.main
+package com.game.main.ws
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.game.main.GameRepository.getGame
-import com.game.main.WsMessageType.*
+import com.game.main.hitormiss.DiceResult
+import com.game.main.hitormiss.Game
+import com.game.main.api.GameRepository
+import com.game.main.hitormiss.TurnResult
+import com.game.main.ws.WsMessageType.*
 import org.http4k.core.Request
 import org.http4k.format.Jackson
 import org.http4k.lens.Path
@@ -12,6 +15,7 @@ import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
 import org.slf4j.LoggerFactory
 import java.util.*
+
 
 private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
 
@@ -24,7 +28,7 @@ class GameWebSocket {
     fun handle(req: Request): WsResponse {
         LOGGER.info("Websocket request path: ${req.uri.path}")
         val gameId = Path.of("gameId")(req)
-        val game = getGame(gameId)
+        val game = GameRepository.getGame(gameId)
             ?: return WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Game not found") }
 
         return WsResponse { ws: Websocket ->
@@ -66,7 +70,7 @@ class GameWebSocket {
             LOGGER.info("Received a message: $parsedMessage")
         }
 
-        val game = getGame(gameId)
+        val game = GameRepository.getGame(gameId)
         if (game == null) {
             sendWsMessage(ws, ERROR, "Game not found")
             return

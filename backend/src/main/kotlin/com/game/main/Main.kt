@@ -1,5 +1,7 @@
 package com.game.main
 
+import com.game.main.api.GameHandler
+import com.game.main.ws.GameWebSocket
 import org.http4k.routing.*
 import org.http4k.routing.ResourceLoader.Companion.Directory
 import org.http4k.routing.ws.bind

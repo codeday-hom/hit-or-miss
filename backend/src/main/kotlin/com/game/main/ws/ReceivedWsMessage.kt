@@ -1,4 +1,4 @@
-package com.game.main
+package com.game.main.ws
 
 data class ReceivedWsMessage(val gameId: String, val player: String, val type: WsMessageType, val data: Map<String, String>) {
 

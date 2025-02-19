@@ -1,5 +1,6 @@
-package com.game.main
+package com.game.main.api
 
+import com.game.main.hitormiss.Game
 import java.util.concurrent.ConcurrentHashMap
 
 object GameRepository {

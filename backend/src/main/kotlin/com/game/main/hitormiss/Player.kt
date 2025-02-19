@@ -1,4 +1,4 @@
-package com.game.main
+package com.game.main.hitormiss
 
 class Player(val name: String) {
     private var username = name

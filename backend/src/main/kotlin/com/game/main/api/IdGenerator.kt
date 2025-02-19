@@ -1,4 +1,4 @@
-package com.game.main
+package com.game.main.api
 
 import org.apache.commons.codec.binary.Base32
 import java.util.Random

@@ -1,5 +1,10 @@
 package com.game.main
 
+import com.game.main.api.GameHandler
+import com.game.main.api.GameRepository
+import com.game.main.api.JoinGameRequest
+import com.game.main.hitormiss.Game
+import com.game.main.ws.GameWebSocket
 import io.mockk.clearMocks
 import io.mockk.mockk
 import org.http4k.core.Method
@@ -12,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.InputStream
 
-class ServerTest {
+class MainTest {
 
     private val wsHandlerMock = mockk<GameWebSocket>(relaxed = true)
     private val gameHandler = GameHandler()

@@ -1,4 +1,4 @@
-package com.game.main
+package com.game.main.ws
 
 enum class WsMessageType {
     USER_JOINED,

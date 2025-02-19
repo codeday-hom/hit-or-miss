@@ -1,6 +1,9 @@
-package com.game.main
+package com.game.main.ws
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.game.main.api.GameRepository
+import com.game.main.hitormiss.DiceResult
+import com.game.main.hitormiss.Game
 import org.http4k.client.WebsocketClient
 import org.http4k.core.Uri
 import org.http4k.routing.websockets
