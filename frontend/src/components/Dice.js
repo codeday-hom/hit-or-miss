@@ -7,7 +7,7 @@ export default function Dice(
   {
     gameId,
     currentPlayer,
-    clientUsername,
+    clientPlayer,
     onDiceResult
   }
 ) {
@@ -28,7 +28,7 @@ export default function Dice(
   const sendHit = () => {
     sendMessage(JSON.stringify({
       gameId,
-      player: clientUsername,
+      player: clientPlayer,
       type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
       data: {diceResult: "Hit"},
     }));
@@ -36,7 +36,7 @@ export default function Dice(
   const sendMiss = () => {
     sendMessage(JSON.stringify({
       gameId,
-      player: clientUsername,
+      player: clientPlayer,
       type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
       data: {diceResult: "Miss"}
     }));
@@ -106,7 +106,7 @@ export default function Dice(
   const handleRollDice = () => {
     sendMessage(JSON.stringify({
       gameId,
-      player: clientUsername,
+      player: clientPlayer,
       type: WsMessageType.ROLL_DICE,
       data: {}
     }));
@@ -147,12 +147,12 @@ export default function Dice(
         </div>
       </div>
       <div className="roll-button">
-        {currentPlayer === clientUsername && !isDiceRolled && (
+        {currentPlayer === clientPlayer && !isDiceRolled && (
           <button onClick={handleRollDice}>Roll dice</button>
         )}
       </div>
 
-      {currentPlayer !== clientUsername && (
+      {currentPlayer !== clientPlayer && (
         <div>{currentPlayer} is rolling the dice...</div>
       )}
 
@@ -160,7 +160,7 @@ export default function Dice(
         ? <div className="dice-result">Result: ${hitOrMiss}</div>
         : null}
 
-      {wildcardOption && currentPlayer === clientUsername && (
+      {wildcardOption && currentPlayer === clientPlayer && (
         <div className="wildcard">
           <div className="wildcard-content">
             <h2>Wildcard!</h2>

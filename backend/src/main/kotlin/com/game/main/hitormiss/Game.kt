@@ -4,7 +4,7 @@ import java.util.*
 
 data class Game(val gameId: String) {
 
-    lateinit var hostId: String
+    lateinit var hostPlayerId: String
 
     private val players: Players = Players()
     private val playersWhoHavePickedACategory: MutableSet<String> = mutableSetOf()
@@ -16,14 +16,14 @@ data class Game(val gameId: String) {
 
     fun currentPlayer() = players.currentPlayer()
 
-    fun addPlayer(username: String): Player {
+    fun addPlayer(playerId: String): Player {
         if (isStarted()) {
             throw IllegalStateException("Game $gameId already started.")
         }
         if (countPlayers() == 0) {
-            hostId = username
+            hostPlayerId = playerId
         }
-        return players.addPlayer(username)
+        return players.addPlayer(playerId)
     }
 
     fun start(shufflePlayerOrders: (Players) -> Unit = { _ -> players.shufflePlayerOrders() }) {
@@ -51,11 +51,11 @@ data class Game(val gameId: String) {
         currentRound = Round()
     }
 
-    fun startTurn(username: String, diceResult: DiceResult) {
-        if (username != currentPlayer().getUsername()) {
-            throw IllegalArgumentException("The current player is '${currentPlayer().getUsername()}' so can't start turn for player '$username'.")
-        } else if (players.getPlayer(username) == null) {
-            throw IllegalArgumentException("No such player '$username'.")
+    fun startTurn(playerId: String, diceResult: DiceResult) {
+        if (playerId != currentPlayer().id) {
+            throw IllegalArgumentException("The current player is '${currentPlayer().id}' so can't start turn for player '$playerId'.")
+        } else if (players.getPlayer(playerId) == null) {
+            throw IllegalArgumentException("No such player '$playerId'.")
         }
 
         currentTurn = Turn(currentPlayer(), diceResult)
@@ -75,7 +75,7 @@ data class Game(val gameId: String) {
      * To be used when it is the next player's turn to pick a new category.
      */
     fun nextRound() {
-        playersWhoHavePickedACategory.add(currentPlayer().name)
+        playersWhoHavePickedACategory.add(currentPlayer().id)
         if (playersWhoHavePickedACategory.size < countPlayers()) {
             players.skipPlayer()
         } else {
@@ -83,8 +83,8 @@ data class Game(val gameId: String) {
         }
     }
 
-    fun turnResult(username: String, turnResult: TurnResult) {
-        val player = players.getPlayer(username) ?: throw IllegalArgumentException("Player doesn't exist: $username")
+    fun turnResult(playerId: String, turnResult: TurnResult) {
+        val player = players.getPlayer(playerId) ?: throw IllegalArgumentException("No such player with id '$playerId'")
         Optional.ofNullable(currentTurn)
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .result(player, turnResult)
@@ -112,7 +112,7 @@ data class Game(val gameId: String) {
         }
 
         fun playerRolledTheDice(player: Player) {
-            playersWhoRolledTheDice.add(player.getUsername())
+            playersWhoRolledTheDice.add(player.id)
         }
     }
 
@@ -124,7 +124,7 @@ data class Game(val gameId: String) {
         }
 
         fun result(player: Player, result: TurnResult) {
-            playersWhoChoseHitOrMiss.add(player.getUsername())
+            playersWhoChoseHitOrMiss.add(player.id)
             when (result) {
                 TurnResult.HIT -> {
                     when (diceResult) {

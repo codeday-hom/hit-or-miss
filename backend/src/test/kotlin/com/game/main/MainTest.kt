@@ -47,28 +47,28 @@ class MainTest {
         GameRepository.createGame(gameId, Game(gameId))
         val game = GameRepository.getGame(gameId)!!
 
-        val username1 = "testUser1"
-        post("api/game/$gameId/join", Jackson.asInputStream(JoinGameRequest(gameId, username1)))
+        val playerId1 = "testPlayer1"
+        post("api/game/$gameId/join", Jackson.asInputStream(JoinGameRequest(gameId, playerId1)))
         val players1 = game.playerListForSerialization()
         assert(players1.size == 1)
         assert(game.countPlayers() == 1)
-        assert(game.hostId == username1)
-        assert(players1.contains(username1))
+        assert(game.hostPlayerId == playerId1)
+        assert(players1.contains(playerId1))
 
-        val username2 = "testUser2"
-        post("api/game/$gameId/join", Jackson.asInputStream(JoinGameRequest(gameId, username2)))
+        val playerId2 = "testPlayer2"
+        post("api/game/$gameId/join", Jackson.asInputStream(JoinGameRequest(gameId, playerId2)))
         val players2 = game.playerListForSerialization()
         assert(players2.size == 2)
         assert(game.countPlayers() == 2)
-        assert(game.hostId == username1)
-        assert(players2.contains(username1))
-        assert(players2.contains(username2))
+        assert(game.hostPlayerId == playerId1)
+        assert(players2.contains(playerId1))
+        assert(players2.contains(playerId2))
     }
 
     @Test
     fun `should return 404 if game not found`() {
         val gameId = "notFoundGameId"
-        val response = post("api/game/$gameId/join", Jackson.asInputStream(JoinGameRequest(gameId, "username")))
+        val response = post("api/game/$gameId/join", Jackson.asInputStream(JoinGameRequest(gameId, "test")))
         assertEquals(Status.NOT_FOUND, response.status)
     }
 

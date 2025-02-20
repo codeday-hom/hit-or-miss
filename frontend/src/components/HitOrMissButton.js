@@ -1,21 +1,21 @@
 import React, {useState} from 'react';
 import {WsMessageType} from "../websockets/wsMessageType";
 
-export default function HitOrMissButton({gameId, clientUsername, currentPlayer, sendWebSocketMessage}) {
+export default function HitOrMissButton({gameId, clientPlayer, currentPlayer, sendWebSocketMessage}) {
   const [wordStatus, setWordStatus] = useState(null);
 
   const handleHitOrMiss = (status) => {
     setWordStatus(status);
     sendWebSocketMessage(JSON.stringify({
       gameId,
-      player: clientUsername,
+      player: clientPlayer,
       type: WsMessageType.PLAYER_CHOSE_HIT_OR_MISS,
       data: {hitOrMiss: status}
     }));
   }
 
   const hitOrMissButton = () => {
-    if (currentPlayer === clientUsername || wordStatus) {
+    if (currentPlayer === clientPlayer || wordStatus) {
       return null
     }
 

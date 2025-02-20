@@ -24,9 +24,9 @@ class Players {
         return currentPlayer()
     }
 
-    fun addPlayer(username: String): Player {
-        val newPlayer = Player(username)
-        players[username] = newPlayer
+    fun addPlayer(playerId: String): Player {
+        val newPlayer = Player(playerId)
+        players[playerId] = newPlayer
         return newPlayer
     }
 
@@ -45,7 +45,7 @@ class Players {
 
 
     // For use in tests
-    fun playersInOrder() = playerOrders.map { players[it]?.getUsername() }
+    fun playersInOrder() = playerOrders.map { players[it]?.id }
 
     // For use in tests
     fun useUnshuffledOrder() {
@@ -53,13 +53,13 @@ class Players {
         playerOrders.addAll(players.keys)
     }
 
-    fun getPlayer(username: String): Player? {
-        return players[username]
+    fun getPlayer(playerId: String): Player? {
+        return players[playerId]
     }
 
 
     fun scores() = players.values.associateBy(
-        { p -> p.getUsername() },
+        { p -> p.id },
         { p -> p.getPlayerPoints() }
     )
 }

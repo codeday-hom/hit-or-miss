@@ -152,11 +152,11 @@ class GameWebSocket {
     }
 
     private fun broadcastNextTurnMessage(game: Game) {
-        broadcast(game, NEXT_TURN, game.currentPlayer().name)
+        broadcast(game, NEXT_TURN, game.currentPlayer().id)
     }
 
     private fun broadcastNextRoundMessage(game: Game) {
-        broadcast(game, NEXT_ROUND, game.currentPlayer().name)
+        broadcast(game, NEXT_ROUND, game.currentPlayer().id)
     }
 
     private fun broadcastHeartbeatAckMessage(game: Game) {
@@ -183,7 +183,7 @@ class GameWebSocket {
         broadcast(game, SCORES, serializedScores(game))
     }
 
-    private fun serializedScores(game: Game) = game.scores().map { mapOf("username" to it.key, "score" to it.value) }
+    private fun serializedScores(game: Game) = game.scores().map { mapOf("playerId" to it.key, "score" to it.value) }
 
     fun broadcast(game: Game, type: WsMessageType, body: Any?) {
         val connections = wsConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")

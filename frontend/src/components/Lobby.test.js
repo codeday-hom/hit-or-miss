@@ -124,7 +124,7 @@ test('sends your name to the server after entering it', async () => {
   const request = requests.filter(it => it.url === `/api/game/${gameId}/join`).at(0)
   const requestBody = JSON.parse(request.options.body)
   expect(requestBody.gameId).toEqual(gameId)
-  expect(requestBody.username).toEqual("Zuno")
+  expect(requestBody.playerId).toEqual("Zuno")
 });
 
 test('shows invalid name warning if name is empty', async () => {
@@ -142,7 +142,7 @@ test('shows invalid name warning if name is already taken', async () => {
 
   await enterName("Rob", false)
 
-  expect(screen.getByText(/This username is already taken/i)).toBeInTheDocument()
+  expect(screen.getByText(/This name is already taken/i)).toBeInTheDocument()
 });
 
 test('new players are shown as they join', async () => {

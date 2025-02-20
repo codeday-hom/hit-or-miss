@@ -4,9 +4,9 @@ import Game from "./Game";
 export default function ContextualGame() {
   const {gameId} = useParams();
   const location = useLocation();
-  const clientUsername = location.state.clientUsername;
+  const clientPlayer = location.state.clientPlayer;
   const initialPlayer = location.state.currentPlayer;
-  const playerNames = location.state.playerNames;
+  const players = location.state.players;
 
-  return <Game gameId={gameId} clientUsername={clientUsername} initialPlayer={initialPlayer} playerNames={playerNames}/>
+  return <Game gameId={gameId} clientPlayer={clientPlayer} initialPlayer={initialPlayer} players={players}/>
 }

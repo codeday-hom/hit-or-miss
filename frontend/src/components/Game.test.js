@@ -37,9 +37,9 @@ function renderGame() {
     <MemoryRouter initialEntries={[{
       pathname: `/game/${gameId}`,
       state: {
-        clientUsername: "Alice",
+        clientPlayer: "Alice",
         currentPlayer: "Bob",
-        playerNames: ["Alice", "Bob", "Charlie"]
+        players: ["Alice", "Bob", "Charlie"]
       }
     }]}>
       <Routes>
@@ -207,9 +207,9 @@ test('scoreboard updates after hit or miss selection', async () => {
   await wordSelected("Fun categories")
   await selectHit()
   allPlayersSelectedHitOrMiss([
-    {username: "Alice", score: 1},
-    {username: "Bob", score: 1},
-    {username: "Charlie", score: 0}
+    {playerId: "Alice", score: 1},
+    {playerId: "Bob", score: 1},
+    {playerId: "Charlie", score: 0}
   ])
 
   expectScoreboardRows([
@@ -224,9 +224,9 @@ test('winner is shown once game is over', async () => {
   renderGame()
 
   gameOver([
-    {username: "Alice", score: 2},
-    {username: "Bob", score: 1},
-    {username: "Charlie", score: 0}
+    {playerId: "Alice", score: 2},
+    {playerId: "Bob", score: 1},
+    {playerId: "Charlie", score: 0}
   ])
 
   expectScoreboardRows([
@@ -234,7 +234,7 @@ test('winner is shown once game is over', async () => {
     {player: "Bob", score: "1"},
     {player: "Charlie", score: "0"}
   ])
-  expect(screen.getByText(/🎉 Congratulations to the winner: ✨Alice!✨ 🎉/i)).toBeInTheDocument()
+  expect(screen.getByText(/🎉 Congratulations to the winner, ✨Alice ✨! 🎉/i)).toBeInTheDocument()
 });
 
 test('joint winners (2 of them) are shown once game is over', async () => {
@@ -242,9 +242,9 @@ test('joint winners (2 of them) are shown once game is over', async () => {
   renderGame()
 
   gameOver([
-    {username: "Alice", score: 2},
-    {username: "Bob", score: 1},
-    {username: "Charlie", score: 2}
+    {playerId: "Alice", score: 2},
+    {playerId: "Bob", score: 1},
+    {playerId: "Charlie", score: 2}
   ])
 
   expectScoreboardRows([
@@ -252,7 +252,7 @@ test('joint winners (2 of them) are shown once game is over', async () => {
     {player: "Bob", score: "1"},
     {player: "Charlie", score: "2"}
   ])
-  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨ and ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+  expect(screen.getByText(/🎉 Congratulations to the joint winners, ✨Alice ✨ and ✨Charlie ✨! 🎉/i)).toBeInTheDocument()
 });
 
 test('joint winners (3 of them) are shown once game is over', async () => {
@@ -260,9 +260,9 @@ test('joint winners (3 of them) are shown once game is over', async () => {
   renderGame()
 
   gameOver([
-    {username: "Alice", score: 2},
-    {username: "Bob", score: 2},
-    {username: "Charlie", score: 2}
+    {playerId: "Alice", score: 2},
+    {playerId: "Bob", score: 2},
+    {playerId: "Charlie", score: 2}
   ])
 
   expectScoreboardRows([
@@ -270,6 +270,6 @@ test('joint winners (3 of them) are shown once game is over', async () => {
     {player: "Bob", score: "2"},
     {player: "Charlie", score: "2"}
   ])
-  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨, ✨Bob!✨, ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+  expect(screen.getByText(/🎉 Congratulations to the joint winners, ✨Alice ✨, ✨Bob ✨, ✨Charlie ✨! 🎉/i)).toBeInTheDocument()
 });
 

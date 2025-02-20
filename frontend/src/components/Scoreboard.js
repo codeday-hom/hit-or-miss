@@ -1,6 +1,6 @@
 import "./Scoreboard.css";
 
-export default function Scoreboard({clientUsername, scores}) {
+export default function Scoreboard({clientPlayer, scores}) {
   const sortedScores = [...scores].sort((a, b) => b.score - a.score);
 
   return (
@@ -14,8 +14,8 @@ export default function Scoreboard({clientUsername, scores}) {
         </thead>
         <tbody>
         {sortedScores.map(player => (
-          <tr key={player.username}>
-            <td>{player.username + (player.username === clientUsername ? " (you)" : "")}</td>
+          <tr key={player.playerId}>
+            <td>{player.playerId + (player.playerId === clientPlayer ? " (you)" : "")}</td>
             <td>{player.score}</td>
           </tr>
         ))}

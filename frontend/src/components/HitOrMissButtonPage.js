@@ -8,7 +8,7 @@ export default function HitOrMissButtonPage(
     diceResult,
     selectedWord,
     currentPlayer,
-    clientUsername,
+    clientPlayer,
     sendWebSocketMessage
   }
 ) {
@@ -20,7 +20,7 @@ export default function HitOrMissButtonPage(
       <HitOrMissButton
         gameId={gameId}
         currentPlayer={currentPlayer}
-        clientUsername={clientUsername}
+        clientPlayer={clientPlayer}
         sendWebSocketMessage={sendWebSocketMessage}
       />
     </div>

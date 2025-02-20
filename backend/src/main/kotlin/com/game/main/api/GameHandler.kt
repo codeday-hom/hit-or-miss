@@ -39,20 +39,20 @@ class GameHandler {
         val joinGameRequest = Jackson.asA(req.bodyString(), JoinGameRequest::class)
         val gameId = joinGameRequest.gameId
         val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
-        val username = joinGameRequest.username
-        game.addPlayer(username)
+        val playerId = joinGameRequest.playerId
+        game.addPlayer(playerId)
         websocket.broadcast(game, WsMessageType.USER_JOINED, game.playerListForSerialization())
         val isStarted = game.isStarted()
-        val responseBody = JoinGameResponse(gameId, game.hostId, game.playerListForSerialization(), isStarted)
+        val responseBody = JoinGameResponse(gameId, game.hostPlayerId, game.playerListForSerialization(), isStarted)
         return Response(OK).body(Jackson.asInputStream(responseBody))
-            .cookie(Cookie(gameId, username, path = "/"))
+            .cookie(Cookie(gameId, playerId, path = "/"))
     }
 
     private fun startGame(req: Request, websocket: GameWebSocket): Response {
         val gameId = Path.of("gameId")(req)
         val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
         game.start()
-        val currentPlayer = game.currentPlayer().name
+        val currentPlayer = game.currentPlayer().id
         websocket.broadcast(game, WsMessageType.GAME_START, currentPlayer)
         val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
         return Response(OK).body(responseBody)

@@ -1,7 +1,6 @@
 package com.game.main.hitormiss
 
-class Player(val name: String) {
-    private var username = name
+class Player(val id: String) {
     private var points = 0
 
     fun getPlayerPoints(): Int {
@@ -11,7 +10,4 @@ class Player(val name: String) {
     fun addPlayerPoints(amount: Int) {
         this.points += amount
     }
-
-    fun getUsername() = this.username
-
 }

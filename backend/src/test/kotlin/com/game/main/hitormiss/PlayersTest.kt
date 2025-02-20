@@ -9,16 +9,16 @@ class PlayersTest {
     @Test
     fun `can get current player`() {
         val players = playersWithUnshuffledOrder(mutableMapOf("id" to Player("name")))
-        assertEquals("name", players.currentPlayer().getUsername())
+        assertEquals("name", players.currentPlayer().id)
     }
 
     @Test
     fun `can get next player`() {
         val players = playersWithUnshuffledOrder(mutableMapOf("id" to Player("name"), "secondId" to Player("secondName")))
-        assertEquals("secondName", players.nextPlayer().getUsername())
-        assertEquals("secondName", players.currentPlayer().getUsername())
-        assertEquals("name", players.nextPlayer().getUsername())
-        assertEquals("name", players.currentPlayer().getUsername())
+        assertEquals("secondName", players.nextPlayer().id)
+        assertEquals("secondName", players.currentPlayer().id)
+        assertEquals("name", players.nextPlayer().id)
+        assertEquals("name", players.currentPlayer().id)
     }
 
     @Test
@@ -50,7 +50,7 @@ class PlayersTest {
     private fun playersWithUnshuffledOrder(playerMap: MutableMap<String, Player>): Players {
         val players = Players()
         playerMap.forEach {
-            players.addPlayer(it.value.name)
+            players.addPlayer(it.value.id)
         }
         return players.apply { useUnshuffledOrder() }
     }
