@@ -27,7 +27,10 @@ fun main() {
     val gameHandler = GameHandler()
     val server = PolyHandler(
         gameServerHandler(frontendBuild, gameHandler.apiHandler(websocket)),
-        websockets("/ws/game/{gameId}" bind websocket.handler())
+        websockets(
+            "/ws/game/{gameId}" bind websocket.handler(),
+            "/ws/game/{gameId}/{playerId}" bind websocket.handler()
+        )
     ).asServer(Jetty(8080)).start()
     val localAddress = "http://localhost:" + server.port()
     LOGGER.info("Server started on $localAddress")

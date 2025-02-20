@@ -18,7 +18,7 @@ global.console.error = (message) => {
 // Mock web socket connection
 let webSocketGameId = null;
 let webSocketOnMessageFunctions = [];
-jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
+jest.mock("../websockets/useGameWebSocket", () => function (gameId, playerId, onMessageFunction) {
   webSocketGameId = gameId;
   webSocketOnMessageFunctions.push(onMessageFunction)
 })

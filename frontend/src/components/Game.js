@@ -29,7 +29,7 @@ export default function Game({gameId, clientPlayer, initialPlayer, players}) {
   const [selectedWord, setSelectedWord] = useState("");
   const [scores, setScores] = useState(players.map(playerId => ({playerId: playerId, score: 0})));
 
-  const {sendMessage} = useGameWebSocket(gameId, (message) => {
+  const {sendMessage} = useGameWebSocket(gameId, clientPlayer, (message) => {
     if (message.type === WsMessageType.NEXT_TURN) {
       setCurrentPlayer(message.data);
       setGamePhase(GamePhase.ROLL_DICE);

@@ -4,7 +4,7 @@ import useGameWebSocket from "../websockets/useGameWebSocket";
 import {WsMessageType} from "../websockets/WsMessageType";
 
 export default function SelectWordPage({gameId, currentPlayer, clientPlayer, currentSelectedCategory, diceResult, onWordSelected}) {
-  const {sendMessage} = useGameWebSocket(gameId, (message) => {
+  const {sendMessage} = useGameWebSocket(gameId, clientPlayer, (message) => {
     if (message.type === WsMessageType.SELECTED_WORD) {
       onWordSelected(message.data)
     }

@@ -2,14 +2,14 @@ package com.game.main.ws
 
 import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.game.main.api.GameRepository
 import com.game.main.hitormiss.DiceResult
 import com.game.main.hitormiss.Game
-import com.game.main.api.GameRepository
 import com.game.main.hitormiss.TurnResult
 import com.game.main.ws.WsMessageType.*
 import org.http4k.core.Request
 import org.http4k.format.Jackson
-import org.http4k.lens.Path
+import org.http4k.routing.path
 import org.http4k.websocket.Websocket
 import org.http4k.websocket.WsMessage
 import org.http4k.websocket.WsResponse
@@ -27,9 +27,15 @@ class GameWebSocket {
 
     fun handle(req: Request): WsResponse {
         LOGGER.info("Websocket request path: ${req.uri.path}")
-        val gameId = Path.of("gameId")(req)
+        val gameId = req.path("gameId")
+            ?: return WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Missing path variable gameId") }
         val game = GameRepository.getGame(gameId)
             ?: return WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Game not found") }
+
+        val playerId = req.path("playerId")
+        if (playerId != null) {
+            LOGGER.info("Handling ws connection for player $playerId")
+        }
 
         return WsResponse { ws: Websocket ->
             onOpen(ws, game)

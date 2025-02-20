@@ -1,8 +1,8 @@
 import {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import Cookies from "js-cookie";
-import useGameWebSocket from "../websockets/useGameWebSocket";
 import {WsMessageType} from "../websockets/WsMessageType";
+import useGameWebSocket from "../websockets/useGameWebSocket";
 
 export default function Lobby() {
   const [isHost, setIsHost] = useState(false);
@@ -14,7 +14,8 @@ export default function Lobby() {
   const [gameStarted, setGameStarted] = useState(false);
   const navigate = useNavigate();
 
-  useGameWebSocket(gameId, (message) => {
+  // From the lobby, we connect without using a playerId, since we don't necessarily have it yet.
+  useGameWebSocket(gameId, null, (message) => {
     if (message.type === WsMessageType.USER_JOINED) {
       setPlayers((previousPlayers) => {
         const newPlayers = Object.values(message.data).filter(

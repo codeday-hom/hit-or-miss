@@ -17,7 +17,7 @@ export default function Dice(
   const [isDiceRolled, setIsDiceRolled] = useState(false);
   const [hitOrMiss, setHitOrMiss] = useState("");
   const [displayHitOrMiss, setDisplayHitOrMiss] = useState(false);
-  const {sendMessage} = useGameWebSocket(gameId, (message) => {
+  const {sendMessage} = useGameWebSocket(gameId, clientPlayer, (message) => {
     if (message.type === WsMessageType.ROLL_DICE_RESULT) {
       setDiceResult(message.data);
     } else if (message.type === WsMessageType.ROLL_DICE_HIT_OR_MISS) {
