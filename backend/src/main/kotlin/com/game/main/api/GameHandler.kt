@@ -41,7 +41,7 @@ class GameHandler {
         val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
         val playerId = joinGameRequest.playerId
         game.addPlayer(playerId)
-        websocket.broadcast(game, WsMessageType.USER_JOINED, game.playerListForSerialization())
+        websocket.lobbyBroadcast(game, WsMessageType.USER_JOINED, game.playerListForSerialization())
         val isStarted = game.isStarted()
         val responseBody = JoinGameResponse(gameId, game.hostPlayerId, game.playerListForSerialization(), isStarted)
         return Response(OK).body(Jackson.asInputStream(responseBody))
@@ -53,7 +53,7 @@ class GameHandler {
         val game = getGame(gameId) ?: return Response(NOT_FOUND).body("Game not found: $gameId")
         game.start()
         val currentPlayer = game.currentPlayer().id
-        websocket.broadcast(game, WsMessageType.GAME_START, currentPlayer)
+        websocket.lobbyBroadcast(game, WsMessageType.GAME_START, currentPlayer)
         val responseBody = """{ "message": "Game started", "currentPlayer": "$currentPlayer" }"""
         return Response(OK).body(responseBody)
     }

@@ -1,6 +1,9 @@
 package com.game.main.hitormiss
 
+import org.slf4j.LoggerFactory
 import java.util.*
+
+private val LOGGER = LoggerFactory.getLogger(Game::class.java.simpleName)
 
 data class Game(val gameId: String) {
 
@@ -29,6 +32,7 @@ data class Game(val gameId: String) {
     fun start(shufflePlayerOrders: (Players) -> Unit = { _ -> players.shufflePlayerOrders() }) {
         started = true
         shufflePlayerOrders(players)
+        LOGGER.info("Starting game $gameId with player order: ${players.playersInOrder()}")
     }
 
     fun startForTest() {
@@ -102,6 +106,14 @@ data class Game(val gameId: String) {
         return Optional.ofNullable(currentRound)
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
             .allPlayersRolledTheDice()
+    }
+
+    fun hasPlayer(playerId: String?): Boolean {
+        if (playerId == null) {
+            return false
+        }
+
+        return players.getPlayer(playerId) != null
     }
 
     inner class Round {
