@@ -29,7 +29,7 @@ class GameHandler {
     private fun newGame(): Response {
         val gameId = IdGenerator.generateId()
         val game = Game(gameId)
-        GameRepository.createGame(gameId, game)
+        GameRepository.registerGame(game)
         return Response(Status.SEE_OTHER)
             .header("Location", "/lobby/$gameId")
             .cookie(Cookie("${gameId}_host", "1", path = "/"))

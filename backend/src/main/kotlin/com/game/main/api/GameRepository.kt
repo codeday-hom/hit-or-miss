@@ -7,8 +7,8 @@ object GameRepository {
 
     private val games = ConcurrentHashMap<String, Game>()
 
-    fun createGame(gameId: String, game: Game) {
-        games[gameId] = game
+    fun registerGame(game: Game) {
+        games[game.gameId] = game
     }
 
     fun getGame(gameId: String): Game? {

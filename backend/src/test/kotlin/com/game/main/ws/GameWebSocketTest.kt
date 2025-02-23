@@ -3,11 +3,6 @@ package com.game.main.ws
 import com.game.main.api.GameRepository
 import com.game.main.hitormiss.DiceResult
 import com.game.main.hitormiss.Game
-import org.http4k.routing.websockets
-import org.http4k.routing.ws.bind
-import org.http4k.server.Http4kServer
-import org.http4k.server.Jetty
-import org.http4k.server.asServer
 import org.http4k.websocket.WsMessage
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,30 +11,22 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 
 class GameWebSocketTest {
-    private val websocket = GameWebSocket()
 
-    private lateinit var server: Http4kServer
-    private lateinit var game: Game
-
+    private val testServer = TestGameServer()
+    private val game = Game("testGameId")
     private val alice = TestPlayer("alice")
     private val zuno = TestPlayer("zuno")
     private val grace = TestPlayer("grace")
 
     @BeforeEach
     fun before() {
-        server = websockets("/{gameId}/{playerId}" bind websocket.handler()).asServer(Jetty(0))
-        server.start()
-        val gameId = "testGameId"
-        game = Game(gameId)
-        GameRepository.createGame(gameId, game)
-        alice.connect(server, game)
-        zuno.connect(server, game)
-        grace.connect(server, game)
+        testServer.start()
+        testServer.createLobby(game, alice, zuno, grace)
     }
 
     @AfterEach
     fun after() {
-        server.stop()
+        testServer.stop()
     }
 
     @Test
@@ -54,7 +41,7 @@ class GameWebSocketTest {
         game.start()
         val rob = TestPlayer("rob")
 
-        rob.connect(server, game, skipConnectionAssertion = true)
+        testServer.connectWithError(rob, game)
 
         rob.assertFirstReplyEquals(WsMessageType.ERROR, "Game already started")
     }
@@ -63,7 +50,7 @@ class GameWebSocketTest {
     fun `replies with an error when the game is not found`() {
         val rob = TestPlayer("rob")
 
-        rob.connect(server, Game("non-existent-game"), skipConnectionAssertion = true)
+        testServer.connectWithError(rob, Game("non-existent-game"))
 
         rob.assertFirstReplyEquals(WsMessageType.ERROR, "Game not found")
     }

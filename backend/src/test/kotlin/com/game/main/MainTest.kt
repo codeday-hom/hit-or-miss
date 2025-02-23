@@ -44,7 +44,7 @@ class MainTest {
     @Test
     fun `Game is updated whenever a new player joins`() {
         val gameId = "randomGameId"
-        GameRepository.createGame(gameId, Game(gameId))
+        GameRepository.registerGame(Game(gameId))
         val game = GameRepository.getGame(gameId)!!
 
         val playerId1 = "testPlayer1"
