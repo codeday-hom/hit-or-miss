@@ -17,7 +17,7 @@ class TestPlayer(private val name: String) {
     fun connect(server: Http4kServer, game: Game, skipConnectionAssertion: Boolean = false) {
         client = WebsocketClient.blocking(Uri.of("ws://localhost:${server.port()}/${game.gameId}/$name"))
         if (!skipConnectionAssertion) {
-            assertFirstReplyEquals(mapOf("type" to WsMessageType.USER_JOINED.name, "data" to game.playerListForSerialization()))
+            assertFirstReplyEquals(WsMessageType.USER_JOINED, game.playerListForSerialization())
             game.addPlayer(name)
         }
         this.game = game
@@ -35,13 +35,13 @@ class TestPlayer(private val name: String) {
         send(ReceivedWsMessage(game.gameId, name, type, data))
     }
 
-    fun assertNthReplyEquals(n: Int, expectedMessage: Map<String, Any>) {
+    fun assertNthReplyEquals(n: Int, type: WsMessageType, data: Any) {
         val reply = client.received().take(n).last()
-        val expected = WsMessage(jacksonObjectMapper().writeValueAsString(expectedMessage))
+        val expected = WsMessage(jacksonObjectMapper().writeValueAsString(mapOf("type" to type, "data" to data)))
         Assertions.assertEquals(expected, reply)
     }
 
-    fun assertFirstReplyEquals(expectedMessage: Map<String, Any>) {
-        assertNthReplyEquals(1, expectedMessage)
+    fun assertFirstReplyEquals(type: WsMessageType, data: Any) {
+        assertNthReplyEquals(1, type, data)
     }
 }

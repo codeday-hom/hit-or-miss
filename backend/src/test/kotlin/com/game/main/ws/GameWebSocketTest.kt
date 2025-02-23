@@ -56,7 +56,7 @@ class GameWebSocketTest {
 
         rob.connect(server, game, skipConnectionAssertion = true)
 
-        rob.assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Game already started"))
+        rob.assertFirstReplyEquals(WsMessageType.ERROR, "Game already started")
     }
 
     @Test
@@ -65,7 +65,7 @@ class GameWebSocketTest {
 
         rob.connect(server, Game("non-existent-game"), skipConnectionAssertion = true)
 
-        rob.assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Game not found"))
+        rob.assertFirstReplyEquals(WsMessageType.ERROR, "Game not found")
     }
 
     @Test
@@ -73,7 +73,7 @@ class GameWebSocketTest {
     fun `replies with an error to messages with the wrong format`() {
         alice.send(WsMessage("Nonsense"))
 
-        alice.assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Invalid message"))
+        alice.assertFirstReplyEquals(WsMessageType.ERROR, "Invalid message")
     }
 
     @Test
@@ -83,7 +83,7 @@ class GameWebSocketTest {
 
         alice.send(WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science"))
 
-        alice.assertFirstReplyEquals(mapOf("type" to WsMessageType.ERROR.name, "data" to "Game not found"))
+        alice.assertFirstReplyEquals(WsMessageType.ERROR, "Game not found")
     }
 
     @Test
@@ -93,7 +93,7 @@ class GameWebSocketTest {
 
         alice.send(WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science"))
 
-        alice.assertFirstReplyEquals(mapOf("type" to WsMessageType.CATEGORY_SELECTED, "data" to "Science"))
+        alice.assertFirstReplyEquals(WsMessageType.CATEGORY_SELECTED, "Science")
     }
 
     @Test
@@ -107,13 +107,11 @@ class GameWebSocketTest {
 
         listOf(alice, zuno, grace).forEach { player ->
             player.assertFirstReplyEquals(
-                mapOf(
-                    "type" to WsMessageType.SCORES.name,
-                    "data" to listOf(
-                        mapOf("playerId" to "alice", "score" to 1),
-                        mapOf("playerId" to "zuno", "score" to 0),
-                        mapOf("playerId" to "grace", "score" to 1)
-                    )
+                WsMessageType.SCORES,
+                listOf(
+                    mapOf("playerId" to "alice", "score" to 1),
+                    mapOf("playerId" to "zuno", "score" to 0),
+                    mapOf("playerId" to "grace", "score" to 1)
                 )
             )
         }
@@ -130,7 +128,7 @@ class GameWebSocketTest {
         zuno.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
 
         listOf(alice, zuno, grace).forEach { player ->
-            player.assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "zuno"))
+            player.assertNthReplyEquals(3, WsMessageType.NEXT_TURN, "zuno")
         }
 
         assertEquals("zuno", game.currentPlayer().id)
@@ -147,7 +145,7 @@ class GameWebSocketTest {
         grace.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         zuno.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         listOf(alice, zuno, grace).forEach { player ->
-            player.assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "zuno"))
+            player.assertNthReplyEquals(3, WsMessageType.NEXT_TURN, "zuno")
         }
 
         // Zuno's turn
@@ -155,7 +153,7 @@ class GameWebSocketTest {
         alice.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         grace.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         listOf(alice, zuno, grace).forEach { player ->
-            player.assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_TURN.name, "data" to "grace"))
+            player.assertNthReplyEquals(3, WsMessageType.NEXT_TURN, "grace")
         }
 
         // Grace's turn
@@ -163,7 +161,7 @@ class GameWebSocketTest {
         alice.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         zuno.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         listOf(alice, zuno, grace).forEach { player ->
-            player.assertNthReplyEquals(3, mapOf("type" to WsMessageType.NEXT_ROUND.name, "data" to "zuno"))
+            player.assertNthReplyEquals(3, WsMessageType.NEXT_ROUND, "zuno")
         }
 
         assertEquals("zuno", game.currentPlayer().id)
