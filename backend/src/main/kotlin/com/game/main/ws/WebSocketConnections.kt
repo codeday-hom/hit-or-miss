@@ -1,13 +1,15 @@
 package com.game.main.ws
 
 import com.game.main.hitormiss.Game
+import com.game.main.ws.WsMessageType.ERROR
+import com.game.main.ws.WsMessageType.USER_JOINED
 import org.http4k.websocket.Websocket
 import org.slf4j.LoggerFactory
 import java.util.*
 
 private val LOGGER = LoggerFactory.getLogger(WebSocketConnections::class.java.simpleName)
 
-class WebSocketConnections {
+class WebSocketConnections(private val messenger: WsMessenger) {
 
     /**
      * Maps a gameId to a list of websocket connections associated with a game lobby.
@@ -17,22 +19,34 @@ class WebSocketConnections {
     /**
      * Maps a gameId to a list of websocket connections and the corresponding player id.
      */
-    private val gameConnections = Collections.synchronizedMap(HashMap<String, MutableList<Pair<String, MutableList<Websocket>>>>())
+    private val identifiedConnections = Collections.synchronizedMap(HashMap<String, MutableList<Pair<String, MutableList<Websocket>>>>())
 
-    fun onOpen(ws: Websocket, gameId: String, playerId: String?) {
+    fun onOpen(ws: Websocket, game: Game, playerId: String?) {
+        val gameId = game.gameId
         if (playerId == null) {
             LOGGER.info("Adding anonymous connection for game $gameId")
             anonymousConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
         } else {
-            val gameConnections = gameConnections.getOrPut(gameId) { mutableListOf() }
+            val gameConnections = identifiedConnections.getOrPut(gameId) { mutableListOf() }
             val playerConnections = gameConnections.find { it.first == playerId }
             if (playerConnections == null) {
-                LOGGER.info("Adding first connection in game $gameId for player ${playerId}")
+                LOGGER.info("Adding first connection in game $gameId for player $playerId")
                 gameConnections.add(Pair(playerId, mutableListOf(ws)))
             } else {
-                LOGGER.info("Adding new connection in game $gameId for player ${playerId}")
+                if (playerConnections.second.isEmpty()) {
+                    LOGGER.info("Player $playerId has reconnected to game $gameId")
+                    messenger.broadcast(gameConnections.map { it.second }.flatten(), WsMessageType.USER_RECONNECTED, playerId)
+                } else {
+                    LOGGER.info("Adding new connection in game $gameId for player $playerId")
+                }
                 playerConnections.second.add(ws)
             }
+        }
+
+        if (!game.isStarted()) {
+            messenger.send(ws, USER_JOINED, game.playerListForSerialization())
+        } else if (!game.hasPlayer(playerId)) {
+            messenger.send(ws, ERROR, "Game already started")
         }
     }
 
@@ -44,13 +58,16 @@ class WebSocketConnections {
             LOGGER.info("Anonymous connection for game $gameId has closed")
         }
 
-        val matchingGameConnection = gameConnections[gameId]?.find { it.second.contains(ws) }
-        if (matchingGameConnection != null) {
-            if (matchingGameConnection.second.remove(ws)) {
-                LOGGER.info("Connection for game $gameId of player ${matchingGameConnection.first} has closed")
+        val gameConnections = identifiedConnections[gameId]
+        val playerConnections = gameConnections?.find { it.second.contains(ws) }
+        if (playerConnections != null) {
+            val player = playerConnections.first
+            if (playerConnections.second.remove(ws)) {
+                LOGGER.info("Connection for game $gameId of player $player has closed")
             }
-            if (matchingGameConnection.second.isEmpty()) {
-                LOGGER.info("Player ${matchingGameConnection.first} has disconnected from game $gameId")
+            if (playerConnections.second.isEmpty()) {
+                LOGGER.info("Player $player has disconnected from game $gameId")
+                messenger.broadcast(gameConnections.map { it.second }.flatten(), WsMessageType.USER_DISCONNECTED, player)
             }
         }
     }
@@ -71,7 +88,7 @@ class WebSocketConnections {
      * Connections to all connections for all players in a running game.
      */
     fun forGame(game: Game): List<Websocket> {
-        val connections = gameConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
+        val connections = identifiedConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
         checkConnectionCount(game, connections.size)
         return connections.map { it.second }.flatten()
     }

@@ -1,7 +1,6 @@
 package com.game.main.ws
 
 import com.fasterxml.jackson.core.JsonProcessingException
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.game.main.api.GameRepository
 import com.game.main.hitormiss.DiceResult
 import com.game.main.hitormiss.Game
@@ -19,17 +18,21 @@ import org.slf4j.LoggerFactory
 private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
 
 class GameWebSocket {
-    private val connections = WebSocketConnections()
-    private val mapper = ObjectMapper()
+    private val messenger = WsMessenger()
+    private val connections = WebSocketConnections(messenger)
 
     fun handler(): (Request) -> WsResponse = this::handle
 
     fun handle(req: Request): WsResponse {
         LOGGER.info("Websocket request path: ${req.uri.path}")
         val gameId = req.path("gameId")
-            ?: return WsResponse { ws: Websocket -> sendWsMessage(ws, ERROR, "Missing path variable gameId") }
+            ?: return WsResponse { ws: Websocket ->
+                messenger.send(ws, ERROR, "Missing path variable gameId")
+            }
         val game = GameRepository.getGame(gameId)
-            ?: return WsResponse { ws: Websocket -> sendSingleWsMessage(ws, ERROR, "Game not found") }
+            ?: return WsResponse { ws: Websocket ->
+                messenger.send(ws, ERROR, "Game not found")
+            }
 
         val playerId = req.path("playerId")
         if (playerId != null) {
@@ -37,7 +40,7 @@ class GameWebSocket {
         }
 
         return WsResponse { ws: Websocket ->
-            onOpen(ws, game, playerId)
+            connections.onOpen(ws, game, playerId)
             ws.onMessage {
                 try {
                     onMessage(ws, it, game.gameId)
@@ -51,16 +54,6 @@ class GameWebSocket {
         }
     }
 
-    private fun onOpen(ws: Websocket, game: Game, playerId: String?) {
-        connections.onOpen(ws, game.gameId, playerId)
-
-        if (!game.isStarted()) {
-            sendSingleWsMessage(ws, USER_JOINED, game.playerListForSerialization())
-        } else if (!game.hasPlayer(playerId)) {
-            sendSingleWsMessage(ws, ERROR, "Game already started")
-        }
-    }
-
     private fun onMessage(ws: Websocket, wsMessage: WsMessage, gameId: String) {
         val messageBody = wsMessage.bodyString()
         val parsedMessage = parseMessage(messageBody, ws) ?: throw IllegalArgumentException("the message couldn't be parsed")
@@ -71,7 +64,7 @@ class GameWebSocket {
 
         val game = GameRepository.getGame(gameId)
         if (game == null) {
-            sendSingleWsMessage(ws, ERROR, "Game not found")
+            messenger.send(ws, ERROR, "Game not found")
             return
         }
 
@@ -140,20 +133,9 @@ class GameWebSocket {
             return Jackson.asA(messageBody, ReceivedWsMessage::class)
         } catch (e: JsonProcessingException) {
             LOGGER.info("Rejected message '${messageBody}': ${e.message}")
-            sendSingleWsMessage(ws, ERROR, "Invalid message")
+            messenger.send(ws, ERROR, "Invalid message")
             null
         }
-    }
-
-    private fun sendWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
-        ws.send(WsMessage(mapper.writeValueAsString(mapOf("type" to type.name, "data" to data))))
-    }
-
-    private fun sendSingleWsMessage(ws: Websocket, type: WsMessageType, data: Any?) {
-        if (type != HEARTBEAT_ACK) {
-            LOGGER.info("Sending a $type message with data $data")
-        }
-        sendWsMessage(ws, type, data)
     }
 
     private fun broadcastCategorySelected(game: Game, category: String) {
@@ -195,17 +177,10 @@ class GameWebSocket {
     private fun serializedScores(game: Game) = game.scores().map { mapOf("playerId" to it.key, "score" to it.value) }
 
     private fun broadcast(game: Game, type: WsMessageType, data: Any?) {
-        if (type != HEARTBEAT_ACK) {
-            LOGGER.info("Broadcasting a $type message with data $data")
-        }
-        connections.forGame(game).forEach { ws ->
-            sendWsMessage(ws, type, data)
-        }
+        messenger.broadcast(connections.forGame(game), type, data)
     }
 
     fun lobbyBroadcast(game: Game, type: WsMessageType, data: Any?) {
-        connections.forLobby(game).forEach { ws ->
-            sendWsMessage(ws, type, data)
-        }
+        messenger.broadcast(connections.forLobby(game), type, data)
     }
 }

@@ -7,6 +7,7 @@ import org.http4k.websocket.WsMessage
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Timeout
 
@@ -152,5 +153,52 @@ class GameWebSocketTest {
         }
 
         assertEquals("zuno", game.currentPlayer().id)
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `players are informed when a player disconnects`() {
+        game.startForTest()
+
+        alice.disconnect()
+
+        listOf(zuno, grace).forEach { player ->
+            player.assertFirstReplyEquals(WsMessageType.USER_DISCONNECTED, "alice")
+        }
+    }
+
+    @Test
+    @Timeout(value = 4)
+    fun `players are informed when a disconnected player reconnects`() {
+        game.startForTest()
+
+        grace.disconnect()
+        listOf(alice, zuno).forEach { player ->
+            player.assertFirstReplyEquals(WsMessageType.USER_DISCONNECTED, "grace")
+        }
+
+        grace.reconnect()
+
+        listOf(alice, zuno).forEach { player ->
+            player.assertFirstReplyEquals(WsMessageType.USER_RECONNECTED, "grace")
+        }
+    }
+
+    // TODO: Make this test pass
+    @Disabled
+    @Test
+    @Timeout(value = 4)
+    fun `reconnecting player receives a message allowing them to rejoin`() {
+        game.startForTest()
+
+        zuno.disconnect()
+        listOf(alice, grace).forEach { player ->
+            player.assertFirstReplyEquals(WsMessageType.USER_DISCONNECTED, "zuno")
+        }
+
+        zuno.reconnect()
+
+        // TODO: Include all the required data here.
+        zuno.assertFirstReplyEquals(WsMessageType.GAME_JOINABLE, mapOf("foo" to "bar"))
     }
 }

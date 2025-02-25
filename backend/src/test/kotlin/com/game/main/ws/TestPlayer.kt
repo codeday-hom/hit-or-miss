@@ -13,14 +13,20 @@ class TestPlayer(private val name: String) {
 
     private lateinit var client: WsClient
     private lateinit var game: Game
+    private lateinit var server: Http4kServer
+
+    private fun openConnection(server: Http4kServer, game: Game) {
+        client = WebsocketClient.blocking(Uri.of("ws://localhost:${server.port()}/${game.gameId}/$name"))
+    }
 
     fun connect(server: Http4kServer, game: Game, skipConnectionAssertion: Boolean = false) {
-        client = WebsocketClient.blocking(Uri.of("ws://localhost:${server.port()}/${game.gameId}/$name"))
+        openConnection(server, game)
         if (!skipConnectionAssertion) {
             assertFirstReplyEquals(WsMessageType.USER_JOINED, game.playerListForSerialization())
             game.addPlayer(name)
         }
         this.game = game
+        this.server = server
     }
 
     fun send(message: WsMessage) {
@@ -43,5 +49,13 @@ class TestPlayer(private val name: String) {
 
     fun assertFirstReplyEquals(type: WsMessageType, data: Any) {
         assertNthReplyEquals(1, type, data)
+    }
+
+    fun disconnect() {
+        client.close()
+    }
+
+    fun reconnect() {
+        openConnection(server, game)
     }
 }
