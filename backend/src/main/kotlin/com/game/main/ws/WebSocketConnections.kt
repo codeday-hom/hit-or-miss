@@ -2,10 +2,12 @@ package com.game.main.ws
 
 import com.game.main.hitormiss.Game
 import com.game.main.ws.WsMessageType.ERROR
+import com.game.main.ws.WsMessageType.USER_DISCONNECTED
 import com.game.main.ws.WsMessageType.USER_JOINED
+import com.game.main.ws.WsMessageType.USER_RECONNECTED
+import java.util.Collections
 import org.http4k.websocket.Websocket
 import org.slf4j.LoggerFactory
-import java.util.*
 
 private val LOGGER = LoggerFactory.getLogger(WebSocketConnections::class.java.simpleName)
 
@@ -33,13 +35,15 @@ class WebSocketConnections(private val messenger: WsMessenger) {
                 LOGGER.info("Adding first connection in game $gameId for player $playerId")
                 gameConnections.add(Pair(playerId, mutableListOf(ws)))
             } else {
-                if (playerConnections.second.isEmpty()) {
-                    LOGGER.info("Player $playerId has reconnected to game $gameId")
-                    messenger.broadcast(gameConnections.map { it.second }.flatten(), WsMessageType.USER_RECONNECTED, playerId)
-                } else {
-                    LOGGER.info("Adding new connection in game $gameId for player $playerId")
+                synchronized(playerConnections) {
+                    if (playerConnections.second.isEmpty()) {
+                        LOGGER.info("Player $playerId has reconnected to game $gameId")
+                        messenger.broadcast(gameConnections.map { it.second }.flatten(), USER_RECONNECTED, playerId)
+                    } else {
+                        LOGGER.info("Adding new connection in game $gameId for player $playerId")
+                    }
+                    playerConnections.second.add(ws)
                 }
-                playerConnections.second.add(ws)
             }
         }
 
@@ -61,13 +65,15 @@ class WebSocketConnections(private val messenger: WsMessenger) {
         val gameConnections = identifiedConnections[gameId]
         val playerConnections = gameConnections?.find { it.second.contains(ws) }
         if (playerConnections != null) {
-            val player = playerConnections.first
-            if (playerConnections.second.remove(ws)) {
-                LOGGER.info("Connection for game $gameId of player $player has closed")
-            }
-            if (playerConnections.second.isEmpty()) {
-                LOGGER.info("Player $player has disconnected from game $gameId")
-                messenger.broadcast(gameConnections.map { it.second }.flatten(), WsMessageType.USER_DISCONNECTED, player)
+            synchronized(playerConnections) {
+                val player = playerConnections.first
+                if (playerConnections.second.remove(ws)) {
+                    LOGGER.info("Connection for game $gameId of player $player has closed")
+                }
+                if (playerConnections.second.isEmpty()) {
+                    LOGGER.info("Player $player has disconnected from game $gameId")
+                    messenger.broadcast(gameConnections.map { it.second }.flatten(), USER_DISCONNECTED, player)
+                }
             }
         }
     }
