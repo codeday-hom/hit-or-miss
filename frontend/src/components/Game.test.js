@@ -38,7 +38,7 @@ function renderGame() {
       pathname: `/game/${gameId}`,
       state: {
         clientPlayer: "Alice",
-        currentPlayer: "Bob",
+        initialPlayer: "Bob",
         players: ["Alice", "Bob", "Charlie"]
       }
     }]}>
