@@ -81,6 +81,14 @@ function gameOver(scores) {
   receiveWebSocketMessage({type: WsMessageType.GAME_OVER, data: scores})
 }
 
+function playerDisconnects(playerId) {
+  receiveWebSocketMessage({type: WsMessageType.USER_DISCONNECTED, data: playerId})
+}
+
+function playerReconnects(playerId) {
+  receiveWebSocketMessage({type: WsMessageType.USER_RECONNECTED, data: playerId})
+}
+
 function expectScoreboardRows(expectedRows) {
   const rows = screen.getAllByRole('row')
 
@@ -216,6 +224,38 @@ test('scoreboard updates after hit or miss selection', async () => {
     {player: "Alice (you)", score: "1"},
     {player: "Bob", score: "1"},
     {player: "Charlie", score: "0"}
+  ])
+});
+
+test('scoreboard shows disconnected players', async () => {
+  renderGame()
+
+  playerDisconnects("Bob")
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "0"},
+    {player: "Bob (disconnected)", score: "0"},
+    {player: "Charlie", score: "0"},
+  ])
+});
+
+test('scoreboard shows reconnected players', async () => {
+  renderGame()
+
+  playerDisconnects("Charlie")
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "0"},
+    {player: "Bob", score: "0"},
+    {player: "Charlie (disconnected)", score: "0"},
+  ])
+
+  playerReconnects("Charlie")
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "0"},
+    {player: "Bob", score: "0"},
+    {player: "Charlie", score: "0"},
   ])
 });
 

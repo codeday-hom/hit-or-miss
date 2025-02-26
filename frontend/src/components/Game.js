@@ -28,6 +28,7 @@ export default function Game({gameId, clientPlayer, initialPlayer, players}) {
   const [diceResult, setDiceResult] = useState("");
   const [selectedWord, setSelectedWord] = useState("");
   const [scores, setScores] = useState(players.map(playerId => ({playerId: playerId, score: 0})));
+  const [disconnectedPlayers, setDisconnectedPlayers] = useState([]);
 
   const {sendMessage} = useGameWebSocket(gameId, clientPlayer, (message) => {
     if (message.type === WsMessageType.NEXT_TURN) {
@@ -41,6 +42,10 @@ export default function Game({gameId, clientPlayer, initialPlayer, players}) {
     } else if (message.type === WsMessageType.GAME_OVER) {
       setScores(message.data);
       setGamePhase(GamePhase.GAME_OVER)
+    } else if (message.type === WsMessageType.USER_DISCONNECTED) {
+      setDisconnectedPlayers(l => l.concat([message.data]))
+    } else if (message.type === WsMessageType.USER_RECONNECTED) {
+      setDisconnectedPlayers(l => l.filter(p => p !== message.data))
     }
   });
 
@@ -120,7 +125,7 @@ export default function Game({gameId, clientPlayer, initialPlayer, players}) {
         {conditionalGameState()}
       </div>
       <div className="game-scoreboard">
-        <Scoreboard clientPlayer={clientPlayer} scores={scores}/>
+        <Scoreboard clientPlayer={clientPlayer} scores={scores} disconnectedPlayers={disconnectedPlayers}/>
       </div>
     </div>
   );
