@@ -14,7 +14,7 @@ class GameTest {
         game.startForTest()
         game.startRound()
 
-        game.startTurn("ian", DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
         game.turnResult("rob", TurnResult.HIT)
         game.turnResult("tom", TurnResult.MISS)
 
@@ -23,7 +23,7 @@ class GameTest {
         assertEquals(0, tom.getPlayerPoints())
 
         game.nextTurn()
-        game.startTurn("rob", DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
         game.turnResult("ian", TurnResult.MISS)
         game.turnResult("tom", TurnResult.HIT)
 
@@ -42,7 +42,7 @@ class GameTest {
         game.startForTest()
         game.startRound()
 
-        game.startTurn("ian", DiceResult.MISS)
+        game.startTurn(DiceResult.MISS)
         game.turnResult("rob", TurnResult.MISS)
         game.turnResult("tom", TurnResult.MISS)
         game.turnResult("timmy", TurnResult.HIT)
@@ -53,7 +53,7 @@ class GameTest {
         assertEquals(3, timmy.getPlayerPoints())
 
         game.nextTurn()
-        game.startTurn("rob", DiceResult.MISS)
+        game.startTurn(DiceResult.MISS)
         game.turnResult("ian", TurnResult.HIT)
         game.turnResult("tom", TurnResult.MISS)
         game.turnResult("timmy", TurnResult.HIT)

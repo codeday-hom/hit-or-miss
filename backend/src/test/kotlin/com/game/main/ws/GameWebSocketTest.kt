@@ -89,7 +89,7 @@ class GameWebSocketTest {
     fun `replies to player-hit-or-miss message with updated scores`() {
         game.startForTest()
         game.startRound()
-        game.startTurn("alice", DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
 
         grace.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
 
@@ -110,7 +110,7 @@ class GameWebSocketTest {
     fun `when all players have chosen hit-or-miss a next turn message is broadcast`() {
         game.startForTest()
         game.startRound()
-        game.startTurn("alice", DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
 
         grace.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         zuno.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
@@ -129,7 +129,7 @@ class GameWebSocketTest {
 
         // Alice's turn
         game.startRound()
-        game.startTurn("alice", DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
         grace.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         zuno.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         listOf(alice, zuno, grace).forEach { player ->
@@ -137,7 +137,7 @@ class GameWebSocketTest {
         }
 
         // Zuno's turn
-        game.startTurn("zuno", DiceResult.MISS)
+        game.startTurn(DiceResult.MISS)
         alice.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         grace.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         listOf(alice, zuno, grace).forEach { player ->
@@ -145,7 +145,7 @@ class GameWebSocketTest {
         }
 
         // Grace's turn
-        game.startTurn("grace", DiceResult.HIT)
+        game.startTurn(DiceResult.HIT)
         alice.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         zuno.send(WsMessageType.PLAYER_CHOSE_HIT_OR_MISS, mapOf("hitOrMiss" to "HIT"))
         listOf(alice, zuno, grace).forEach { player ->

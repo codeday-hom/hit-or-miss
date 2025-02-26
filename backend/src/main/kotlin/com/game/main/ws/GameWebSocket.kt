@@ -85,7 +85,7 @@ class GameWebSocket {
 
             ROLL_DICE_HIT_OR_MISS -> {
                 val diceResult = DiceResult.valueOf(parsedMessage.getRequiredData("diceResult").uppercase())
-                game.startTurn(parsedMessage.player, diceResult)
+                game.startTurn(diceResult)
                 broadcastHitOrMissMessage(game, diceResult)
             }
 

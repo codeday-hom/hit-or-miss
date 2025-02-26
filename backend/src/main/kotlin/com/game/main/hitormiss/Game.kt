@@ -55,13 +55,7 @@ data class Game(val gameId: String) {
         currentRound = Round()
     }
 
-    fun startTurn(playerId: String, diceResult: DiceResult) {
-        if (playerId != currentPlayer().id) {
-            throw IllegalArgumentException("The current player is '${currentPlayer().id}' so can't start turn for player '$playerId'.")
-        } else if (players.getPlayer(playerId) == null) {
-            throw IllegalArgumentException("No such player '$playerId'.")
-        }
-
+    fun startTurn(diceResult: DiceResult) {
         currentTurn = Turn(currentPlayer(), diceResult)
         Optional.ofNullable(currentRound)
             .orElseThrow { IllegalStateException("Game not started: $gameId") }
