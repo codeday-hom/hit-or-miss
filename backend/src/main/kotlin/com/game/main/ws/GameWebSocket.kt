@@ -167,14 +167,12 @@ class GameWebSocket {
     }
 
     private fun broadcastGameOverMessage(game: Game) {
-        broadcast(game, GAME_OVER, serializedScores(game))
+        broadcast(game, GAME_OVER, game.scoresForSerialization())
     }
 
     private fun broadcastScores(game: Game) {
-        broadcast(game, SCORES, serializedScores(game))
+        broadcast(game, SCORES, game.scoresForSerialization())
     }
-
-    private fun serializedScores(game: Game) = game.scores().map { mapOf("playerId" to it.key, "score" to it.value) }
 
     private fun broadcast(game: Game, type: WsMessageType, data: Any?) {
         messenger.broadcast(connections.forGame(game), type, data)

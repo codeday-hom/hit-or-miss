@@ -88,7 +88,7 @@ data class Game(val gameId: String) {
             .result(player, turnResult)
     }
 
-    fun scores(): Map<String, Int> = players.scores()
+    fun scoresForSerialization(): List<Map<String, Any>> = players.scores().map { mapOf("playerId" to it.key, "score" to it.value) }
 
     fun allPlayersChoseHitOrMiss(): Boolean {
         return Optional.ofNullable(currentTurn)
