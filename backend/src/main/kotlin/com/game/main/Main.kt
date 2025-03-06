@@ -11,6 +11,7 @@ import org.http4k.server.asServer
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.io.FileNotFoundException
+import java.time.Clock
 
 private val LOGGER = LoggerFactory.getLogger("Main")
 
@@ -23,7 +24,7 @@ fun main() {
     }
     LOGGER.info("Serving frontend assets from $frontendBuild")
 
-    val websocket = GameWebSocket()
+    val websocket = GameWebSocket(Clock.systemUTC())
     val gameHandler = GameHandler()
     val server = PolyHandler(
         gameServerHandler(frontendBuild, gameHandler.apiHandler(websocket)),

@@ -3,6 +3,9 @@ package com.game.main.ws
 import com.game.main.api.GameRepository
 import com.game.main.hitormiss.DiceResult
 import com.game.main.hitormiss.Game
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import org.http4k.websocket.WsMessage
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,7 +16,8 @@ import org.junit.jupiter.api.Timeout
 
 class GameWebSocketTest {
 
-    private val testServer = TestGameServer()
+    private val fixedClock = Clock.fixed(Instant.now(), ZoneOffset.UTC)
+    private val testServer = TestGameServer(fixedClock)
     private val game = Game("testGameId")
     private val alice = TestPlayer("alice")
     private val zuno = TestPlayer("zuno")
@@ -81,7 +85,9 @@ class GameWebSocketTest {
 
         alice.send(WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science"))
 
-        alice.assertFirstReplyEquals(WsMessageType.CATEGORY_SELECTED, "Science")
+        alice.assertFirstReplyEquals(WsMessageType.CATEGORY_SELECTED,
+            mapOf("category" to "Science", "countdownTimerStart" to fixedClock.instant().toEpochMilli())
+        )
     }
 
     @Test

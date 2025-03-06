@@ -5,7 +5,20 @@ import com.game.main.api.GameRepository
 import com.game.main.hitormiss.DiceResult
 import com.game.main.hitormiss.Game
 import com.game.main.hitormiss.TurnResult
-import com.game.main.ws.WsMessageType.*
+import com.game.main.ws.WsMessageType.CATEGORY_SELECTED
+import com.game.main.ws.WsMessageType.ERROR
+import com.game.main.ws.WsMessageType.GAME_OVER
+import com.game.main.ws.WsMessageType.HEARTBEAT
+import com.game.main.ws.WsMessageType.HEARTBEAT_ACK
+import com.game.main.ws.WsMessageType.NEXT_ROUND
+import com.game.main.ws.WsMessageType.NEXT_TURN
+import com.game.main.ws.WsMessageType.PLAYER_CHOSE_HIT_OR_MISS
+import com.game.main.ws.WsMessageType.ROLL_DICE
+import com.game.main.ws.WsMessageType.ROLL_DICE_HIT_OR_MISS
+import com.game.main.ws.WsMessageType.ROLL_DICE_RESULT
+import com.game.main.ws.WsMessageType.SCORES
+import com.game.main.ws.WsMessageType.SELECTED_WORD
+import java.time.Clock
 import org.http4k.core.Request
 import org.http4k.format.Jackson
 import org.http4k.routing.path
@@ -17,7 +30,7 @@ import org.slf4j.LoggerFactory
 
 private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
 
-class GameWebSocket {
+class GameWebSocket(private val clock: Clock) {
     private val messenger = WsMessenger()
     private val connections = WebSocketConnections(messenger)
 
@@ -139,7 +152,10 @@ class GameWebSocket {
     }
 
     private fun broadcastCategorySelected(game: Game, category: String) {
-        broadcast(game, CATEGORY_SELECTED, category)
+        broadcast(game, CATEGORY_SELECTED, mapOf(
+            "category" to category,
+            "countdownTimerStart" to clock.instant().toEpochMilli()
+        ))
     }
 
     private fun broadcastNextTurnMessage(game: Game) {

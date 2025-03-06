@@ -2,35 +2,35 @@ import React, {useEffect, useState} from 'react';
 import {buildStyles, CircularProgressbar} from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 
-function CountdownTimer({onTimeout}) {
-  // Seconds for main countdown.
-  const countdownDuration = window['useTestTimeouts'] ? 0.1 : 30
+function CountdownTimer({countdownTimerStart, onTimeout}) {
+
+  const secondsToMillis = (n) => n * 1000;
+
+  const countdownDurationSeconds = window['useTestTimeouts'] ? 0.1 : 30
+  const initialSecondsLeft = Math.max(1, Math.floor(((countdownTimerStart.getTime() + (secondsToMillis(countdownDurationSeconds))) - new Date().getTime()) / 1000))
 
   // Seconds between "Ready", "Set" and "Go".
   const phaseInterval = window['useTestTimeouts'] ? 0.1 : 2
 
   const [phase, setPhase] = useState('ready'); // ready / set / go / timeout
-  const [secondsLeft, setSecondsLeft] = useState(countdownDuration);
+  const [secondsLeft, setSecondsLeft] = useState(initialSecondsLeft);
 
   function tick() {
     setSecondsLeft(s => s - 1);
   }
 
-  // Converts seconds to millis.
-  const seconds = (n) => n * 1000;
-
   useEffect(() => {
     if (phase === 'ready') {
-      setTimeout(() => setPhase('set'), seconds(phaseInterval)); // "Ready" phase
-      setTimeout(() => setPhase('go'), seconds(phaseInterval * 2)); // "Set" phase
+      setTimeout(() => setPhase('set'), secondsToMillis(phaseInterval)); // "Ready" phase
+      setTimeout(() => setPhase('go'), secondsToMillis(phaseInterval * 2)); // "Set" phase
       setTimeout(() => {
         setPhase('timeout')
         onTimeout()
-      }, seconds(countdownDuration + (phaseInterval * 2))); // "Go" phase
+      }, secondsToMillis(initialSecondsLeft + (phaseInterval * 2))); // "Go" phase
     }
 
     if (phase === 'go') {
-      const interval = setInterval(() => tick(), seconds(1));
+      const interval = setInterval(() => tick(), secondsToMillis(1));
       return () => clearInterval(interval);
     }
   }, [phase]);
@@ -50,7 +50,7 @@ function CountdownTimer({onTimeout}) {
     }
   };
 
-  const percentage = Math.round((countdownDuration - secondsLeft) / countdownDuration * 100);
+  const percentage = Math.round((countdownDurationSeconds - secondsLeft) / countdownDurationSeconds * 100);
 
   function conditionalDisplay() {
     if (phase === 'go') {

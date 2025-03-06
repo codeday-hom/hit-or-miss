@@ -49,8 +49,9 @@ function renderGame() {
   )
 }
 
+let categorySelectionCountdownTimerStart = new Date()
 function categorySelected(category) {
-  receiveWebSocketMessage({type: WsMessageType.CATEGORY_SELECTED, data: category})
+  receiveWebSocketMessage({type: WsMessageType.CATEGORY_SELECTED, data: {category, countdownTimerStart: categorySelectionCountdownTimerStart}})
 }
 
 async function waitForCountdown() {

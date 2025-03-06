@@ -25,6 +25,7 @@ export default function Game({gameId, clientPlayer, initialPlayer, players}) {
   const [gamePhase, setGamePhase] = useState(GamePhase.SELECT_CATEGORY);
 
   const [currentSelectedCategory, setCurrentSelectedCategory] = useState(null);
+  const [countdownTimerStart, setCountdownTimerStart] = useState(null);
   const [diceResult, setDiceResult] = useState("");
   const [selectedWord, setSelectedWord] = useState("");
   const [scores, setScores] = useState(players.map(playerId => ({playerId: playerId, score: 0})));
@@ -70,12 +71,13 @@ export default function Game({gameId, clientPlayer, initialPlayer, players}) {
   function conditionalGameState() {
     if (gamePhase === GamePhase.SELECT_CATEGORY) {
       return <SelectCategoryPage gameId={gameId} currentPlayer={currentPlayer} clientPlayer={clientPlayer}
-                                 onCategorySelected={(category) => {
-                                   setCurrentSelectedCategory(category);
+                                 onCategorySelected={(categorySelection) => {
+                                   setCurrentSelectedCategory(categorySelection.category);
+                                   setCountdownTimerStart(new Date(categorySelection.countdownTimerStart))
                                    setGamePhase(GamePhase.WAIT_FOR_COUNTDOWN)
                                  }}/>
     } else if (gamePhase === GamePhase.WAIT_FOR_COUNTDOWN) {
-      return <WaitForCountdownPage currentSelectedCategory={currentSelectedCategory}
+      return <WaitForCountdownPage currentSelectedCategory={currentSelectedCategory} countdownTimerStart={countdownTimerStart}
                                    onTimeout={() => {
                                      setGamePhase(GamePhase.ROLL_DICE)
                                    }}/>
