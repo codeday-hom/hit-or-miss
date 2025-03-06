@@ -191,10 +191,14 @@ class GameWebSocket(private val clock: Clock) {
     }
 
     private fun broadcast(game: Game, type: WsMessageType, data: Any?) {
-        messenger.broadcast(connections.forGame(game), type, data)
+        connections.withConnectionsForGame(game) {
+            messenger.broadcast(it, type, data)
+        }
     }
 
     fun lobbyBroadcast(game: Game, type: WsMessageType, data: Any?) {
-        messenger.broadcast(connections.forLobby(game), type, data)
+        connections.withConnectionsForLobby(game) {
+            messenger.broadcast(it, type, data)
+        }
     }
 }

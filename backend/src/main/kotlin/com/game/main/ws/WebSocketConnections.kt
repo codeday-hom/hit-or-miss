@@ -6,6 +6,7 @@ import com.game.main.ws.WsMessageType.USER_DISCONNECTED
 import com.game.main.ws.WsMessageType.USER_JOINED
 import com.game.main.ws.WsMessageType.USER_RECONNECTED
 import java.util.Collections
+import java.util.function.Consumer
 import org.http4k.websocket.Websocket
 import org.slf4j.LoggerFactory
 
@@ -27,20 +28,30 @@ class WebSocketConnections(private val messenger: WsMessenger) {
         val gameId = game.gameId
         if (playerId == null) {
             LOGGER.info("Adding anonymous connection for game $gameId")
-            anonymousConnections.getOrPut(gameId) { mutableListOf() }.add(ws)
+            val anonymousConnections = anonymousConnections.getOrPut(gameId) { Collections.synchronizedList(mutableListOf()) }
+            synchronized(anonymousConnections) {
+                anonymousConnections.add(ws)
+            }
         } else {
-            val gameConnections = identifiedConnections.getOrPut(gameId) { mutableListOf() }
-            val playerConnections = gameConnections.find { it.first == playerId }
+            val gameConnections = identifiedConnections.getOrPut(gameId) { Collections.synchronizedList(mutableListOf()) }
+            val playerConnections = synchronized(gameConnections) {
+                gameConnections.find { it.first == playerId }
+            }
             if (playerConnections == null) {
                 LOGGER.info("Adding first connection in game $gameId for player $playerId")
-                gameConnections.add(Pair(playerId, mutableListOf(ws)))
+                synchronized(gameConnections) {
+                    gameConnections.add(Pair(playerId, Collections.synchronizedList(mutableListOf(ws))))
+                }
             } else {
                 synchronized(playerConnections) {
-                    if (playerConnections.second.isEmpty()) {
-                        LOGGER.info("Player $playerId has reconnected to game $gameId")
-                        messenger.broadcast(gameConnections.map { it.second }.flatten(), USER_RECONNECTED, playerId)
-                    } else {
+                    if (playerConnections.second.isNotEmpty()) {
                         LOGGER.info("Adding new connection in game $gameId for player $playerId")
+                    } else {
+                        LOGGER.info("Player $playerId has reconnected to game $gameId")
+                        val broadcastTargets = synchronized(gameConnections) {
+                            gameConnections.map { it.second }.flatten()
+                        }
+                        messenger.broadcast(broadcastTargets, USER_RECONNECTED, playerId)
                     }
                     playerConnections.second.add(ws)
                 }
@@ -58,12 +69,19 @@ class WebSocketConnections(private val messenger: WsMessenger) {
      * Cleaning up closed connections allows us to detect when a player has disconnected.
      */
     fun onClose(ws: Websocket, gameId: String) {
-        if (anonymousConnections[gameId]?.remove(ws) == true) {
-            LOGGER.info("Anonymous connection for game $gameId has closed")
+        val anonymousConnectionsForGame = anonymousConnections[gameId]
+        if (anonymousConnectionsForGame != null) {
+            synchronized(anonymousConnectionsForGame) {
+                if (anonymousConnectionsForGame.remove(ws)) {
+                    LOGGER.info("Anonymous connection for game $gameId has closed")
+                }
+            }
         }
 
-        val gameConnections = identifiedConnections[gameId]
-        val playerConnections = gameConnections?.find { it.second.contains(ws) }
+        val gameConnections = identifiedConnections[gameId] ?: return
+        val playerConnections = synchronized(gameConnections) {
+            gameConnections.find { it.second.contains(ws) }
+        }
         if (playerConnections != null) {
             synchronized(playerConnections) {
                 val player = playerConnections.first
@@ -72,31 +90,39 @@ class WebSocketConnections(private val messenger: WsMessenger) {
                 }
                 if (playerConnections.second.isEmpty()) {
                     LOGGER.info("Player $player has disconnected from game $gameId")
-                    messenger.broadcast(gameConnections.map { it.second }.flatten(), USER_DISCONNECTED, player)
+                    val broadcastTargets = synchronized(gameConnections) {
+                        gameConnections.map { it.second }.flatten()
+                    }
+                    messenger.broadcast(broadcastTargets, USER_DISCONNECTED, player)
                 }
             }
         }
     }
 
     /**
-     * Connections to all players in a lobby.
+     * Performs a thread-safe operation on all connections to players in the game lobby.
      *
-     * Such players have not yet sent any websocket messages to the server and so are not
+     * These clients have not yet sent any websocket messages to the server and so are not
      * identifiable by their player id.
      */
-    fun forLobby(game: Game): List<Websocket> {
+    fun withConnectionsForLobby(game: Game, action: Consumer<List<Websocket>>) {
         val connections = anonymousConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing lobby ${game.gameId}")
-        checkConnectionCount(game, connections.size)
-        return connections
+        synchronized(connections) {
+            checkConnectionCount(game, connections.size)
+            action.accept(connections)
+        }
     }
 
     /**
-     * Connections to all connections for all players in a running game.
+     * Performs a thread-safe operation on all connections to identified players in a running game.
      */
-    fun forGame(game: Game): List<Websocket> {
+    fun withConnectionsForGame(game: Game, action: Consumer<List<Websocket>>) {
         val connections = identifiedConnections[game.gameId] ?: throw RuntimeException("Cannot broadcast for non-existing game ${game.gameId}")
-        checkConnectionCount(game, connections.size)
-        return connections.map { it.second }.flatten()
+        synchronized(connections) {
+            checkConnectionCount(game, connections.size)
+            val flattenedConnections = connections.map { it.second }.flatten()
+            action.accept(flattenedConnections)
+        }
     }
 
     private fun checkConnectionCount(game: Game, numConnections: Int) {
