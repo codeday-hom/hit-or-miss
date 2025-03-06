@@ -85,9 +85,11 @@ class GameWebSocketTest {
 
         alice.send(WsMessageType.CATEGORY_SELECTED, mapOf("category" to "Science"))
 
-        alice.assertFirstReplyEquals(WsMessageType.CATEGORY_SELECTED,
-            mapOf("category" to "Science", "countdownTimerStart" to fixedClock.instant().toEpochMilli())
-        )
+        listOf(alice, zuno, grace).forEach { player ->
+            player.assertFirstReplyEquals(WsMessageType.CATEGORY_SELECTED,
+                mapOf("category" to "Science", "countdownTimerStart" to fixedClock.instant().toEpochMilli())
+            )
+        }
     }
 
     @Test
