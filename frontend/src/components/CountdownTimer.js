@@ -7,7 +7,9 @@ function CountdownTimer({countdownTimerStart, onTimeout}) {
   const secondsToMillis = (n) => n * 1000;
 
   const countdownDurationSeconds = window['useTestTimeouts'] ? 0.1 : 30
-  const initialSecondsLeft = Math.max(1, Math.floor(((countdownTimerStart.getTime() + (secondsToMillis(countdownDurationSeconds))) - new Date().getTime()) / 1000))
+  const initialSecondsLeft = countdownTimerStart !== null
+    ? Math.max(0.1, Math.floor(((countdownTimerStart.getTime() + (secondsToMillis(countdownDurationSeconds))) - new Date().getTime()) / 1000))
+    : countdownDurationSeconds
 
   // Seconds between "Ready", "Set" and "Go".
   const phaseInterval = window['useTestTimeouts'] ? 0.1 : 2
