@@ -1,9 +1,15 @@
 package com.game.main.hitormiss
 
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 class GameTest {
+
+    private val category = "Breakfast foods"
+    private val clock = Clock.fixed(Instant.now(), ZoneOffset.UTC)
 
     @Test
     fun `play a turn with a hit`() {
@@ -12,7 +18,7 @@ class GameTest {
         val rob = game.addPlayer("rob")
         val tom = game.addPlayer("tom")
         game.startForTest()
-        game.startRound()
+        game.startRound(category, clock.instant())
 
         game.startTurn(DiceResult.HIT)
         game.turnResult("rob", TurnResult.HIT)
@@ -40,7 +46,7 @@ class GameTest {
         val tom = game.addPlayer("tom")
         val timmy = game.addPlayer("timmy")
         game.startForTest()
-        game.startRound()
+        game.startRound(category, clock.instant())
 
         game.startTurn(DiceResult.MISS)
         game.turnResult("rob", TurnResult.MISS)

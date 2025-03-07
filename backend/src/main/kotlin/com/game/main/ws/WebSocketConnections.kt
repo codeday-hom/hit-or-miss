@@ -2,9 +2,11 @@ package com.game.main.ws
 
 import com.game.main.hitormiss.Game
 import com.game.main.ws.WsMessageType.ERROR
+import com.game.main.ws.WsMessageType.GAME_JOINABLE
 import com.game.main.ws.WsMessageType.USER_DISCONNECTED
 import com.game.main.ws.WsMessageType.USER_JOINED
 import com.game.main.ws.WsMessageType.USER_RECONNECTED
+import java.time.Clock
 import java.util.Collections
 import java.util.function.Consumer
 import org.http4k.websocket.Websocket
@@ -12,7 +14,7 @@ import org.slf4j.LoggerFactory
 
 private val LOGGER = LoggerFactory.getLogger(WebSocketConnections::class.java.simpleName)
 
-class WebSocketConnections(private val messenger: WsMessenger) {
+class WebSocketConnections(private val messenger: WsMessenger, private val clock: Clock) {
 
     /**
      * Maps a gameId to a list of websocket connections associated with a game lobby.
@@ -52,6 +54,7 @@ class WebSocketConnections(private val messenger: WsMessenger) {
                             gameConnections.map { it.second }.flatten()
                         }
                         messenger.broadcast(broadcastTargets, USER_RECONNECTED, playerId)
+                        messenger.send(ws, GAME_JOINABLE, game.gameStateForSerialization(clock))
                     }
                     playerConnections.second.add(ws)
                 }

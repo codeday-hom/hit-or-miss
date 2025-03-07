@@ -19,6 +19,7 @@ import com.game.main.ws.WsMessageType.ROLL_DICE_RESULT
 import com.game.main.ws.WsMessageType.SCORES
 import com.game.main.ws.WsMessageType.SELECTED_WORD
 import java.time.Clock
+import java.time.Instant
 import org.http4k.core.Request
 import org.http4k.format.Jackson
 import org.http4k.routing.path
@@ -32,7 +33,7 @@ private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleNam
 
 class GameWebSocket(private val clock: Clock) {
     private val messenger = WsMessenger()
-    private val connections = WebSocketConnections(messenger)
+    private val connections = WebSocketConnections(messenger, clock)
 
     fun handler(): (Request) -> WsResponse = this::handle
 
@@ -88,8 +89,9 @@ class GameWebSocket(private val clock: Clock) {
 
             CATEGORY_SELECTED -> {
                 val category = parsedMessage.getRequiredData("category")
-                game.startRound()
-                broadcastCategorySelected(game, category)
+                val countdownTimerStart = clock.instant()
+                game.startRound(category, countdownTimerStart)
+                broadcastCategorySelected(game, category, countdownTimerStart)
             }
 
             ROLL_DICE -> {
@@ -104,6 +106,7 @@ class GameWebSocket(private val clock: Clock) {
 
             SELECTED_WORD -> {
                 val selectedWord = parsedMessage.getRequiredData("selectedWord")
+                game.selectedWord(selectedWord)
                 broadcastSelectedWordMessage(game, selectedWord)
             }
 
@@ -113,7 +116,7 @@ class GameWebSocket(private val clock: Clock) {
                 // We need to synchronize on the game here to prevent a race condition which
                 // could happen when two players' turn results are processed simultaneously,
                 // leading both executions to enter the below conditional block and cause
-                // a player to be skipped, derailing the course of the game.
+                // a player to be skipped.
                 synchronized(game) {
                     game.turnResult(parsedMessage.player, TurnResult.valueOf(hitOrMiss.uppercase()))
                     broadcastScores(game)
@@ -151,10 +154,10 @@ class GameWebSocket(private val clock: Clock) {
         }
     }
 
-    private fun broadcastCategorySelected(game: Game, category: String) {
+    private fun broadcastCategorySelected(game: Game, category: String, countdownTimerStart: Instant) {
         broadcast(game, CATEGORY_SELECTED, mapOf(
             "category" to category,
-            "countdownTimerStart" to clock.instant().toEpochMilli()
+            "countdownTimerStart" to countdownTimerStart.toEpochMilli()
         ))
     }
 

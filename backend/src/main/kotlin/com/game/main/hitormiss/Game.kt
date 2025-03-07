@@ -1,7 +1,10 @@
 package com.game.main.hitormiss
 
+import com.game.main.ws.GamePhase
+import java.time.Clock
+import java.time.Instant
+import java.util.Random
 import org.slf4j.LoggerFactory
-import java.util.*
 
 private val LOGGER = LoggerFactory.getLogger(Game::class.java.simpleName)
 
@@ -14,8 +17,9 @@ data class Game(val gameId: String) {
 
     private var started: Boolean = false
     private var gameOver: Boolean = false
-    private var currentRound: Round? = null
-    private var currentTurn: Turn? = null
+
+    private lateinit var currentRound: Round
+    private lateinit var currentTurn: Turn
 
     fun currentPlayer() = players.currentPlayer()
 
@@ -51,15 +55,13 @@ data class Game(val gameId: String) {
         return Random().nextInt(6) + 1
     }
 
-    fun startRound() {
-        currentRound = Round()
+    fun startRound(category: String, countdownTimerStart: Instant) {
+        currentRound = Round(category, countdownTimerStart)
     }
 
     fun startTurn(diceResult: DiceResult) {
         currentTurn = Turn(currentPlayer(), diceResult)
-        Optional.ofNullable(currentRound)
-            .orElseThrow { IllegalStateException("Game not started: $gameId") }
-            .playerRolledTheDice(currentPlayer())
+        currentRound.playerRolledTheDice(currentPlayer())
     }
 
     /**
@@ -81,25 +83,23 @@ data class Game(val gameId: String) {
         }
     }
 
+    fun selectedWord(selectedWord: String) {
+        currentTurn.selectWord(selectedWord)
+    }
+
     fun turnResult(playerId: String, turnResult: TurnResult) {
         val player = players.getPlayer(playerId) ?: throw IllegalArgumentException("No such player with id '$playerId'")
-        Optional.ofNullable(currentTurn)
-            .orElseThrow { IllegalStateException("Game not started: $gameId") }
-            .result(player, turnResult)
+        currentTurn.result(player, turnResult)
     }
 
     fun scoresForSerialization(): List<Map<String, Any>> = players.scores().map { mapOf("playerId" to it.key, "score" to it.value) }
 
     fun allPlayersChoseHitOrMiss(): Boolean {
-        return Optional.ofNullable(currentTurn)
-            .orElseThrow { IllegalStateException("Game not started: $gameId") }
-            .allPlayersChoseHitOrMiss()
+        return currentTurn.allPlayersChoseHitOrMiss()
     }
 
     fun allPlayersRolledTheDice(): Boolean {
-        return Optional.ofNullable(currentRound)
-            .orElseThrow { IllegalStateException("Game not started: $gameId") }
-            .allPlayersRolledTheDice()
+        return currentRound.allPlayersRolledTheDice()
     }
 
     fun hasPlayer(playerId: String?): Boolean {
@@ -110,7 +110,59 @@ data class Game(val gameId: String) {
         return players.getPlayer(playerId) != null
     }
 
-    inner class Round {
+    private fun phaseWithData(clock: Clock): Pair<GamePhase, Map<String, Any>> {
+        if (!this::currentRound.isInitialized) {
+            return Pair(GamePhase.SELECT_CATEGORY, emptyMap())
+        }
+
+        // If the currentTurn refers to the last player of the round, and everyone has selected hit or miss,
+        // then we are either back in category selection, or the game is over.
+        if (this::currentTurn.isInitialized && allPlayersChoseHitOrMiss() && allPlayersRolledTheDice()) {
+            return if (isOver()) {
+                Pair(GamePhase.GAME_OVER, emptyMap())
+            } else {
+                Pair(GamePhase.SELECT_CATEGORY, emptyMap())
+            }
+        }
+
+        if (clock.instant().isBefore(currentRound.countdownTimerStart.plusSeconds(30))) {
+            return Pair(GamePhase.WAIT_FOR_COUNTDOWN, mapOf(
+                "category" to currentRound.category,
+                "countdownTimerStart" to currentRound.countdownTimerStart.toEpochMilli()
+            ))
+        }
+
+        // If either this is the first turn of the game, or if the currentTurn refers to the previous turn
+        if (!this::currentTurn.isInitialized || allPlayersChoseHitOrMiss()) {
+            return Pair(GamePhase.ROLL_DICE, mapOf("category" to currentRound.category))
+        }
+
+        if (currentTurn.selectedWord == null) {
+            return Pair(GamePhase.SELECT_WORD, mapOf(
+                "category" to currentRound.category,
+                "diceResult" to currentTurn.diceResult.name
+            ))
+        }
+
+        return Pair(GamePhase.SELECT_HIT_OR_MISS, mapOf<String, Any>(
+            "category" to currentRound.category,
+            "diceResult" to currentTurn.diceResult.name,
+            "selectedWord" to currentTurn.selectedWord!!
+        ))
+    }
+
+    fun gameStateForSerialization(clock: Clock): Map<String, Any> {
+        val (phase, phaseData) = phaseWithData(clock)
+        return mapOf(
+            "currentPlayer" to currentPlayer().id,
+            "players" to playerListForSerialization(),
+            "scores" to scoresForSerialization(),
+            "phase" to phase.name,
+            "phaseData" to phaseData
+        )
+    }
+
+    inner class Round(val category: String, val countdownTimerStart: Instant) {
         private var playersWhoRolledTheDice = mutableSetOf<String>()
 
         fun allPlayersRolledTheDice(): Boolean {
@@ -122,8 +174,14 @@ data class Game(val gameId: String) {
         }
     }
 
-    inner class Turn(private val selector: Player, private val diceResult: DiceResult) {
+    inner class Turn(val selector: Player, val diceResult: DiceResult) {
         private val playersWhoChoseHitOrMiss = mutableSetOf<String>()
+
+        var selectedWord: String? = null
+
+        fun selectWord(selectedWord: String) {
+            this.selectedWord = selectedWord
+        }
 
         fun allPlayersChoseHitOrMiss(): Boolean {
             return playersWhoChoseHitOrMiss.size == countPlayers() - 1
