@@ -1,8 +1,8 @@
 package com.game.main.hitormiss
 
 import com.game.main.ws.GamePhase
-import java.time.Clock
 import java.time.Instant
+import java.time.InstantSource
 import java.util.Random
 import org.slf4j.LoggerFactory
 
@@ -110,7 +110,7 @@ data class Game(val gameId: String) {
         return players.getPlayer(playerId) != null
     }
 
-    private fun phaseWithData(clock: Clock): Pair<GamePhase, Map<String, Any>> {
+    private fun phaseWithData(clock: InstantSource): Pair<GamePhase, Map<String, Any>> {
         if (!this::currentRound.isInitialized) {
             return Pair(GamePhase.SELECT_CATEGORY, emptyMap())
         }
@@ -151,7 +151,7 @@ data class Game(val gameId: String) {
         ))
     }
 
-    fun gameStateForSerialization(clock: Clock): Map<String, Any> {
+    fun gameStateForSerialization(clock: InstantSource): Map<String, Any> {
         val (phase, phaseData) = phaseWithData(clock)
         return mapOf(
             "currentPlayer" to currentPlayer().id,

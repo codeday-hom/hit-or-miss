@@ -18,8 +18,8 @@ import com.game.main.ws.WsMessageType.ROLL_DICE_HIT_OR_MISS
 import com.game.main.ws.WsMessageType.ROLL_DICE_RESULT
 import com.game.main.ws.WsMessageType.SCORES
 import com.game.main.ws.WsMessageType.SELECTED_WORD
-import java.time.Clock
 import java.time.Instant
+import java.time.InstantSource
 import org.http4k.core.Request
 import org.http4k.format.Jackson
 import org.http4k.routing.path
@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory
 
 private val LOGGER = LoggerFactory.getLogger(GameWebSocket::class.java.simpleName)
 
-class GameWebSocket(private val clock: Clock) {
+class GameWebSocket(private val clock: InstantSource) {
     private val messenger = WsMessenger()
     private val connections = WebSocketConnections(messenger, clock)
 

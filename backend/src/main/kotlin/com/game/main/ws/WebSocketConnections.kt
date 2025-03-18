@@ -6,7 +6,7 @@ import com.game.main.ws.WsMessageType.GAME_JOINABLE
 import com.game.main.ws.WsMessageType.USER_DISCONNECTED
 import com.game.main.ws.WsMessageType.USER_JOINED
 import com.game.main.ws.WsMessageType.USER_RECONNECTED
-import java.time.Clock
+import java.time.InstantSource
 import java.util.Collections
 import java.util.function.Consumer
 import org.http4k.websocket.Websocket
@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 
 private val LOGGER = LoggerFactory.getLogger(WebSocketConnections::class.java.simpleName)
 
-class WebSocketConnections(private val messenger: WsMessenger, private val clock: Clock) {
+class WebSocketConnections(private val messenger: WsMessenger, private val clock: InstantSource) {
 
     /**
      * Maps a gameId to a list of websocket connections associated with a game lobby.
