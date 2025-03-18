@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 
 private val LOGGER = LoggerFactory.getLogger(Game::class.java.simpleName)
 
-data class Game(val gameId: String) {
+data class Game(val gameId: String, val random: Random = Random()) {
 
     lateinit var hostPlayerId: String
 
@@ -52,7 +52,7 @@ data class Game(val gameId: String) {
     fun playerListForSerialization() = players.playerListForSerialization()
 
     fun rollDice(): Int {
-        return Random().nextInt(6) + 1
+        return random.nextInt(6) + 1
     }
 
     fun startRound(category: String, countdownTimerStart: Instant) {
