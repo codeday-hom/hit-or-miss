@@ -21,21 +21,24 @@ export default function ReconnectingGame({gameId}) {
     }
   })
 
-  if (clientPlayer === null && candidateClientPlayers === null) {
-    return <div>
-      <h1>Awaiting confirmation from the game server that you can join the game...</h1>
-    </div>
-  }
-
-  if (candidateClientPlayers !== null) {
-    // TODO: Implement selection of a player
-    return <div>
-      <h1>Which of these players are you? Not that you can actually choose.</h1>
-      <h2>{candidateClientPlayers}</h2>
-    </div>
-  }
-
-  if (gameState != null) {
+  if (clientPlayer === null) {
+    if (candidateClientPlayers === null) {
+      return <div>
+        <h1>Awaiting confirmation from the game server that you can join the game...</h1>
+      </div>
+    } else {
+      return <div>
+        <h1>There are multiple disconnected players - press the button corresponding to you.</h1>
+        <ul aria-label="disconnected-players">
+          {candidateClientPlayers.map((playerId, index) => (
+            <li key={index}>
+              <button onClick={() => setClientPlayer(playerId)}>Rejoin as '{playerId}'</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    }
+  } else if (gameState !== null) {
     const currentPlayer = gameState.currentPlayer;
     const players = gameState.players;
     const scores = gameState.scores;
@@ -49,9 +52,9 @@ export default function ReconnectingGame({gameId}) {
       initialPhase={phase}
       phaseData={phaseData}
     />
+  } else {
+    return <div>
+      <h1>Awaiting information from the game server about the current state of the game...</h1>
+    </div>
   }
-
-  return <div>
-    <h1>Awaiting information from the game server about the current state of the game...</h1>
-  </div>
 }
