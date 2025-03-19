@@ -2,7 +2,7 @@
 
 import {act, fireEvent, prettyDOM, render, screen} from '@testing-library/react';
 import React from "react";
-import GameContext from "./GameContext";
+import ContextualGame from "./ContextualGame";
 import {MemoryRouter, Route, Routes} from "react-router-dom";
 import {WsMessageType} from "../websockets/WsMessageType";
 
@@ -18,7 +18,7 @@ global.console.error = (message) => {
 let webSocketGameId = null;
 let webSocketOnMessageFunctions = [];
 let sentMessages = []
-jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
+jest.mock("../websockets/useGameWebSocket", () => function (gameId, playerId, onMessageFunction) {
   webSocketGameId = gameId;
   webSocketOnMessageFunctions.push(onMessageFunction)
   // noinspection JSUnusedGlobalSymbols
@@ -37,20 +37,21 @@ function renderGame() {
     <MemoryRouter initialEntries={[{
       pathname: `/game/${gameId}`,
       state: {
-        clientUsername: "Alice",
-        currentPlayer: "Bob",
-        playerNames: ["Alice", "Bob", "Charlie"]
+        clientPlayer: "Alice",
+        initialPlayer: "Bob",
+        players: ["Alice", "Bob", "Charlie"]
       }
     }]}>
       <Routes>
-        <Route path={"/game/:gameId"} element={<GameContext/>}/>
+        <Route path={"/game/:gameId"} element={<ContextualGame/>}/>
       </Routes>
     </MemoryRouter>
   )
 }
 
+let categorySelectionCountdownTimerStart = new Date()
 function categorySelected(category) {
-  receiveWebSocketMessage({type: WsMessageType.CATEGORY_SELECTED, data: category})
+  receiveWebSocketMessage({type: WsMessageType.CATEGORY_SELECTED, data: {category, countdownTimerStart: categorySelectionCountdownTimerStart}})
 }
 
 async function waitForCountdown() {
@@ -79,6 +80,14 @@ function allPlayersSelectedHitOrMiss(scores) {
 
 function gameOver(scores) {
   receiveWebSocketMessage({type: WsMessageType.GAME_OVER, data: scores})
+}
+
+function playerDisconnects(playerId) {
+  receiveWebSocketMessage({type: WsMessageType.USER_DISCONNECTED, data: playerId})
+}
+
+function playerReconnects(playerId) {
+  receiveWebSocketMessage({type: WsMessageType.USER_RECONNECTED, data: playerId})
 }
 
 function expectScoreboardRows(expectedRows) {
@@ -207,9 +216,9 @@ test('scoreboard updates after hit or miss selection', async () => {
   await wordSelected("Fun categories")
   await selectHit()
   allPlayersSelectedHitOrMiss([
-    {username: "Alice", score: 1},
-    {username: "Bob", score: 1},
-    {username: "Charlie", score: 0}
+    {playerId: "Alice", score: 1},
+    {playerId: "Bob", score: 1},
+    {playerId: "Charlie", score: 0}
   ])
 
   expectScoreboardRows([
@@ -219,14 +228,46 @@ test('scoreboard updates after hit or miss selection', async () => {
   ])
 });
 
+test('scoreboard shows disconnected players', async () => {
+  renderGame()
+
+  playerDisconnects("Bob")
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "0"},
+    {player: "Bob (disconnected)", score: "0"},
+    {player: "Charlie", score: "0"},
+  ])
+});
+
+test('scoreboard shows reconnected players', async () => {
+  renderGame()
+
+  playerDisconnects("Charlie")
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "0"},
+    {player: "Bob", score: "0"},
+    {player: "Charlie (disconnected)", score: "0"},
+  ])
+
+  playerReconnects("Charlie")
+
+  expectScoreboardRows([
+    {player: "Alice (you)", score: "0"},
+    {player: "Bob", score: "0"},
+    {player: "Charlie", score: "0"},
+  ])
+});
+
 test('winner is shown once game is over', async () => {
   window['useTestTimeouts'] = true
   renderGame()
 
   gameOver([
-    {username: "Alice", score: 2},
-    {username: "Bob", score: 1},
-    {username: "Charlie", score: 0}
+    {playerId: "Alice", score: 2},
+    {playerId: "Bob", score: 1},
+    {playerId: "Charlie", score: 0}
   ])
 
   expectScoreboardRows([
@@ -234,7 +275,7 @@ test('winner is shown once game is over', async () => {
     {player: "Bob", score: "1"},
     {player: "Charlie", score: "0"}
   ])
-  expect(screen.getByText(/🎉 Congratulations to the winner: ✨Alice!✨ 🎉/i)).toBeInTheDocument()
+  expect(screen.getByText(/🎉 Congratulations to the winner, ✨Alice ✨! 🎉/i)).toBeInTheDocument()
 });
 
 test('joint winners (2 of them) are shown once game is over', async () => {
@@ -242,9 +283,9 @@ test('joint winners (2 of them) are shown once game is over', async () => {
   renderGame()
 
   gameOver([
-    {username: "Alice", score: 2},
-    {username: "Bob", score: 1},
-    {username: "Charlie", score: 2}
+    {playerId: "Alice", score: 2},
+    {playerId: "Bob", score: 1},
+    {playerId: "Charlie", score: 2}
   ])
 
   expectScoreboardRows([
@@ -252,7 +293,7 @@ test('joint winners (2 of them) are shown once game is over', async () => {
     {player: "Bob", score: "1"},
     {player: "Charlie", score: "2"}
   ])
-  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨ and ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+  expect(screen.getByText(/🎉 Congratulations to the joint winners, ✨Alice ✨ and ✨Charlie ✨! 🎉/i)).toBeInTheDocument()
 });
 
 test('joint winners (3 of them) are shown once game is over', async () => {
@@ -260,9 +301,9 @@ test('joint winners (3 of them) are shown once game is over', async () => {
   renderGame()
 
   gameOver([
-    {username: "Alice", score: 2},
-    {username: "Bob", score: 2},
-    {username: "Charlie", score: 2}
+    {playerId: "Alice", score: 2},
+    {playerId: "Bob", score: 2},
+    {playerId: "Charlie", score: 2}
   ])
 
   expectScoreboardRows([
@@ -270,6 +311,6 @@ test('joint winners (3 of them) are shown once game is over', async () => {
     {player: "Bob", score: "2"},
     {player: "Charlie", score: "2"}
   ])
-  expect(screen.getByText(/🎉 Congratulations to the joint winners: ✨Alice!✨, ✨Bob!✨, ✨Charlie!✨ 🎉/i)).toBeInTheDocument()
+  expect(screen.getByText(/🎉 Congratulations to the joint winners, ✨Alice ✨, ✨Bob ✨, ✨Charlie ✨! 🎉/i)).toBeInTheDocument()
 });
 

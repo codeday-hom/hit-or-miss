@@ -10,26 +10,20 @@ import HitOrMissButtonPage from "./HitOrMissButtonPage";
 import Scoreboard from "./Scoreboard";
 import "./Game.css";
 import EndGamePage from "./EndGamePage";
+import {GamePhase} from "./GamePhase";
 
-const GamePhase = {
-  SELECT_CATEGORY: "CATEGORY_SELECTION",
-  WAIT_FOR_COUNTDOWN: "COUNTDOWN",
-  ROLL_DICE: "DICE_ROLLING",
-  SELECT_WORD: "WORD_SELECTION",
-  SELECT_HIT_OR_MISS: "SELECT_HIT_OR_MISS",
-  GAME_OVER: "GAME_OVER"
-};
-
-export default function Game({gameId, clientUsername, initialPlayer, playerNames}) {
+export default function Game({gameId, clientPlayer, initialPlayer, players, initialPhase, phaseData}) {
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
-  const [gamePhase, setGamePhase] = useState(GamePhase.SELECT_CATEGORY);
+  const [gamePhase, setGamePhase] = useState(initialPhase);
 
-  const [currentSelectedCategory, setCurrentSelectedCategory] = useState(null);
-  const [diceResult, setDiceResult] = useState("");
-  const [selectedWord, setSelectedWord] = useState("");
-  const [scores, setScores] = useState(playerNames.map(name => ({username: name, score: 0})));
+  const [currentSelectedCategory, setCurrentSelectedCategory] = useState(phaseData.category ? phaseData.category : null);
+  const [countdownTimerStart, setCountdownTimerStart] = useState(phaseData.countdownTimerStart ? new Date(phaseData.countdownTimerStart) : null);
+  const [diceResult, setDiceResult] = useState(phaseData.diceResult ? phaseData.diceResult : "");
+  const [selectedWord, setSelectedWord] = useState(phaseData.selectedWord ? phaseData.selectedWord : "");
+  const [scores, setScores] = useState(phaseData.scores ? phaseData.scores : players.map(playerId => ({playerId: playerId, score: 0})));
+  const [disconnectedPlayers, setDisconnectedPlayers] = useState([]);
 
-  const {sendMessage} = useGameWebSocket(gameId, (message) => {
+  const {sendMessage} = useGameWebSocket(gameId, clientPlayer, (message) => {
     if (message.type === WsMessageType.NEXT_TURN) {
       setCurrentPlayer(message.data);
       setGamePhase(GamePhase.ROLL_DICE);
@@ -41,11 +35,15 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
     } else if (message.type === WsMessageType.GAME_OVER) {
       setScores(message.data);
       setGamePhase(GamePhase.GAME_OVER)
+    } else if (message.type === WsMessageType.USER_DISCONNECTED) {
+      setDisconnectedPlayers(l => l.concat([message.data]))
+    } else if (message.type === WsMessageType.USER_RECONNECTED) {
+      setDisconnectedPlayers(l => l.filter(p => p !== message.data))
     }
   });
 
 
-  useWebsocketHeartbeat(sendMessage);
+  useWebsocketHeartbeat(gameId, clientPlayer, sendMessage);
 
   /**
    * At the start of the game, there is a player whose turn is first.
@@ -64,25 +62,26 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
    */
   function conditionalGameState() {
     if (gamePhase === GamePhase.SELECT_CATEGORY) {
-      return <SelectCategoryPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
-                                 onCategorySelected={(category) => {
-                                   setCurrentSelectedCategory(category);
+      return <SelectCategoryPage gameId={gameId} currentPlayer={currentPlayer} clientPlayer={clientPlayer}
+                                 onCategorySelected={(categorySelection) => {
+                                   setCurrentSelectedCategory(categorySelection.category);
+                                   setCountdownTimerStart(new Date(categorySelection.countdownTimerStart))
                                    setGamePhase(GamePhase.WAIT_FOR_COUNTDOWN)
                                  }}/>
     } else if (gamePhase === GamePhase.WAIT_FOR_COUNTDOWN) {
-      return <WaitForCountdownPage currentSelectedCategory={currentSelectedCategory}
+      return <WaitForCountdownPage currentSelectedCategory={currentSelectedCategory} countdownTimerStart={countdownTimerStart}
                                    onTimeout={() => {
                                      setGamePhase(GamePhase.ROLL_DICE)
                                    }}/>
     } else if (gamePhase === GamePhase.ROLL_DICE) {
-      return <RollDicePage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
+      return <RollDicePage gameId={gameId} currentPlayer={currentPlayer} clientPlayer={clientPlayer}
                            currentSelectedCategory={currentSelectedCategory}
                            onDiceResult={(diceResult => {
                              setDiceResult(diceResult)
                              setGamePhase(GamePhase.SELECT_WORD)
                            })}/>
     } else if (gamePhase === GamePhase.SELECT_WORD) {
-      return <SelectWordPage gameId={gameId} currentPlayer={currentPlayer} clientUsername={clientUsername}
+      return <SelectWordPage gameId={gameId} currentPlayer={currentPlayer} clientPlayer={clientPlayer}
                              currentSelectedCategory={currentSelectedCategory} diceResult={diceResult}
                              onWordSelected={(word) => {
                                setSelectedWord(word)
@@ -91,7 +90,7 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
     } else if (gamePhase === GamePhase.SELECT_HIT_OR_MISS) {
       return <HitOrMissButtonPage gameId={gameId} currentSelectedCategory={currentSelectedCategory}
                                   diceResult={diceResult} selectedWord={selectedWord}
-                                  currentPlayer={currentPlayer} clientUsername={clientUsername}
+                                  currentPlayer={currentPlayer} clientPlayer={clientPlayer}
                                   sendWebSocketMessage={sendMessage}/>
     } else if (gamePhase === GamePhase.GAME_OVER) {
       let winningPlayers = scores
@@ -108,7 +107,7 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
           },
           []
         )
-        .map(p => p.username)
+        .map(p => p.playerId)
       return <EndGamePage winningPlayers={winningPlayers}/>
     }
   }
@@ -120,7 +119,7 @@ export default function Game({gameId, clientUsername, initialPlayer, playerNames
         {conditionalGameState()}
       </div>
       <div className="game-scoreboard">
-        <Scoreboard clientUsername={clientUsername} scores={scores}/>
+        <Scoreboard clientPlayer={clientPlayer} scores={scores} disconnectedPlayers={disconnectedPlayers}/>
       </div>
     </div>
   );

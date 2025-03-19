@@ -1,13 +1,14 @@
-package com.game.main
+package com.game.main.api
 
+import com.game.main.hitormiss.Game
 import java.util.concurrent.ConcurrentHashMap
 
 object GameRepository {
 
     private val games = ConcurrentHashMap<String, Game>()
 
-    fun createGame(gameId: String, game: Game) {
-        games[gameId] = game
+    fun registerGame(game: Game) {
+        games[game.gameId] = game
     }
 
     fun getGame(gameId: String): Game? {

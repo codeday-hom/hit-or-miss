@@ -1,4 +1,4 @@
-package com.game.main
+package com.game.main.api
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test

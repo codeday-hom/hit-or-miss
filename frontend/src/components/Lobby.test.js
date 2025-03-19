@@ -18,7 +18,7 @@ global.console.error = (message) => {
 // Mock web socket connection
 let webSocketGameId = null;
 let webSocketOnMessageFunctions = [];
-jest.mock("../websockets/useGameWebSocket", () => function (gameId, onMessageFunction) {
+jest.mock("../websockets/useGameWebSocket", () => function (gameId, playerId, onMessageFunction) {
   webSocketGameId = gameId;
   webSocketOnMessageFunctions.push(onMessageFunction)
 })
@@ -121,10 +121,10 @@ test('sends your name to the server after entering it', async () => {
 
   await enterName("Zuno")
 
-  const request = requests.filter(it => it.url === `/api/join-game/${gameId}`).at(0)
+  const request = requests.filter(it => it.url === `/api/game/${gameId}/join`).at(0)
   const requestBody = JSON.parse(request.options.body)
   expect(requestBody.gameId).toEqual(gameId)
-  expect(requestBody.username).toEqual("Zuno")
+  expect(requestBody.playerId).toEqual("Zuno")
 });
 
 test('shows invalid name warning if name is empty', async () => {
@@ -142,7 +142,7 @@ test('shows invalid name warning if name is already taken', async () => {
 
   await enterName("Rob", false)
 
-  expect(screen.getByText(/This username is already taken/i)).toBeInTheDocument()
+  expect(screen.getByText(/This name is already taken/i)).toBeInTheDocument()
 });
 
 test('new players are shown as they join', async () => {
@@ -207,7 +207,7 @@ test('clicking the start game button causes a request to the server', async () =
   const startGameButton = await screen.findByText(/Start Game/i)
   fireEvent.click(startGameButton)
 
-  expect(requests.map(it => it.url)).toContain(`/api/start-game/${gameId}`)
+  expect(requests.map(it => it.url)).toContain(`/api/game/${gameId}/start`)
 });
 
 test('client is redirected when the game starts', async () => {

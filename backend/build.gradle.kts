@@ -5,6 +5,7 @@ plugins {
     kotlin("jvm") version "1.9.0"
     kotlin("plugin.serialization") version "1.9.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    idea
 }
 
 repositories {
@@ -19,6 +20,13 @@ java {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+idea {
+    module {
+        isDownloadSources = true
+        isDownloadJavadoc = true
+    }
 }
 
 val frontendBuild by configurations.creating {

@@ -1,6 +1,7 @@
-package com.game.main
+package com.game.main.hitormiss
 
-import java.util.*
+import java.util.Collections
+import java.util.Random
 
 /**
  * The set of players in a particular game
@@ -24,9 +25,9 @@ class Players {
         return currentPlayer()
     }
 
-    fun addPlayer(username: String): Player {
-        val newPlayer = Player(username)
-        players[username] = newPlayer
+    fun addPlayer(playerId: String): Player {
+        val newPlayer = Player(playerId)
+        players[playerId] = newPlayer
         return newPlayer
     }
 
@@ -41,11 +42,8 @@ class Players {
     // Should only be used in Game for serializing the set of users in a wire message.
     fun playerListForSerialization() = players.keys.toList()
 
-    fun userMapForSerialization() = players
-
-
     // For use in tests
-    fun playersInOrder() = playerOrders.map { players[it]?.getUsername() }
+    fun playersInOrder() = playerOrders.map { players[it]?.id }
 
     // For use in tests
     fun useUnshuffledOrder() {
@@ -53,13 +51,12 @@ class Players {
         playerOrders.addAll(players.keys)
     }
 
-    fun getPlayer(username: String): Player? {
-        return players[username]
+    fun getPlayer(playerId: String): Player? {
+        return players[playerId]
     }
 
-
     fun scores() = players.values.associateBy(
-        { p -> p.getUsername() },
+        { p -> p.id },
         { p -> p.getPlayerPoints() }
     )
 }

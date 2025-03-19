@@ -1,5 +1,6 @@
 import "../Dice.css";
 import {useEffect, useState} from "react";
+import {DiceResult} from "../DiceResult";
 
 export default function StandaloneDice() {
 
@@ -50,9 +51,9 @@ export default function StandaloneDice() {
       if (diceResult === 6) {
         setWildcardOption(true);
       } else if (diceResult <= 3) {
-        setHitOrMiss("Hit");
+        setHitOrMiss(DiceResult.HIT);
       } else {
-        setHitOrMiss("Miss");
+        setHitOrMiss(DiceResult.MISS);
       }
     }
   }, [diceResult]);
@@ -77,12 +78,16 @@ export default function StandaloneDice() {
 
   const handleWildcardOption = (hitOrMiss) => {
     setWildcardOption(false);
-    if (hitOrMiss === "Hit") {
-      setHitOrMiss("Hit");
+    if (hitOrMiss === DiceResult.HIT) {
+      setHitOrMiss(DiceResult.HIT);
     } else {
-      setHitOrMiss("Miss");
+      setHitOrMiss(DiceResult.MISS);
     }
   };
+
+  function titlecase(s) {
+    return String(s).charAt(0).toUpperCase() + String(s).slice(1).toLowerCase();
+  }
 
   return (
     <div>
@@ -113,15 +118,15 @@ export default function StandaloneDice() {
         <button onClick={handleRollDice}>Roll dice</button>
       </div>
 
-      {displayHitOrMiss && (<div className="dice-result">Result: {hitOrMiss}</div>)}
+      {displayHitOrMiss && (<div className="dice-result">Result: {titlecase(hitOrMiss)}</div>)}
 
       {wildcardOption && (
         <div className="wildcard">
           <div className="wildcard-content">
             <h2>Wildcard!</h2>
             <p>Hit or Miss?</p>
-            <button onClick={() => handleWildcardOption("Hit")}>Hit</button>
-            <button onClick={() => handleWildcardOption("Miss")}>Miss</button>
+            <button onClick={() => handleWildcardOption(DiceResult.HIT)}>Hit</button>
+            <button onClick={() => handleWildcardOption(DiceResult.MISS)}>Miss</button>
           </div>
         </div>
       )}
