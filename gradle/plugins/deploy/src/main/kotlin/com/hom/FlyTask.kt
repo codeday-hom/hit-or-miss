@@ -20,6 +20,10 @@ abstract class FlyTask @Inject constructor(private val execOps: ExecOperations) 
         logger.info("Running '${flyCommandArgs.joinToString(" ")}'.")
         execOps.exec {
             commandLine(flyCommandArgs)
+
+            // See: https://community.fly.io/t/flyctl-cannot-find-local-docker-instance/11649/6
+            //      https://docs.docker.com/desktop/setup/install/mac-permission-requirements/
+            environment["DOCKER_HOST"] = "unix:///Users/rob/.docker/run/docker.sock"
         }
     }
 }
