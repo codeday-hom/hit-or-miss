@@ -10,25 +10,17 @@ import HitOrMissButtonPage from "./HitOrMissButtonPage";
 import Scoreboard from "./Scoreboard";
 import "./Game.css";
 import EndGamePage from "./EndGamePage";
+import {GamePhase} from "./GamePhase";
 
-const GamePhase = {
-  SELECT_CATEGORY: "SELECT_CATEGORY",
-  WAIT_FOR_COUNTDOWN: "WAIT_FOR_COUNTDOWN",
-  ROLL_DICE: "ROLL_DICE",
-  SELECT_WORD: "SELECT_WORD",
-  SELECT_HIT_OR_MISS: "SELECT_HIT_OR_MISS",
-  GAME_OVER: "GAME_OVER"
-};
-
-export default function Game({gameId, clientPlayer, initialPlayer, players}) {
+export default function Game({gameId, clientPlayer, initialPlayer, players, initialPhase, phaseData}) {
   const [currentPlayer, setCurrentPlayer] = useState(initialPlayer);
-  const [gamePhase, setGamePhase] = useState(GamePhase.SELECT_CATEGORY);
+  const [gamePhase, setGamePhase] = useState(initialPhase);
 
-  const [currentSelectedCategory, setCurrentSelectedCategory] = useState(null);
-  const [countdownTimerStart, setCountdownTimerStart] = useState(null);
-  const [diceResult, setDiceResult] = useState("");
-  const [selectedWord, setSelectedWord] = useState("");
-  const [scores, setScores] = useState(players.map(playerId => ({playerId: playerId, score: 0})));
+  const [currentSelectedCategory, setCurrentSelectedCategory] = useState(phaseData.category ? phaseData.category : null);
+  const [countdownTimerStart, setCountdownTimerStart] = useState(phaseData.countdownTimerStart ? new Date(phaseData.countdownTimerStart) : null);
+  const [diceResult, setDiceResult] = useState(phaseData.diceResult ? phaseData.diceResult : "");
+  const [selectedWord, setSelectedWord] = useState(phaseData.selectedWord ? phaseData.selectedWord : "");
+  const [scores, setScores] = useState(phaseData.scores ? phaseData.scores : players.map(playerId => ({playerId: playerId, score: 0})));
   const [disconnectedPlayers, setDisconnectedPlayers] = useState([]);
 
   const {sendMessage} = useGameWebSocket(gameId, clientPlayer, (message) => {
