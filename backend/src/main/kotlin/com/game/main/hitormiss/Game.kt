@@ -102,11 +102,7 @@ data class Game(val gameId: String, val random: Random = Random()) {
         return currentRound.allPlayersRolledTheDice()
     }
 
-    fun hasPlayer(playerId: String?): Boolean {
-        if (playerId == null) {
-            return false
-        }
-
+    fun hasPlayer(playerId: String): Boolean {
         return players.getPlayer(playerId) != null
     }
 

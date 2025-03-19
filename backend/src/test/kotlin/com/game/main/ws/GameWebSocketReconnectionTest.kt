@@ -62,6 +62,21 @@ class GameWebSocketReconnectionTest {
 
     @Test
     @Timeout(value = 4)
+    fun `disconnected player receives list of disconnected player ids`() {
+        game.startForTest()
+
+        grace.disconnect()
+        listOf(alice, zuno).forEach { player ->
+            player.assertFirstReplyEquals(WsMessageType.USER_DISCONNECTED, "grace")
+        }
+
+        grace.reconnectAnonymously()
+
+        grace.assertFirstReplyEquals(WsMessageType.DISCONNECTED_PLAYER_IDS, mapOf("disconnectedPlayerIds" to listOf("grace")))
+    }
+
+    @Test
+    @Timeout(value = 4)
     fun `player can reconnect during category selection`() {
         game.startForTest()
 

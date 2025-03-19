@@ -1,11 +1,6 @@
 package com.game.main.ws
 
 import com.game.main.hitormiss.Game
-import com.game.main.ws.WsMessageType.ERROR
-import com.game.main.ws.WsMessageType.GAME_JOINABLE
-import com.game.main.ws.WsMessageType.USER_DISCONNECTED
-import com.game.main.ws.WsMessageType.USER_JOINED
-import com.game.main.ws.WsMessageType.USER_RECONNECTED
 import java.time.InstantSource
 import java.util.Collections
 import java.util.function.Consumer
@@ -29,10 +24,27 @@ class WebSocketConnections(private val messenger: WsMessenger, private val clock
     fun onOpen(ws: Websocket, game: Game, playerId: String?) {
         val gameId = game.gameId
         if (playerId == null) {
-            LOGGER.info("Adding anonymous connection for game $gameId")
-            val anonymousConnections = anonymousConnections.getOrPut(gameId) { Collections.synchronizedList(mutableListOf()) }
-            synchronized(anonymousConnections) {
-                anonymousConnections.add(ws)
+            if (!game.isStarted()) {
+                LOGGER.info("Adding anonymous connection for game $gameId")
+                val anonymousConnections = anonymousConnections.getOrPut(gameId) { Collections.synchronizedList(mutableListOf()) }
+                synchronized(anonymousConnections) {
+                    anonymousConnections.add(ws)
+                }
+            } else {
+                // If the game is already started, then reaching this point suggests that a disconnected player
+                // is trying to reconnect to an existing game.
+                // We send them a list of the disconnected player ids. If there's only one, they will automatically adopt that.
+                // Otherwise, they can choose their id from the list.
+                val gameConnections = identifiedConnections[gameId]
+                if (gameConnections != null) {
+                    val disconnectedPlayerIds = synchronized(gameConnections) {
+                        gameConnections.filter { it.second.isEmpty() }.map { it.first }
+                    }.distinct()
+                    if (disconnectedPlayerIds.isNotEmpty()) {
+                        LOGGER.info("Sending list of disconnected player ids $disconnectedPlayerIds to anonymous connection for game $gameId")
+                        messenger.send(ws, WsMessageType.DISCONNECTED_PLAYER_IDS, mapOf("disconnectedPlayerIds" to disconnectedPlayerIds))
+                    }
+                }
             }
         } else {
             val gameConnections = identifiedConnections.getOrPut(gameId) { Collections.synchronizedList(mutableListOf()) }
@@ -53,8 +65,8 @@ class WebSocketConnections(private val messenger: WsMessenger, private val clock
                         val broadcastTargets = synchronized(gameConnections) {
                             gameConnections.map { it.second }.flatten()
                         }
-                        messenger.broadcast(broadcastTargets, USER_RECONNECTED, playerId)
-                        messenger.send(ws, GAME_JOINABLE, game.gameStateForSerialization(clock))
+                        messenger.broadcast(broadcastTargets, WsMessageType.USER_RECONNECTED, playerId)
+                        messenger.send(ws, WsMessageType.GAME_JOINABLE, game.gameStateForSerialization(clock))
                     }
                     playerConnections.second.add(ws)
                 }
@@ -62,9 +74,9 @@ class WebSocketConnections(private val messenger: WsMessenger, private val clock
         }
 
         if (!game.isStarted()) {
-            messenger.send(ws, USER_JOINED, game.playerListForSerialization())
-        } else if (!game.hasPlayer(playerId)) {
-            messenger.send(ws, ERROR, "Game already started")
+            messenger.send(ws, WsMessageType.USER_JOINED, game.playerListForSerialization())
+        } else if (playerId != null && !game.hasPlayer(playerId)) {
+            messenger.send(ws, WsMessageType.ERROR, "Game already started, new players (such as you, $playerId) cannot join")
         }
     }
 
@@ -96,7 +108,7 @@ class WebSocketConnections(private val messenger: WsMessenger, private val clock
                     val broadcastTargets = synchronized(gameConnections) {
                         gameConnections.map { it.second }.flatten()
                     }
-                    messenger.broadcast(broadcastTargets, USER_DISCONNECTED, player)
+                    messenger.broadcast(broadcastTargets, WsMessageType.USER_DISCONNECTED, player)
                 }
             }
         }
@@ -133,7 +145,7 @@ class WebSocketConnections(private val messenger: WsMessenger, private val clock
             // If connections > players, then it means that each player has >1 websocket connection to the server.
             // For now, that seems to be fine. We can refactor the frontend to share a single websocket connection between components in the view
             //   at a later time if it becomes necessary.
-            LOGGER.warn("There are ${numConnections} websocket connections, but this gameId has ${game.countPlayers()} associated players.")
+            LOGGER.warn("There are $numConnections websocket connections, but this gameId has ${game.countPlayers()} associated players.")
         }
     }
 }

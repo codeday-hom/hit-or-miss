@@ -48,7 +48,7 @@ class GameWebSocketTest {
 
         testServer.connectWithError(rob, game)
 
-        rob.assertFirstReplyEquals(WsMessageType.ERROR, "Game already started")
+        rob.assertFirstReplyEquals(WsMessageType.ERROR, "Game already started, new players (such as you, rob) cannot join")
     }
 
     @Test

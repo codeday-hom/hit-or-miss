@@ -8,6 +8,9 @@ import org.http4k.server.Http4kServer
 import org.http4k.websocket.WsClient
 import org.http4k.websocket.WsMessage
 import org.junit.jupiter.api.Assertions
+import org.slf4j.LoggerFactory
+
+private val LOGGER = LoggerFactory.getLogger(WsMessenger::class.java.simpleName)
 
 class TestPlayer(private val name: String) {
 
@@ -15,8 +18,8 @@ class TestPlayer(private val name: String) {
     private lateinit var game: Game
     private lateinit var server: Http4kServer
 
-    private fun openConnection(server: Http4kServer, game: Game) {
-        client = WebsocketClient.blocking(Uri.of("ws://localhost:${server.port()}/${game.gameId}/$name"))
+    private fun openConnection(server: Http4kServer, game: Game, name: String? = this.name) {
+        client = WebsocketClient.blocking(Uri.of("ws://localhost:${server.port()}/ws/game/${game.gameId}${if (name != null) "/$name" else ""}"))
     }
 
     fun connect(server: Http4kServer, game: Game, skipConnectionAssertion: Boolean = false) {
@@ -57,5 +60,9 @@ class TestPlayer(private val name: String) {
 
     fun reconnect() {
         openConnection(server, game)
+    }
+
+    fun reconnectAnonymously() {
+        openConnection(server, game, null)
     }
 }

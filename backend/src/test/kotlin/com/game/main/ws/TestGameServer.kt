@@ -11,7 +11,10 @@ import org.http4k.server.asServer
 class TestGameServer(clock: InstantSource) {
 
     private val websocket = GameWebSocket(clock)
-    private var server = websockets("/{gameId}/{playerId}" bind websocket.handler()).asServer(Jetty(0))
+    private var server = websockets(
+        "/ws/game/{gameId}" bind websocket.handler(),
+        "/ws/game/{gameId}/{playerId}" bind websocket.handler()
+    ).asServer(Jetty(0))
 
     fun start() {
         server.start()
