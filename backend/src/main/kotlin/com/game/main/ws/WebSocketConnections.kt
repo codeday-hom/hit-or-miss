@@ -99,16 +99,16 @@ class WebSocketConnections(private val messenger: WsMessenger, private val clock
         }
         if (playerConnections != null) {
             synchronized(playerConnections) {
-                val player = playerConnections.first
+                val playerId = playerConnections.first
                 if (playerConnections.second.remove(ws)) {
-                    LOGGER.info("Connection for game $gameId of player $player has closed")
+                    LOGGER.info("Connection for game $gameId of player $playerId has closed")
                 }
                 if (playerConnections.second.isEmpty()) {
-                    LOGGER.info("Player $player has disconnected from game $gameId")
+                    LOGGER.info("Player $playerId has disconnected from game $gameId")
                     val broadcastTargets = synchronized(gameConnections) {
                         gameConnections.map { it.second }.flatten()
                     }
-                    messenger.broadcast(broadcastTargets, WsMessageType.USER_DISCONNECTED, player)
+                    messenger.broadcast(broadcastTargets, WsMessageType.USER_DISCONNECTED, playerId)
                 }
             }
         }
