@@ -178,7 +178,7 @@ class GameWebSocket(private val clock: InstantSource) {
     }
 
     private fun broadcastHitOrMissMessage(game: Game, hitOrMiss: DiceResult) {
-        broadcast(game, ROLL_DICE_HIT_OR_MISS, hitOrMiss.name.lowercase().replaceFirstChar { it.titlecaseChar() })
+        broadcast(game, ROLL_DICE_HIT_OR_MISS, hitOrMiss.name)
     }
 
     private fun broadcastSelectedWordMessage(game: Game, word: String) {

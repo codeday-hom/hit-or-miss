@@ -200,7 +200,7 @@ class GameWebSocketReconnectionTest {
         // Alice rolls the dice
         alice.send(WsMessageType.ROLL_DICE, emptyMap())
         val seededRandomDiceResultInt = 1
-        val seededRandomDiceResult = DiceResult.HIT.name.lowercase().replaceFirstChar { it.uppercase(Locale.getDefault()) }
+        val seededRandomDiceResult = DiceResult.HIT.name
         listOf(alice, zuno, grace).forEach { player ->
             player.assertFirstReplyEquals(WsMessageType.ROLL_DICE_RESULT, seededRandomDiceResultInt)
         }
@@ -252,7 +252,7 @@ class GameWebSocketReconnectionTest {
         // Alice rolls the dice
         alice.send(WsMessageType.ROLL_DICE, emptyMap())
         val seededRandomDiceResultInt = 1
-        val seededRandomDiceResult = DiceResult.HIT.name.lowercase().replaceFirstChar { it.uppercase(Locale.getDefault()) }
+        val seededRandomDiceResult = DiceResult.HIT.name
         listOf(alice, zuno, grace).forEach { player ->
             player.assertFirstReplyEquals(WsMessageType.ROLL_DICE_RESULT, seededRandomDiceResultInt)
         }

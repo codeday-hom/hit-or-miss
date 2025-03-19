@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import useGameWebSocket from "../websockets/useGameWebSocket";
 import "./Dice.css";
 import {WsMessageType} from "../websockets/WsMessageType";
+import {DiceResult} from "./DiceResult";
 
 export default function Dice(
   {
@@ -25,22 +26,17 @@ export default function Dice(
     }
   });
 
-  const sendHit = () => {
+  const sendDiceResult = (diceResult) => {
     sendMessage(JSON.stringify({
       gameId,
       player: clientPlayer,
       type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
-      data: {diceResult: "Hit"},
+      data: {diceResult: diceResult},
     }));
   };
-  const sendMiss = () => {
-    sendMessage(JSON.stringify({
-      gameId,
-      player: clientPlayer,
-      type: WsMessageType.ROLL_DICE_HIT_OR_MISS,
-      data: {diceResult: "Miss"}
-    }));
-  };
+  const sendHit = () => sendDiceResult(DiceResult.HIT)
+  const sendMiss = () => sendDiceResult(DiceResult.MISS)
+
   useEffect(() => {
     if (diceResult) {
       let randomSpin = 3 + Math.floor(Math.random() * 5);
@@ -115,12 +111,16 @@ export default function Dice(
 
   const handleWildcardOption = (hitOrMiss) => {
     setWildcardOption(false);
-    if (hitOrMiss === "Hit") {
+    if (hitOrMiss === DiceResult.HIT) {
       sendHit();
     } else {
       sendMiss();
     }
   };
+
+  function titlecase(s) {
+    return String(s).charAt(0).toUpperCase() + String(s).slice(1).toLowerCase();
+  }
 
   return (
     <div>
@@ -156,17 +156,15 @@ export default function Dice(
         <div>{currentPlayer} is rolling the dice...</div>
       )}
 
-      {displayHitOrMiss
-        ? <div className="dice-result">Result: ${hitOrMiss}</div>
-        : null}
+      {displayHitOrMiss && <div className="dice-result">Result: ${titlecase(hitOrMiss)}</div>}
 
       {wildcardOption && currentPlayer === clientPlayer && (
         <div className="wildcard">
           <div className="wildcard-content">
             <h2>Wildcard!</h2>
             <p>Hit or Miss?</p>
-            <button onClick={() => handleWildcardOption("Hit")}>Hit</button>
-            <button onClick={() => handleWildcardOption("Miss")}>Miss</button>
+            <button onClick={() => handleWildcardOption(DiceResult.HIT)}>Hit</button>
+            <button onClick={() => handleWildcardOption(DiceResult.MISS)}>Miss</button>
           </div>
         </div>
       )}
